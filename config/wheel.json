@@ -1,0 +1,10 @@
+{
+	"initAnimation": true,
+	"scrollAnimationDuration": 300,
+	"shadowAnimationDuration": 300,
+	"sectionsAnimationDuration": 300,
+	"sectionsHideTimeout": 5000,
+	"pointerMargin": 3,
+	"pointerColor": "#ffffff",
+	"pixmapScale": 30	
+}

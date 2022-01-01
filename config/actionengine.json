@@ -1,0 +1,30 @@
+{
+	"commandActions": [
+		{"name": "wheelUp", "description": "Scroll the wheel up", "type": "wheel"},
+		{"name": "wheelDown", "description": "Scroll the wheel down", "type": "wheel"},
+		{"name": "wheelSelect", "description": "Select the wheel module", "type": "wheel"},
+		{"name": "wheelOpen", "description": "Open the wheel panel", "type": "wheel"},
+		{"name": "wheelQuickUp", "description": "Quickly scroll the wheel up", "type": "wheel"},
+		{"name": "wheelQuickDown", "description": "Quickly scroll the wheel down", "type": "wheel"},
+		{"name": "scrollUp", "description": "Scroll up", "type": "module"},
+		{"name": "scrollDown", "description": "Scroll down", "type": "module"},
+		{"name": "keyAction1", "description": "Keypress 1", "type": "module"},
+		{"name": "keyAction2", "description": "Keypress 2", "type": "module"},
+		{"name": "scrollUp2", "description": "Scroll up 2", "type": "module"},
+		{"name": "scrollDown2", "description": "Scroll down 2", "type": "module"}
+	],
+	"commandBind": {
+		"button1": [
+			{"command": "sw_btn_click", "actions": [{"action": "wheelSelect", "mode": "wheel", "repeat": 0, "checkState": true}, {"action": "keyAction1", "mode": "module", "checkState": true}]},
+			{"command": "sw_btn_doubleclick", "actions": [{"action": "wheelOpen", "mode": "wheel", "onState": "module", "checkState": true}]}
+		],
+		"encoder1": [
+			{"command": "enc1_scroll up", "actions": [{"action": "wheelUp", "mode": "wheel", "checkState": true}, {"action": "scrollUp", "mode": "module", "checkState": true}]},
+			{"command": "enc1_scroll down", "actions": [{"action": "wheelDown", "mode": "wheel", "checkState": true}, {"action": "scrollDown", "mode": "module", "checkState": true}]},
+			{"command": "enc1_hold_scroll up", "actions": [{"action": "wheelUp", "mode": "wheel", "checkState": true}, {"action": "wheelQuickUp", "mode": "wheel", "onState": "module", "checkState": true}]},
+			{"command": "enc1_hold_scroll down", "actions": [{"action": "wheelDown", "mode": "wheel", "checkState": true}, {"action": "wheelQuickDown", "mode": "wheel", "onState": "module", "checkState": true}]},
+			{"command": "enc1_doubleclick_scroll up", "actions": [{"action": "wheelUp", "mode": "wheel", "checkState": true}, {"action": "scrollUp2", "mode": "module", "checkState": true}]},
+			{"command": "enc1_doubleclick_scroll down", "actions": [{"action": "wheelDown", "mode": "wheel", "checkState": true}, {"action": "scrollUp2", "mode": "module", "checkState": true}]}
+		]
+	}
+}

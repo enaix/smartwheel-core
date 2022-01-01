@@ -1,0 +1,35 @@
+{
+	"icon_path": "media.png",
+	"icons": ["play.png", "pause.png"],
+	"actions": {
+		"scrollUp": [
+			{"action": "keyPress", "type": "updown", "key": "XF86AudioRaiseVolume", "key_class": "xdotool", "repeat": 0, "comment": "Volume up"}
+		],
+		"scrollDown": [
+			{"action": "keyPress", "type": "updown", "key": "XF86AudioLowerVolume", "key_class": "xdotool", "repeat": 0, "comment": "Volume down"}
+		],
+		"keyAction1": [
+			{"action": "keyPress", "type": "updown", "key": "XF86AudioPlay", "key_class": "xdotool", "repeat": 0, "comment": "Play/pause on click"}
+		],
+		"keyAction2": [
+			{"action": "keyPress", "type": "updown", "key": "XF86AudioNext", "key_class": "special", "repeat": 0, "comment": "Second track on double click/hold"}
+		],
+		"scrollUp2": [
+			{"action": "keyPress", "type": "updown", "key": "XF86AudioNext", "key_class": "special", "repeat": 0, "comment": "Play the next track"}
+		],
+		"scrollDown2": [
+			{"action": "keyPress", "type": "updown", "key": "XF86AudioPrev", "key_class": "special", "repeat": 0, "comment": "Play the prevoius track"}
+		]
+	},
+	"style": {
+		"textHeaderColor": "#ffffff",
+		"textHeaderFont": "Ubuntu",
+		"textHeaderSize": 14,
+		"bottomTextColor": "#cccccc",
+		"bottomTextFont": "Ubuntu",
+		"bottomTextSize": 12,
+		"seekTextColor": "#cccccc",
+		"seekTextFont": "Ubuntu",
+		"seekTextSize": 14
+	}
+}

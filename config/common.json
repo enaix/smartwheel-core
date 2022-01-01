@@ -1,0 +1,12 @@
+{
+	"iconsFolder": "icons/default",
+	"selectionAngle": 225,
+	"bgWheelColor": "#171717",
+	"wheelTextureColor": "#404040",
+	"selectionWheelBG": "#171717",
+	"selectionWheelFG": "#cccccc",
+	"isWheelWidthFixed": false,
+	"fixedWheelWidth": 100,
+	"drawWheelCircle": true,
+	"selectionWheelEntries": 10
+}

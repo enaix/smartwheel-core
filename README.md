@@ -1,0 +1,3 @@
+# smrtwheel-core
+
+Smartwheel GUI

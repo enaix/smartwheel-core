@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=SmartWheel
+X-Python-2-Compatible=false
+Name=SmartWheel
+Comment=SmartWheel Krita integration
