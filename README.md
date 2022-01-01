@@ -28,28 +28,28 @@ I've started working on this project a while ago, but it turned out that it's to
 
 ## Features progress
 
-[x] Base structure (Plugins manager)
-[x] Action engine
-    [x] Keyboard bindings
-    [ ] Serial encoder integration (Partial)
-    [ ] UX Features (acceleration)
-    [ ] Legacy knobs support
-[ ] Settings editor
-[x] Folders support (Partial)
-[x] Wheel UI
-[ ] Addons
-    [x] Media
-    [x] Color picker
-    [ ] Files (Initial)
-    [ ] Rotate
-    [ ] Other ...
-[x] Krita integration (Partial)
-    [x] Color (Bugs)
-    [ ] Canvas rotate/scale
-    [ ] Brush
-    [ ] ...
-[ ] Photoshop integration (?)
-[ ] Serial display (?)
+- [x] Base structure (Plugins manager)
+- [x] Action engine
+      - [x] Keyboard bindings
+      - [ ] Serial encoder integration (Partial)
+      - [ ] UX Features (acceleration)
+      - [ ] Legacy knobs support
+- [ ] Settings editor
+- [x] Folders support (Partial)
+- [x] Wheel UI
+- [ ] Addons
+      - [x] Media
+      - [x] Color picker
+      - [ ] Files (Initial)
+      - [ ] Rotate
+      - [ ] Other ...
+- [x] Krita integration (Partial)
+      - [x] Color (Bugs)
+      - [ ] Canvas rotate/scale
+      - [ ] Brush
+      - [ ] ...
+- [ ] Photoshop integration (?)
+- [ ] Serial display (?)
 
 ## DIY knob
 
