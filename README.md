@@ -60,4 +60,4 @@ If you don't have a standalone dial, you may 3D print one: there is a Freecad mo
 
 ## Gallery
 
-TODO upload images
+Short video (sorry for the poor quality): /extra/smartwheel.mp4
