@@ -11,7 +11,7 @@ class UIElem(BaseUIElem):
         self.config_file = config_file
         self.loadConfig()
         self.conf = {**self.conf, **WConfig}
-        self.icon_path = None#self.conf["icon_path"]
+        self.icon_path = self.conf.get("icon_path", None)
         self.initGUI()
         self.initWidthAnimation()
 

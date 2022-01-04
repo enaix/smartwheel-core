@@ -1,4 +1,5 @@
 {
+	"icon_path": "hue.png",
 	"roundIconPath": "round.png",
 	"colorDotLightnessThreshold": 100,
 	"colorDotDarkStrokeColor": "#000000",
