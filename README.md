@@ -1,3 +1,5 @@
+![smartwheel core](/extra/banner.png)
+
 # Smartwheel Core
 
 A powerful keyboard knob controller with GUI
