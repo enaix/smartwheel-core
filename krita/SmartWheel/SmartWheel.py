@@ -85,13 +85,23 @@ class WheelExtension(Extension):
         #r, g, b = [0.9862973983367667, 0.18240634775310902, 0.0019378957808804456]
         #r, g, b = *color
         #_, r, g, b = rgb.qRgb()
+        cur_view = self.app.activeWindow().activeView()
         
-        mc = ManagedColor("RGBA", "F32", "")
+        #mc = ManagedColor("RGBA", "F32", "")
+        
+        mc = cur_view.foregroundColor()
+        space = mc.colorModel()
+        profile = mc.colorProfile()
+        
+        if not space == "RGBA": # Convert image to RGBA
+            mc.setColorSpace("RGBA", "F32", profile)
+
         comp = mc.components()
-        comp[0] = color[2]
+        comp[0] = color[2] # Could be swapped!
         comp[1] = color[1]
-        comp[2] = color[0]
+        comp[2] = color[0] # ditto
         mc.setComponents(comp)
+
         return mc
 
     def setKritaColor(self, color):
