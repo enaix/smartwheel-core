@@ -26,7 +26,7 @@ Smartwheel is fully customizable (you can even create any keybinds if you want)
 
 ## We need your help!
 
-I've started working on this project a while ago, but it turned out that it's too big: it won't be possible to finish it without your help. However, it's much easier to implement features one-by-one: you only need basic Python3 (and sometimes PyQt5) knowledge. If you believe in this project and want to contribute, please DM me in Telegram (@sandwich_eater), I may miss activity from Github. Even small fixes, ideas or suggestions are very important.
+I've started working on this project a while ago, but it turned out that it's too big: it won't be possible to finish it without your help. However, it's much easier to implement features one-by-one: you only need basic Python3 (and sometimes PyQt5) knowledge. If you believe in this project and want to contribute, please DM me. Even small fixes, ideas or suggestions are very important.
 
 ## Features progress
 
