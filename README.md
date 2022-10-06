@@ -47,7 +47,7 @@ I've started working on this project a while ago, but it turned out that it's to
   - [ ] Rotate
   - [ ] Other ...
 - [x] Krita integration (Partial)
-  - [x] Color (Bugs)
+  - [x] Color
   - [ ] Canvas rotate/scale
   - [ ] Brush
   - [ ] ...
