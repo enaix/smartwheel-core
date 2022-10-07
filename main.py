@@ -68,7 +68,7 @@ class RootWindow(QMainWindow):
             self.rc.ae.action("keyAction1")
         elif event.key() == QtCore.Qt.Key_Q:
             self.hide()
-            QtCore.QTimer.singleShot(1000, self.show)
+            QtCore.QTimer.singleShot(1000, self.show) # Hide example
         elif event.key() == QtCore.Qt.Key_Escape:
             sys.exit(0)
         self.update()
@@ -83,21 +83,6 @@ class RootWindow(QMainWindow):
 def main():
     root = RootWindow()
     sys.exit(root.app.exec_())
-    #root.loadClasses()
-    #root.draw()
-    """
-    w = QWidget()
-    
-    w.setAutoFillBackground(True)  
-    w.setAttribute(QtCore.Qt.WA_TranslucentBackground, 100)
-    p = w.palette()
-    p.setColor(w.backgroundRole(), QtCore.Qt.black)
-    w.setPalette(p)
-    w.setWindowTitle("Hello World!")
-    w.show()
-
-    sys.exit(app.exec_())
-    """
 
 
 if __name__ == "__main__":

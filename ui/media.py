@@ -96,3 +96,5 @@ class UIElem(BaseUIElem):
         self.drawHeaderText(qp, track)
         self.drawBottomText(qp, artist)
         self.drawTrackSeek(qp, start, end)
+
+    # TODO add another update loop
