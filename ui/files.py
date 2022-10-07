@@ -51,7 +51,7 @@ class UIElem(BaseUIElem):
 
     def draw_file(self, x, y, f):
         self.parent().qp.drawImage(QPoint(x, y),f["conf"]["pixmap"])
-        self.parent().qp.drawText(x + self.conf["iconWidth"], y, self.conf["maxTextWidth"], self.conf["iconWidth"]), Qt.AlignCenter, f["filename"])
+        self.parent().qp.drawText((x + self.conf["iconWidth"], y, self.conf["maxTextWidth"], self.conf["iconWidth"]), Qt.AlignCenter, f["filename"])
 
     def load_selection_icons(self):
         pass
@@ -62,8 +62,8 @@ class UIElem(BaseUIElem):
         bottom_right = QPoint(self.parent().getX(self.conf["selectionAngle"], circleWidth + self.conf["iconWidth"] * 2 + self.conf["maxTextWidth"]))
         # TODO set qbrush
         self.qp.drawRect(top_left, bottom_right)
-        self.parent().qp.drawImage(top_left, QPoint(self.parent().getY(self.conf["selectionAngle"], circleWidth - self.conf["iconWidth"])), self.left_arrow_icon))
-        self.parent().qp.drawImage(bottom_right, QPoint(self.parent().getY(self.conf["selectionAngle"], circleWidth + self.conf["iconWidth"])), self.right_arrow_icon))
+        self.parent().qp.drawImage((top_left, QPoint(self.parent().getY(self.conf["selectionAngle"], circleWidth - self.conf["iconWidth"])), self.left_arrow_icon))
+        self.parent().qp.drawImage((bottom_right, QPoint(self.parent().getY(self.conf["selectionAngle"], circleWidth + self.conf["iconWidth"])), self.right_arrow_icon))
         # TODO calculate max text width and draw right arrow
         pass
 

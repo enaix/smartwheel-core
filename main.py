@@ -25,7 +25,6 @@ class WConfig():
         c_canvas["corner_x"] = self.c["window"]["padding"]
         c_canvas["corner_y"] = self.c["window"]["padding"]
 
-conf = WConfig()
 
 class RootWindow(QMainWindow):
     def __init__(self):
@@ -86,5 +85,6 @@ def main():
 
 
 if __name__ == "__main__":
+    conf = WConfig()
     main()
 
