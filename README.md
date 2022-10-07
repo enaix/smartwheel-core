@@ -28,6 +28,16 @@ Smartwheel is fully customizable (you can even create any keybinds if you want)
 
 I've started working on this project a while ago, but it turned out that it's too big: it won't be possible to finish it without your help. However, it's much easier to implement features one-by-one: you only need basic Python3 (and sometimes PyQt5) knowledge. If you believe in this project and want to contribute, please DM me. Even small fixes, ideas or suggestions are very important.
 
+## Release 0.0.1
+
+- [x] Stable version (Linux)
+- [ ] Documentation (in progress)
+- [ ] Examples
+- [ ] Initial encoders support (Linux)
+- [ ] Refactor api
+- [ ] Settings menu (?)
+- [ ] Windows support (?)
+
 ## Features progress
 
 - [x] Base structure (Plugins manager)
