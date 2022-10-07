@@ -32,7 +32,7 @@ I've started working on this project a while ago, but it turned out that it's to
 
 - [x] Stable version (Linux)
 - [ ] Documentation (in progress)
-- [ ] Examples
+- [ ] Examples (in progress)
 - [ ] Initial encoders support (Linux)
 - [ ] Refactor api
 - [ ] Settings menu (?)

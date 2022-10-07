@@ -7,7 +7,7 @@ import weakref
 
 class ActionEngine(QObject):
     """Modules and wheel interactions interface"""
-    callAction = pyqtSignal(tuple)
+    callAction = pyqtSignal(tuple, name="action_call")
 
     def __init__(self, modules, config_file):
         """
