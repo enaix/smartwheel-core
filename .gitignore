@@ -158,3 +158,6 @@ cython_debug/
 
 # Sphinx build
 _build
+
+# Pycharm
+.idea

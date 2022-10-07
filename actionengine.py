@@ -4,6 +4,7 @@ import os
 import importlib
 import weakref
 
+
 class ActionEngine(QObject):
     """Modules and wheel interactions interface"""
     callAction = pyqtSignal(tuple)

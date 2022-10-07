@@ -3,7 +3,10 @@ from PyQt5.QtCore import *
 import serial
 import json
 
+
 class SConn(ConnPipe):
+    """Default serial connection interface (compatible with pico)"""
+
     def __init__(self, config_file, call_signal):
         super().__init__()
         self.config_file = config_file
@@ -18,7 +21,15 @@ class SConn(ConnPipe):
         pass
 
     def serialCall(self, string):
-        #l = string.split()
+        """
+        Parse serial call from string
+
+        Parameters
+        ----------
+        string
+            Command from serial
+        """
+        # l = string.split()
         string = string.decode("utf-8").strip()
         print(string)
         if string == '':
@@ -34,6 +45,9 @@ class SConn(ConnPipe):
                     self.call.emit(c)
 
     def run(self):
+        """
+        Reads for serial data from device and executes actions
+        """
         # TODO move to another module
         tm = None
         if self.conf["useTimeout"]:
@@ -45,4 +59,3 @@ class SConn(ConnPipe):
         except BaseException as e:
             print(e)
             return
-

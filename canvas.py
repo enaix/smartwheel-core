@@ -8,17 +8,21 @@ from actionengine import ActionEngine
 from serialpipe.serial import SConn
 import weakref
 
-class MList(list):
-    def __init__(self):
-        super().__init__()
 
-class MDict(dict):
-    #def __init__(self):
-    #    super().__init__()
+class MList(list):
+    """Overloaded list class to store modules. Used to work with weakref"""
     pass
 
-class RootCanvas():
+
+class MDict(dict):
+    """Overloaded dict class that represents a module. Uses weakref"""
+    pass
+
+
+class RootCanvas:
+    """Main canvas class, manages wheel modules"""
     def __init__(self, WConfig, update_func):
+        self.common_config = None
         self.conf = WConfig
         self.update_func = update_func
         self.loadCommonConf()
@@ -44,6 +48,7 @@ class RootCanvas():
             os.exit(1)
 
     def loadModules(self):
+        """load modules from the directory"""
         for i in self.conf["modulesLoad"]:
             self.conf["modules"][i]["class"] = self.importModule(self.conf["modules"][i])
 
@@ -69,7 +74,7 @@ class RootCanvas():
                 mod = MDict(mod_dict)
             if parent_mod is not None:
                 mod["parent"] = weakref.ref(parent_mod)
-            #elif mod is None:
+            # elif mod is None:
             #    print("Error importing module ", mod["name"], ": No such module. Aborting...",sep="")
             #    return 1
             mod_class = self.loadWheelModule(mod)
@@ -93,25 +98,26 @@ class RootCanvas():
         else:
             ui = mod.UIElem("", module)
         module["class"] = ui
-        #self.pixmap = QImage(self.module["class"].icon_path)
+        # self.pixmap = QImage(self.module["class"].icon_path)
         return module
 
     def reloadWheelModules(self, is_up, caller=None):
         if is_up:
             if caller["parent"] is not None:
                 self.cur_wheel_modules = caller["parent"]()
-                #return caller["parent"]()
-            #return None
+                # return caller["parent"]()
+            # return None
         else:
             self.cur_wheel_modules = caller["modules"]
-            #return caller["modules"]
+            # return caller["modules"]
         self.conf["modules"][0]["class"].reloadModules(self.cur_wheel_modules)
 
     def loadInternalModules(self):
         self.conf["internal"] = {}
         for i in range(len(self.conf["internalModules"])):
             mod = self.conf["internalModules"][i]
-            mod_class = importlib.import_module(mod["name"]).Internal({**self.conf, **self.common_config}, mod.get("config", None))
+            mod_class = importlib.import_module(mod["name"]).Internal({**self.conf, **self.common_config},
+                                                                      mod.get("config", None))
             self.conf["internal"][mod_class.name] = {"class": mod_class, "signals": mod_class.getSignals()}
 
     def startInternalModules(self):
@@ -119,6 +125,9 @@ class RootCanvas():
             self.conf["internal"][i]["class"].start()
 
     def getCurModList(self):
+        """
+        Get current wheel modules
+        """
         return self.cur_wheel_modules
 
     def getWheelModule(self):
@@ -135,6 +144,9 @@ class RootCanvas():
         self.ae.wheel = weakref.ref(self.conf["modules"][0]["class"])
 
     def loadSerial(self):
+        """
+        Initialize serial connection
+        """
         # TODO move to different module
         # TODO add serial.tools.miniterm in settings
         # TODO add try/except validation
@@ -145,11 +157,19 @@ class RootCanvas():
             print(e)
 
     def draw(self, qp):
-        #for i in self.conf["modulesLoad"]:
+        """
+        Main draw function
+
+        Parameters
+        ----------
+        qp
+            QPainter object
+        """
+        # for i in self.conf["modulesLoad"]:
         #    self.conf["modules"][i]["class"].draw(qp)
-        self.conf["modules"][0]["class"].draw(qp) # render wheel
+        self.conf["modules"][0]["class"].draw(qp)  # render wheel
         m = self.getWheelModule()
-        if self.conf["modules"][0]["class"].is_anim_running or (m is not None and hasattr(m["class"], "is_anim_running") and m["class"].is_anim_running):
+        if self.conf["modules"][0]["class"].is_anim_running or (
+                m is not None and hasattr(m["class"], "is_anim_running") and m["class"].is_anim_running):
             time.sleep(0.01)
             self.update_func()
-
