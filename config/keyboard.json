@@ -1,0 +1,15 @@
+{
+    "binds": [
+      {
+        "name": "keyboard1",
+        "commands": [
+          {"string": "w"},
+          {"string": "a"},
+          {"string": "up"},
+          {"string": "down"},
+          {"string": "return"},
+          {"string": "esc"}
+        ]
+      }
+    ]
+}

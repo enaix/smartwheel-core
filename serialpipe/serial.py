@@ -9,6 +9,7 @@ class SConn(ConnPipe):
 
     def __init__(self, config_file, call_signal):
         super().__init__()
+        self.conf = None
         self.config_file = config_file
         self.call = call_signal
         self.loadConfig()
@@ -16,9 +17,6 @@ class SConn(ConnPipe):
     def loadConfig(self):
         with open(self.config_file, "r") as f:
             self.conf = json.load(f)
-
-    def call_action(self, cmd, state):
-        pass
 
     def serialCall(self, string):
         """

@@ -151,6 +151,8 @@ class ActionEngine(QObject):
                             for _ in range(1 + a.get("repeat", 0)):
                                 self.wheel_actions[cmd["type"]].run(cmd["name"], self.canvas, weakref.ref(self))
                 self.canvas().update_func()
+        else:
+            print("Warn: actionengine could not parse call with empty name")
 
     def loadModulesConf(self, conf):
         self.modules.append(conf)

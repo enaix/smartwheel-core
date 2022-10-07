@@ -5,7 +5,6 @@ import time
 import json
 import os
 from actionengine import ActionEngine
-from serialpipe.serial import SConn
 import weakref
 
 
@@ -37,7 +36,7 @@ class RootCanvas:
         self.loadModules()
         self.tick = 0
         self.loadActionEngine()
-        self.loadSerial()
+        #self.loadSerial()
 
     def loadCommonConf(self):
         try:
@@ -143,19 +142,6 @@ class RootCanvas:
         self.ae.canvas = weakref.ref(self)
         self.ae.wheel = weakref.ref(self.conf["modules"][0]["class"])
 
-    def loadSerial(self):
-        """
-        Initialize serial connection
-        """
-        # TODO move to different module
-        # TODO add serial.tools.miniterm in settings
-        # TODO add try/except validation
-        try:
-            self.sc = SConn("config/serial.json", self.ae.callAction)
-            self.sc.start()
-        except BaseException as e:
-            print(e)
-
     def draw(self, qp):
         """
         Main draw function
@@ -172,4 +158,4 @@ class RootCanvas:
         if self.conf["modules"][0]["class"].is_anim_running or (
                 m is not None and hasattr(m["class"], "is_anim_running") and m["class"].is_anim_running):
             time.sleep(0.01)
-            self.update_func()
+            self.update_func()  # TODO add another update event

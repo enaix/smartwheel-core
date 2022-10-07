@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QThread
 
+
 class ConnPipe(QThread):
     def __init__(self):
         super().__init__()
@@ -10,4 +11,3 @@ class ConnPipe(QThread):
 
     def __del__(self):
         self.wait()
-

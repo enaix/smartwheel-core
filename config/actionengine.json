@@ -25,6 +25,14 @@
 			{"command": "enc1_hold_scroll down", "actions": [{"action": "wheelDown", "mode": "wheel", "checkState": true}, {"action": "wheelQuickDown", "mode": "wheel", "onState": "module", "checkState": true}]},
 			{"command": "enc1_doubleclick_scroll up", "actions": [{"action": "wheelUp", "mode": "wheel", "checkState": true}, {"action": "scrollUp2", "mode": "module", "checkState": true}]},
 			{"command": "enc1_doubleclick_scroll down", "actions": [{"action": "wheelDown", "mode": "wheel", "checkState": true}, {"action": "scrollUp2", "mode": "module", "checkState": true}]}
+		],
+		"keyboard1": [
+			{"command": "w", "actions": [{"action": "wheelUp", "mode": "wheel", "checkState": true}, {"action": "wheelQuickUp", "mode": "wheel", "onState": "module", "checkState": true}]},
+			{"command": "a", "actions": [{"action": "wheelDown", "mode": "wheel", "checkState": true}, {"action": "wheelQuickDown", "mode": "wheel", "onState": "module", "checkState": true}]},
+			{"command": "up", "actions": [{"action": "wheelUp", "mode": "wheel", "checkState": true}, {"action": "scrollUp", "mode": "module", "checkState": true}]},
+			{"command": "down", "actions": [{"action": "wheelDown", "mode": "wheel", "checkState": true}, {"action": "scrollDown", "mode": "module", "checkState": true}]},
+			{"command": "enter", "actions": [{"action": "wheelSelect", "mode": "wheel", "repeat": 0, "checkState": true}, {"action": "keyAction1", "mode": "module", "checkState": true}]},
+			{"command": "esc", "actions": [{"action": "wheelOpen", "mode": "wheel", "onState": "module", "checkState": true}]}
 		]
 	}
 }
