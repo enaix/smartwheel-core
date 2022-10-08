@@ -38,7 +38,6 @@ class KeyboardPipe(ConnPipe):
         Keypress handler, called from main thread
         """
         if event.key() == Qt.Key_W:
-            print("w key pressed")
             self.call.emit(self.findKey("w"))
         elif event.key() == Qt.Key_A:
             self.call.emit(self.findKey("a"))
