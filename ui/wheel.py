@@ -7,7 +7,8 @@ import importlib
 import os
 import weakref
 
-class Section():
+
+class Section:
     def __init__(self, start_angle, end_angle, parent, module=None):
         self.start_angle = start_angle
         self.end_angle = end_angle
@@ -24,11 +25,11 @@ class Section():
             self.scale_pixmap()
 
     def load_module(self):
-        #mod = importlib.import_module(self.module["name"])
-        #ui = mod.UIElem(self.module["config"], self.parent.conf)
-        #self.module["class"] = ui
+        # mod = importlib.import_module(self.module["name"])
+        # ui = mod.UIElem(self.module["config"], self.parent.conf)
+        # self.module["class"] = ui
         if self.module["class"].icon_path is None:
-            self.pixmap = None #QImage(os.path.join(self.parent().conf["iconsFolder"], "folder.png"))
+            self.pixmap = None  # QImage(os.path.join(self.parent().conf["iconsFolder"], "folder.png"))
         else:
             self.pixmap = QImage(os.path.join(self.parent().conf["iconsFolder"], self.module["class"].icon_path))
 
@@ -69,16 +70,20 @@ class Section():
         self.update_vars()
         x1, x2, y1, y2 = self.calculate_coords(self.end_angle + self.delta, start_w, end_w)
 
-        xa1, xa2, ya1, ya2 = self.calculate_coords(self.start_angle + self.delta, start_w + self.parent().conf["pixmapScale"], end_w)
+        xa1, xa2, ya1, ya2 = self.calculate_coords(self.start_angle + self.delta,
+                                                   start_w + self.parent().conf["pixmapScale"], end_w)
 
-        xb1, xb2, yb1, yb2 = self.calculate_coords(self.end_angle + self.delta, start_w + self.parent().conf["pixmapScale"], end_w)
+        xb1, xb2, yb1, yb2 = self.calculate_coords(self.end_angle + self.delta,
+                                                   start_w + self.parent().conf["pixmapScale"], end_w)
 
         brush = QBrush()
         pen = QPen(QColor(self.parent().conf["selectionWheelFG"]), 1, Qt.SolidLine)
         qp.setBrush(brush)
         qp.setPen(pen)
         qp.drawLine(QPointF(x1, y1), QPointF(x2, y2))
-        self.draw_icon(((xa1+xa2)//2 + (xb1+xb2)//2)//2 - self.parent().conf["pixmapScale"]//2, ((ya1+ya2)//2 + (yb1+yb2)//2)//2 - self.parent().conf["pixmapScale"]//2)
+        self.draw_icon(((xa1 + xa2) // 2 + (xb1 + xb2) // 2) // 2 - self.parent().conf["pixmapScale"] // 2,
+                       ((ya1 + ya2) // 2 + (yb1 + yb2) // 2) // 2 - self.parent().conf["pixmapScale"] // 2)
+
 
 class UIElem(BaseUIElem):
     def __init__(self, config_file, WConfig, modules, force_update):
@@ -125,7 +130,7 @@ class UIElem(BaseUIElem):
         # Draw selection wheel
         width = self.conf["width"]
         height = self.conf["height"]
-        
+
         pen = QPen(QColor(self.conf["selectionWheelFG"]), 1, Qt.SolidLine)
         brush = QBrush(QColor(self.conf["selectionWheelBG"]))
         self.qp.setBrush(brush)
@@ -142,7 +147,7 @@ class UIElem(BaseUIElem):
             self.cur_section = (self.cur_section + 1) % len(self.sections)
         self.sections[self.cur_section].is_selected = True
         self.sections[old_selection].is_selected = False
-    
+
     def processKey(self, up):
         self.scrollModule(up)
 
@@ -156,13 +161,13 @@ class UIElem(BaseUIElem):
         else:
             self.sections_timer.start(self.conf["sectionsHideTimeout"] + self.conf["sectionsAnimationDuration"])
         self.showSections()
-        #self.sections_timer.singleShot(self.conf["sectionsHideTimeout"] + self.conf["sectionsAnimationDuration"], self.hideSections)
-        #self.startSectionsAnimation(True)
+        # self.sections_timer.singleShot(self.conf["sectionsHideTimeout"] + self.conf["sectionsAnimationDuration"], self.hideSections)
+        # self.startSectionsAnimation(True)
 
     def openWheel(self):
         self.sections_timer.stop()
         self.showSections()
-    
+
     def selectModule(self):
         self.sections_timer.stop()
         self.hideSections()
@@ -186,22 +191,24 @@ class UIElem(BaseUIElem):
     def initSections(self):
         self.delta = 360 // self.conf["selectionWheelEntries"]
         self._angle = self.conf["selectionAngle"]
-        self.sections = [Section(self.delta*i + self.conf["selectionAngle"] - self.delta//4, self.delta*i + self.delta + self.conf["selectionAngle"] - self.delta//4, self, self.getModule(i)) for i in range(self.conf["selectionWheelEntries"])]
+        self.sections = [Section(self.delta * i + self.conf["selectionAngle"] - self.delta // 4,
+                                 self.delta * i + self.delta + self.conf["selectionAngle"] - self.delta // 4, self,
+                                 self.getModule(i)) for i in range(self.conf["selectionWheelEntries"])]
         self.sections[0].is_selected = True
         self.cur_section = 0
 
     def resetUI(self):
         for i in range(len(self.sections)):
             self.sections[i].is_selected = False
-        self.sections[i].is_selected = True
+        self.sections[0].is_selected = True
         self.cur_section = 0
 
         self.sections_timer.stop()
 
         self.is_scroll_anim_running = False
         self.anim.stop()
-        #self.is_shadow_anim_running = False
-        #self.shadow_anim.stop()
+        # self.is_shadow_anim_running = False
+        # self.shadow_anim.stop()
         self.is_sections_anim_running = False
         self.sections_anim.stop()
 
@@ -209,7 +216,7 @@ class UIElem(BaseUIElem):
         self.anim_angle = self._angle
         self._sections_pos = 0
         self._opacity = 0
-        
+
         self.global_shadow = True
         self.startShadowAnimation()
 
@@ -232,6 +239,7 @@ class UIElem(BaseUIElem):
         self.anim_end = self.anim_angle + self.delta
         self.anim = QPropertyAnimation(self, b"prop_angle")
         self.anim.setDuration(self.conf["scrollAnimationDuration"])
+        self.anim.setEasingCurve(QEasingCurve.InOutQuad)
 
     def startAnimation(self, up, a=None):
         self.is_scroll_anim_running = True
@@ -258,7 +266,12 @@ class UIElem(BaseUIElem):
             return
         pen = QPen(QColor(self.conf["wheelTextureColor"]))
         self.qp.setPen(pen)
-        brush = QBrush(QColor("#" + str(hex(self._opacity).split('x')[-1].zfill(2)) + self.conf["bgWheelColor"][1:]))
+        opac = str(hex(self._opacity).split('x')[-1].zfill(2))  # TODO reformat this code
+        brush = QBrush(QColor("#" + opac + self.conf["bgWheelColor"][1:]))
+        self.qp.setBrush(brush)
+        self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
+        brush = QBrush(QColor("#" + opac + self.conf["wheelTextureColor"][1:]),
+                       Qt.BDiagPattern)
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
 
@@ -279,7 +292,7 @@ class UIElem(BaseUIElem):
         self.shadow_anim.setKeyValueAt(0, self.shadow_anim_start)
         self.shadow_anim.setKeyValueAt(mid_key, self.shadow_anim_start)
         self.shadow_anim.setKeyValueAt(1, self.shadow_anim_end)
-        #self.shadow_anim.setEndValue(self.shadow_anim_end)
+        # self.shadow_anim.setEndValue(self.shadow_anim_end)
         self.shadow_anim.setDuration(int(dur))
         self.shadow_anim.start()
         self.is_shadow_anim_running = True
@@ -290,8 +303,8 @@ class UIElem(BaseUIElem):
         self.sections_anim_start = 0
         self.sections_timer = QTimer()
         self.sections_timer.setSingleShot(True)
-        #self.sections_timer.setInterval(self.conf["sectionsHideTimeout"])
-        #self.sections_timer.singleShot(self.conf["sectionsHideTimeout"], self.hideSections)
+        # self.sections_timer.setInterval(self.conf["sectionsHideTimeout"])
+        # self.sections_timer.singleShot(self.conf["sectionsHideTimeout"], self.hideSections)
         self.sections_timer.timeout.connect(self.hideSections)
         self.sections_timer.start(self.conf["sectionsHideTimeout"])
         if self.conf["isWheelWidthFixed"]:
@@ -328,13 +341,17 @@ class UIElem(BaseUIElem):
         pen = QPen(QColor(self.conf["pointerColor"]), 3, Qt.SolidLine)
         self.qp.setPen(pen)
         # draw pointer
-        self.qp.drawArc(self.conf["corner_x"]-self.conf["pointerMargin"], self.conf["corner_y"]-self.conf["pointerMargin"], self.conf["width"]+self.conf["pointerMargin"], self.conf["height"]+self.conf["pointerMargin"], - 90*16 + self.conf["selectionAngle"]*16 + (self.delta//4)*16, - self.delta*16)
-        #p = QPalette()
-        #gradient = QConicalGradient(self.conf["cx"], self.conf["cy"], self.conf["selectionAngle"])
-        #gradient.setColorAt(0.0, QColor.fromHsv(0, 0, 255))
-        #gradient.setColorAt(1.0, QColor.fromHsv(255, 0, 255))
-        #self.qp.setBrush(QBrush(gradient))
-        #self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 3, cw // 3)
+        self.qp.drawArc(self.conf["corner_x"] - self.conf["pointerMargin"],
+                        self.conf["corner_y"] - self.conf["pointerMargin"],
+                        self.conf["width"] + self.conf["pointerMargin"],
+                        self.conf["height"] + self.conf["pointerMargin"],
+                        - 90 * 16 + self.conf["selectionAngle"] * 16 + (self.delta // 4) * 16, - self.delta * 16)
+        # p = QPalette()
+        # gradient = QConicalGradient(self.conf["cx"], self.conf["cy"], self.conf["selectionAngle"])
+        # gradient.setColorAt(0.0, QColor.fromHsv(0, 0, 255))
+        # gradient.setColorAt(1.0, QColor.fromHsv(255, 0, 255))
+        # self.qp.setBrush(QBrush(gradient))
+        # self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 3, cw // 3)
 
     def drawMainWheel(self, circleWidth, circleHeight):
         # Draw main wheel
@@ -349,8 +366,25 @@ class UIElem(BaseUIElem):
         brush = QBrush(QColor(self.conf["wheelTextureColor"]), Qt.BDiagPattern)
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), circleWidth // 2, circleHeight // 2)
+        self.drawOverlays(1-self._opacity/255, circleWidth)
 
-    def draw(self, qp):
+    def drawOverlays(self, opacity, circleWidth):
+        brush = QBrush(QColor(self.conf["overlayColor"]))
+
+        self.qp.setBrush(brush)
+        self.qp.setPen(QPen())
+        self.qp.setOpacity(opacity*self.conf["overlayOpacity"])
+
+        for i in range(0, 360, 360//10):
+            self.qp.drawEllipse(QPoint(self.conf["cx"] + int(math.cos(math.radians(i + self._angle / 4)) *
+                                                             circleWidth // 3),
+                                       self.conf["cy"] + int(math.sin(math.radians(i + self._angle / 4)) *
+                                                             circleWidth // 3)),
+                                self.conf["overlayWidth"], self.conf["overlayWidth"])
+
+        self.qp.setOpacity(1)
+
+    def draw(self, qp, offset=None):
         if self.anim.state() == 0:
             self.is_scroll_anim_running = False
         if self.shadow_anim.state() == 0:
@@ -365,7 +399,7 @@ class UIElem(BaseUIElem):
         else:
             circleWidth = (self.conf["width"] * 3) // 4 + self._sections_pos
             circleHeight = (self.conf["height"] * 3) // 4 + self._sections_pos
-        
+
         self.qp = qp
 
         self.drawSelection(circleWidth, circleHeight)
@@ -373,9 +407,10 @@ class UIElem(BaseUIElem):
         self.drawMainWheel(circleWidth, circleHeight)
 
         self.sections[self.cur_section].draw_module(self.qp)
-       
+
         if self.global_shadow:
             self.drawShadow(self.conf["width"])
         else:
             self.drawShadow(circleWidth)
 
+        self.drawOverlays(self._opacity/255, circleWidth)

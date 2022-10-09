@@ -71,7 +71,7 @@ class UIElem(BaseUIElem):
         for i in range(len(self.cur_ext)):
             self.draw_file(self.parent().getX(self.angle * i, circleWidth), self.parent().getY(self.angle * i, circleWidth), self.cur_ext[i])
 
-    def draw(self):
+    def draw(self, qp, offset=None):
         if self.conf["isWheelWidthFixed"]:
             circleWidth = self.conf["width"] + self.conf["fixedWheelWidth"]
         else:

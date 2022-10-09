@@ -1,0 +1,33 @@
+{
+  "keyboards": [
+    {
+      "name": "keyboard1",
+      "keys": [
+        {"string": "w"},
+        {"string": "a"}
+      ]
+    }
+  ],
+  "prbuttons": [
+    {
+      "name": "button1",
+      "key": "return",
+      "threshold": 300
+    }
+  ],
+  "clickbuttons": [
+    {
+      "name": "button2",
+      "key": "esc",
+      "threshold": 300
+    }
+  ],
+  "encoders": [
+    {
+      "name": "rotary1",
+      "keyUp": "up",
+      "keyDown": "down",
+      "linkedButton": "button1"
+    }
+  ]
+}

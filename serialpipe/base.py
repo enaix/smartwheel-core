@@ -28,7 +28,7 @@ class PRButton(QObject):
         self.buttonType = "pressReleaseButton"
         self.click_thresh = click_thresh
 
-    def setupCallbacls(self, signals, arguments):
+    def setupCallbacks(self, signals, arguments):
         """
         Connect signals to button actions
 
@@ -116,7 +116,7 @@ class ClickButton(QObject):
         self.buttonType = "clickButton"
         self.click_thresh = click_thresh
 
-    def setupCallbacls(self, signals, arguments):
+    def setupCallbacks(self, signals, arguments):
         """
         Connect signals to button actions
 

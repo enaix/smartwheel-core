@@ -9,5 +9,5 @@ class BaseUIElem(QObject):
     def loadConfig(self):
         pass
     
-    def draw(self):
+    def draw(self, qp, offset=None):
         pass

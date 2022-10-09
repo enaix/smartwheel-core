@@ -11,6 +11,7 @@ from canvas import RootCanvas
 
 from serialpipe.serial import SConn
 from serialpipe.keyboard import KeyboardPipe
+from serialpipe.bgkeyboard import BGKeyboard
 
 
 class WConfig():
@@ -104,6 +105,12 @@ class RootWindow(QMainWindow):
         try:
             self.kb = KeyboardPipe("config/keyboard.json", self.rc.ae.callAction)
             self.kb.start()
+        except BaseException as e:
+            print(e)
+
+        try:
+            self.bkb = BGKeyboard("config/bgkeyboard.json", self.rc.ae.callAction)
+            self.bkb.start()
         except BaseException as e:
             print(e)
 

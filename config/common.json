@@ -8,5 +8,8 @@
 	"isWheelWidthFixed": false,
 	"fixedWheelWidth": 100,
 	"drawWheelCircle": true,
-	"selectionWheelEntries": 10
+	"selectionWheelEntries": 10,
+	"overlayColor": "#404040",
+	"overlayOpacity": 0.4,
+	"overlayWidth": 10
 }

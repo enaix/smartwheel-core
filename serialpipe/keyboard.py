@@ -4,9 +4,19 @@ import json
 
 
 class KeyboardPipe(ConnPipe):
-    """Control the wheel from keypresses"""
+    """Control the wheel from keypresses (no background scanner)"""
 
     def __init__(self, config_file, call_signal):
+        """
+        Initialize keyboardpipe
+
+        Parameters
+        ----------
+        config_file
+            Configuration file
+        call_signal
+            Actionegnine signal to call
+        """
         super().__init__()
         self.conf = None
         self.config_file = config_file

@@ -209,7 +209,7 @@ class UIElem(BaseUIElem):
         elif self.conf["colorWidgetShape"] == "hybrid":
             qp.drawRoundedRect(QRectF(self.conf["cx"] - width, self.conf["cy"] - width, width * 2, width * 2), self.conf["wheelWidth"] - offset, self.conf["wheelWidth"] - offset, Qt.RelativeSize)
 
-    def draw(self, qp, offset):
+    def draw(self, qp, offset=None):
         if self.width_anim.state() == 0:
             self.is_anim_running = False
         self.drawBriWheel(qp, (self.conf["width"] * 3) // 4 + offset)
