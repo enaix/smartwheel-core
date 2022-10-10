@@ -6,6 +6,7 @@ import os
 import subprocess
 import time
 
+
 class UIElem(BaseUIElem):
     def __init__(self, config_file, WConfig):
         super().__init__()
@@ -24,14 +25,15 @@ class UIElem(BaseUIElem):
     def initGUI(self):
         self.updateVars()
         self.pixmap = QImage(os.path.join(self.conf["iconsFolder"], self.conf["icons"][0]))
-        self.pixmap = self.pixmap.scaled(QSize(self.pix_width, self.pix_height), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.pixmap = self.pixmap.scaled(QSize(self.pix_width, self.pix_height), Qt.KeepAspectRatio,
+                                         Qt.SmoothTransformation)
 
     def updateVars(self, offset=0):
-        self.width = ((self.conf["width"]+offset) * 3) // 4
-        self.height = ((self.conf["height"]+offset) * 3) // 4
+        self.width = ((self.conf["width"] + offset) * 3) // 4
+        self.height = ((self.conf["height"] + offset) * 3) // 4
         self.pix_width = (self.conf["width"] * 3) // 16
         self.pix_height = (self.conf["height"] * 3) // 16
-        self.text_width = ((self.conf["width"]+offset) * 3) // 4
+        self.text_width = ((self.conf["width"] + offset) * 3) // 4
         self.text_height = (self.conf["height"] + offset) // 8
 
     def findProp(self, s, prop):
@@ -75,20 +77,26 @@ class UIElem(BaseUIElem):
         font = QFont(t_font, size)
         qp.setPen(pen)
         qp.setFont(font)
-        qp.drawText(QRect(self.conf["cx"] - self.text_width // 2, self.conf["cy"] - self.text_height // 2, self.text_width, self.text_height * pos), Qt.AlignCenter, text)
+        qp.drawText(
+            QRect(self.conf["cx"] - self.text_width // 2, self.conf["cy"] - self.text_height // 2, self.text_width,
+                  self.text_height * pos), Qt.AlignCenter, text)
 
     def drawHeaderText(self, qp, t):
-        self.drawText(qp, self.conf["style"]["textHeaderColor"], self.conf["style"]["textHeaderFont"], self.conf["style"]["textHeaderSize"], 1, t)
+        self.drawText(qp, self.conf["style"]["textHeaderColor"], self.conf["style"]["textHeaderFont"],
+                      self.conf["style"]["textHeaderSize"], 1, t)
 
     def drawBottomText(self, qp, t):
-        self.drawText(qp, self.conf["style"]["bottomTextColor"], self.conf["style"]["bottomTextFont"], self.conf["style"]["bottomTextSize"], 2, t)
+        self.drawText(qp, self.conf["style"]["bottomTextColor"], self.conf["style"]["bottomTextFont"],
+                      self.conf["style"]["bottomTextSize"], 2, t)
 
     def drawTrackSeek(self, qp, t1, t2):
-        self.drawText(qp, self.conf["style"]["seekTextColor"], self.conf["style"]["seekTextFont"], self.conf["style"]["seekTextSize"], 3, t1 + " / " + t2)
+        self.drawText(qp, self.conf["style"]["seekTextColor"], self.conf["style"]["seekTextFont"],
+                      self.conf["style"]["seekTextSize"], 3, t1 + " / " + t2)
 
     def draw(self, qp, offset):
         self.updateVars(offset)
-        qp.drawImage(QPointF(self.conf["cx"] - self.pix_width // 2, self.conf["cy"] - self.pix_height * 1.5), self.pixmap)
+        qp.drawImage(QPointF(self.conf["cx"] - self.pix_width // 2, self.conf["cy"] - self.pix_height * 1.5),
+                     self.pixmap)
         try:
             track, artist, start, end = self.fetchMedia()
         except BaseException:

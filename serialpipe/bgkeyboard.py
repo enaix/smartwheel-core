@@ -4,7 +4,7 @@ import json
 from pynput import keyboard
 
 
-class BGKeyboard(ConnPipe):
+class SConn(ConnPipe):
     """Background keyboard listener"""
 
     def __init__(self, config_file, call_signal):
@@ -47,14 +47,14 @@ class BGKeyboard(ConnPipe):
             self.keys["prbuttons"][btn["key"]] = btn
             self.prbuttons[btn["name"]] = PRButton(btn["threshold"])
             self.prbuttons[btn["name"]].setupCallbacks([self.call] * 3,
-                                                       [({"name": btn["name"]}, x) for x in
+                                                       [(btn, x) for x in
                                                         ["press", "click", "doubleclick"]])
 
         for btn in self.conf["clickbuttons"]:
             self.keys["clickbuttons"][btn["key"]] = btn
             self.clickbuttons[btn["name"]] = ClickButton(btn["threshold"])
             self.clickbuttons[btn["name"]].setupCallbacks([self.call] * 2,
-                                                          [({"name": btn["name"]}, x) for x in
+                                                          [(btn, x) for x in
                                                            ["click", "doubleclick"]])
 
         for enc in self.conf["encoders"]:
@@ -62,7 +62,7 @@ class BGKeyboard(ConnPipe):
             self.keys["encoders"][enc["keyDown"]] = (enc, False)  # down
             self.encoders[enc["name"]] = Rotary(enc["linkedButton"])
             self.encoders[enc["name"]].setupCallbacks([self.call] * 6,
-                                                      [({"name": enc["name"]}, x) for x in
+                                                      [(enc, x) for x in
                                                        ["up", "down", "click up",
                                                         "click down", "double up", "double down"]])
 
@@ -75,8 +75,10 @@ class BGKeyboard(ConnPipe):
         key
             Key object
         """
-        if self.keys["prbuttons"][key.name] is not None:
-            btn = self.keys["prbuttons"][key.name]
+        k = str(key)
+        #print(k)
+        if self.keys["prbuttons"].get(k) is not None:
+            btn = self.keys["prbuttons"][k]
             self.prbuttons[btn["name"]].press(True)
 
     def on_release(self, key):
@@ -88,16 +90,18 @@ class BGKeyboard(ConnPipe):
         key
             Key object
         """
-        if self.keys["keyboards"][key.name] is not None:
-            btn = self.keys["keyboards"][key.name]
-            self.call.emit((btn["name"], key.name))
+        k = str(key)
+        #print(k)
+        if self.keys["keyboards"].get(k) is not None:
+            btn = self.keys["keyboards"][k]
+            self.call.emit((btn, k))
 
-        if self.keys["clickbuttons"][key.name] is not None:
-            btn = self.keys["clickbuttons"][key.name]
+        if self.keys["clickbuttons"].get(k) is not None:
+            btn = self.keys["clickbuttons"][k]
             self.clickbuttons[btn["name"]].press()
 
-        if self.keys["encoders"][key.name] is not None:
-            enc, up = self.keys["encoders"][key.name]
+        if self.keys["encoders"].get(k) is not None:
+            enc, up = self.keys["encoders"][k]
             self.encoders[enc["name"]].rotate(up)  # TODO add audio keys workaround
 
     def run(self):

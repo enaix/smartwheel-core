@@ -3,7 +3,7 @@ from PyQt5.QtCore import *
 import json
 
 
-class KeyboardPipe(ConnPipe):
+class SConn(ConnPipe):
     """Control the wheel from keypresses (no background scanner)"""
 
     def __init__(self, config_file, call_signal):

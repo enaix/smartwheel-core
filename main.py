@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-  
-
+# -*- coding: utf-8 -*-
+import importlib
 import sys
 import os
 import json
@@ -9,12 +9,12 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow
 from canvas import RootCanvas
 
-from serialpipe.serial import SConn
-from serialpipe.keyboard import KeyboardPipe
-from serialpipe.bgkeyboard import BGKeyboard
+# from serialpipe.serial import SConn
+# from serialpipe.keyboard import KeyboardPipe
+# from serialpipe.bgkeyboard import BGKeyboard
 
 
-class WConfig():
+class WConfig:
     def __init__(self):
         with open("config.json", "r") as f:
             self.c = json.load(f)
@@ -43,7 +43,7 @@ class RootWindow(QMainWindow):
         # self.mainWindow.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         self.setAutoFillBackground(True)
-        self.setAttribute(QtCore.Qt.WA_TranslucentBackground, 100)
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
         self.setWindowTitle("SmartWHEEL")
         self.setWindowIcon(QIcon("logo.png"))
         self.setGeometry(*conf.c["window"]["geometry"])
@@ -64,10 +64,10 @@ class RootWindow(QMainWindow):
         """
         Read keypresses from Qt and pass them to serialpipe
         """
-        if self.kb is None:  # not initialized yet
+        if self.serialModules.get("serialpipe.keyboard") is None:  # not initialized yet
             return
 
-        self.kb.handleKeypress(event)
+        self.serialModules["serialpipe.keyboard"].handleKeypress(event)
 
     def keyPressEventLegacy(self, event):
         """
@@ -96,23 +96,19 @@ class RootWindow(QMainWindow):
         """
         # TODO add serial.tools.miniterm in settings
         # TODO load them from loop
-        try:
-            self.sc = SConn("config/serial.json", self.rc.ae.callAction)
-            self.sc.start()
-        except BaseException as e:
-            raise e
 
-        try:
-            self.kb = KeyboardPipe("config/keyboard.json", self.rc.ae.callAction)
-            self.kb.start()
-        except BaseException as e:
-            raise e
+        self.serialModules = {}
 
-        try:
-            self.bkb = BGKeyboard("config/bgkeyboard.json", self.rc.ae.callAction)
-            self.bkb.start()
-        except BaseException as e:
-            raise e
+        for i in conf.c["canvas"]["serialModulesLoad"]:
+            mod_name = conf.c["canvas"]["serialModules"][i]["name"]
+            mod = importlib.import_module(mod_name)
+
+            try:
+                cls = mod.SConn(conf.c["canvas"]["serialModules"][i]["config"], self.rc.ae.callAction)
+                cls.start()
+                self.serialModules[mod_name] = cls
+            except BaseException as e:
+                print("Failed to load " + mod_name + ": ", e)
 
     def loadClasses(self):
         self.rc = RootCanvas(conf.c["canvas"], self.update)

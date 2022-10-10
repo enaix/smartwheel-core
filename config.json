@@ -17,7 +17,13 @@
 			{"name": "ui.internal.krita_server", "config": "config/internal/krita_server.json"},
 			{"name": "ui.internal.krita_api"}
 		],
+		"serialModules": [
+			{"name": "serialpipe.serial", "config": "config/serial.json"},
+			{"name": "serialpipe.keyboard", "config": "config/keyboard.json"},
+			{"name": "serialpipe.bgkeyboard", "config": "config/bgkeyboard.json"}
+		],
 		"modulesLoad": [0],
+		"serialModulesLoad": [0, 2],
 		"commonConfig": "config/common.json",
 		"actionEngineConfig": "config/actionengine.json"
 	}
