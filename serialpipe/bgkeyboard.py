@@ -6,6 +6,7 @@ from pynput import keyboard
 
 class BGKeyboard(ConnPipe):
     """Background keyboard listener"""
+
     def __init__(self, config_file, call_signal):
         """
         Initialize keyboardpipe
@@ -45,20 +46,20 @@ class BGKeyboard(ConnPipe):
         for btn in self.conf["prbuttons"]:
             self.keys["prbuttons"][btn["key"]] = btn
             self.prbuttons[btn["name"]] = PRButton(btn["threshold"])
-            self.prbuttons[btn["name"]].setupCallbacks([self.call]*3,
-                                                      [({"name": btn["name"]}, x) for x in
-                                                       ["press", "click", "doubleclick"]])
+            self.prbuttons[btn["name"]].setupCallbacks([self.call] * 3,
+                                                       [({"name": btn["name"]}, x) for x in
+                                                        ["press", "click", "doubleclick"]])
 
         for btn in self.conf["clickbuttons"]:
             self.keys["clickbuttons"][btn["key"]] = btn
             self.clickbuttons[btn["name"]] = ClickButton(btn["threshold"])
             self.clickbuttons[btn["name"]].setupCallbacks([self.call] * 2,
-                                                      [({"name": btn["name"]}, x) for x in
-                                                       ["click", "doubleclick"]])
+                                                          [({"name": btn["name"]}, x) for x in
+                                                           ["click", "doubleclick"]])
 
         for enc in self.conf["encoders"]:
-            self.keys["encoders"][enc["keyUp"]] = enc
-            self.keys["encoders"][enc["keyDown"]] = enc
+            self.keys["encoders"][enc["keyUp"]] = (enc, True)  # up
+            self.keys["encoders"][enc["keyDown"]] = (enc, False)  # down
             self.encoders[enc["name"]] = Rotary(enc["linkedButton"])
             self.encoders[enc["name"]].setupCallbacks([self.call] * 6,
                                                       [({"name": enc["name"]}, x) for x in
@@ -66,18 +67,42 @@ class BGKeyboard(ConnPipe):
                                                         "click down", "double up", "double down"]])
 
     def on_press(self, key):
+        """
+        Pynput on press event
+
+        Parameters
+        ----------
+        key
+            Key object
+        """
         if self.keys["prbuttons"][key.name] is not None:
             btn = self.keys["prbuttons"][key.name]
+            self.prbuttons[btn["name"]].press(True)
 
+    def on_release(self, key):
+        """
+        Pynput on release event
 
+        Parameters
+        ----------
+        key
+            Key object
+        """
+        if self.keys["keyboards"][key.name] is not None:
+            btn = self.keys["keyboards"][key.name]
+            self.call.emit((btn["name"], key.name))
 
+        if self.keys["clickbuttons"][key.name] is not None:
+            btn = self.keys["clickbuttons"][key.name]
+            self.clickbuttons[btn["name"]].press()
+
+        if self.keys["encoders"][key.name] is not None:
+            enc, up = self.keys["encoders"][key.name]
+            self.encoders[enc["name"]].rotate(up)
 
     def run(self):
         """
         The main listener loop
         """
-        with keyboard.Events() as events:
-            for e in events:
-                key = e.key.name
-
-                #if (type(e))
+        with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
+            listener.join()
