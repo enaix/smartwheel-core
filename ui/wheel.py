@@ -3,7 +3,7 @@ import math
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from ui.base import BaseUIElem
-import importlib
+# import importlib
 import os
 import weakref
 
@@ -366,21 +366,32 @@ class UIElem(BaseUIElem):
         brush = QBrush(QColor(self.conf["wheelTextureColor"]), Qt.BDiagPattern)
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), circleWidth // 2, circleHeight // 2)
-        self.drawOverlays(1-self._opacity/255, circleWidth)
+        self.drawOverlays(1 - self._opacity / 255, circleWidth)
 
     def drawOverlays(self, opacity, circleWidth):
         brush = QBrush(QColor(self.conf["overlayColor"]))
 
         self.qp.setBrush(brush)
-        self.qp.setPen(QPen())
-        self.qp.setOpacity(opacity*self.conf["overlayOpacity"])
+        self.qp.setPen(QPen(QColor(self.conf["overlayColor"])))
+        self.qp.setOpacity(opacity * self.conf["overlayOpacity"])
 
-        for i in range(0, 360, 360//10):
-            self.qp.drawEllipse(QPoint(self.conf["cx"] + int(math.cos(math.radians(i + self._angle / 4)) *
+        for i in range(0, 360, 360 // 10):
+            self.qp.drawEllipse(QPoint(self.conf["cx"] + int(math.cos(math.radians(i + (self._angle - 225) / 4)) *
                                                              circleWidth // 3),
-                                       self.conf["cy"] + int(math.sin(math.radians(i + self._angle / 4)) *
+                                       self.conf["cy"] + int(math.sin(math.radians(i + (self._angle - 225) / 4)) *
                                                              circleWidth // 3)),
                                 self.conf["overlayWidth"], self.conf["overlayWidth"])
+
+        self.qp.setPen(QPen(QColor(self.conf["overlayColor"]), 20, Qt.SolidLine))
+        self.qp.setOpacity(0.3 * opacity)
+
+        for i in range(0, 360, 360 // 6):
+            cx = math.cos(math.radians(i + (self._angle - 225) / 6))
+            cy = math.sin(math.radians(i + (self._angle - 225) / 6))
+            self.qp.drawLine(QPointF(self.conf["cx"] + cx * circleWidth * 0.3,
+                                    self.conf["cy"] + cy * circleWidth * 0.3),
+                             QPointF(self.conf["cx"] + cx * circleWidth * 0.45,
+                                    self.conf["cy"] + cy * circleWidth * 0.45))
 
         self.qp.setOpacity(1)
 
@@ -413,4 +424,4 @@ class UIElem(BaseUIElem):
         else:
             self.drawShadow(circleWidth)
 
-        self.drawOverlays(self._opacity/255, circleWidth)
+        self.drawOverlays(self._opacity / 255, circleWidth)

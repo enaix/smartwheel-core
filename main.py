@@ -100,19 +100,19 @@ class RootWindow(QMainWindow):
             self.sc = SConn("config/serial.json", self.rc.ae.callAction)
             self.sc.start()
         except BaseException as e:
-            print(e)
+            raise e
 
         try:
             self.kb = KeyboardPipe("config/keyboard.json", self.rc.ae.callAction)
             self.kb.start()
         except BaseException as e:
-            print(e)
+            raise e
 
         try:
             self.bkb = BGKeyboard("config/bgkeyboard.json", self.rc.ae.callAction)
             self.bkb.start()
         except BaseException as e:
-            print(e)
+            raise e
 
     def loadClasses(self):
         self.rc = RootCanvas(conf.c["canvas"], self.update)

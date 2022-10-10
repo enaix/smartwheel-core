@@ -6,5 +6,7 @@
 	"sectionsHideTimeout": 5000,
 	"pointerMargin": 3,
 	"pointerColor": "#ffffff",
-	"pixmapScale": 30	
+	"pixmapScale": 30,
+	"overlayOpacity": 0.4,
+	"overlayWidth": 10
 }

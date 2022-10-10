@@ -22,7 +22,7 @@ class PRButton(QObject):
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.setInterval(click_thresh)
-        self.timer.timeout().connect(self.pressTimeout)
+        self.timer.timeout.connect(self.pressTimeout)
 
         self.state = "up"
         self.buttonType = "pressReleaseButton"
@@ -110,7 +110,7 @@ class ClickButton(QObject):
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.setInterval(click_thresh)
-        self.timer.timeout().connect(self.pressTimeout)
+        self.timer.timeout.connect(self.pressTimeout)
 
         self.state = "unpressed"
         self.buttonType = "clickButton"

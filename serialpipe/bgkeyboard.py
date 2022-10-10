@@ -98,7 +98,7 @@ class BGKeyboard(ConnPipe):
 
         if self.keys["encoders"][key.name] is not None:
             enc, up = self.keys["encoders"][key.name]
-            self.encoders[enc["name"]].rotate(up)
+            self.encoders[enc["name"]].rotate(up)  # TODO add audio keys workaround
 
     def run(self):
         """
