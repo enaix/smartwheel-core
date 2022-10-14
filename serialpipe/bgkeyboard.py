@@ -102,6 +102,10 @@ class SConn(ConnPipe):
         """
         k = str(key).strip("\'")
 
+        if self.keys["prbuttons"].get(k) is not None:
+            btn = self.keys["prbuttons"][k]
+            self.prbuttons[btn["name"]].press(False)
+
         if self.keys["clickbuttons"].get(k) is not None:
             btn = self.keys["clickbuttons"][k]
             self.clickbuttons[btn["name"]].press()

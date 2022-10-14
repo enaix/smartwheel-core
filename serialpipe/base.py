@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QThread, QObject, QTimer, pyqtSlot
 import time
+import logging
 
 
 class PRButton(QObject):
@@ -19,6 +20,8 @@ class PRButton(QObject):
 
         self.arguments = [None, None, None]
         self.signals = [None, None, None]
+        self.logger = logging.getLogger(__name__)
+
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.setInterval(click_thresh)
@@ -58,6 +61,7 @@ class PRButton(QObject):
         if self.state == "up" and down:  # Unpressed
             self.state = "down_pre"  # Button down
             self.timer.stop()
+            self.logger.info("prbutton pressed down")
             if self.signals[0] is not None:
                 self.signals[0].emit(self.arguments[0])
 
@@ -65,18 +69,22 @@ class PRButton(QObject):
             self.state = "click_pre"
             self.timer.stop()
             self.timer.start()
+            self.logger.info("prbutton clicked, waiting for timeout")
 
         elif self.state == "click_pre" and down:  # Single click and press down
             self.state = "double_pre"
             self.timer.stop()
+            self.logger.info("prbutton clicked and pressed down")
 
         elif self.state == "double_pre" and up:  # double click
             self.state = "up"
             self.timer.stop()
+            self.logger.info("prbutton doubleclicked")
             if self.signals[2] is not None:
                 self.signals[2].emit(self.arguments[2])
 
         elif up:  # drop the state
+            self.logger.info("prbutton state reset")
             self.state = "up"
 
     @pyqtSlot()
@@ -86,6 +94,8 @@ class PRButton(QObject):
         """
         if self.state == "click_pre":  # single click
             self.state = "up"
+            self.logger.info("prbutton clicked, timeout exceeded")
+
             if self.signals[1] is not None:
                 self.signals[1].emit(self.arguments[1])
 
