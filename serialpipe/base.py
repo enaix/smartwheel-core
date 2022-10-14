@@ -207,7 +207,7 @@ class Rotary(QObject):
             Linked PRButton
         """
         super(Rotary, self).__init__(parent)
-        self.rotateSignal.connect(self.execRotate)
+        self.rotateSignal.connect(self.rotate)
 
         self.btn = prbutton
 
