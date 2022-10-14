@@ -1,5 +1,5 @@
-smartwheel-core
-===============
+Modules navigation
+==================
 
 .. toctree::
    :maxdepth: 4

@@ -6,9 +6,15 @@
 Welcome to Smartwheel Core's documentation!
 ===========================================
 
+Project homepage: https://github.com/enaix/smartwheel-core
+
+This documentation contains modules reference and some examples/explanations. Unfortunately, there is no documentation for users yet.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   modules
 
 
 
