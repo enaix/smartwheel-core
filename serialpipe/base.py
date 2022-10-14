@@ -209,6 +209,8 @@ class Rotary(QObject):
         super(Rotary, self).__init__(parent)
         self.rotateSignal.connect(self.rotate)
 
+        self.logger = logging.getLogger(__name__)
+
         self.btn = prbutton
 
         self.signals = [None]*6
@@ -273,21 +275,25 @@ class Rotary(QObject):
         """
         down = not up
         if self.btn is None:  # No linked btn
+            self.logger.info("rotary scrolled")
             self.callSignal(0, up)
 
         elif self.btn.state == "up" or self.btn.state == "click_pre":  # Rotation up/down
             self.btn.state = "up"
             self.btn.timer.stop()
+            self.logger.info("rotary scrolled")
             self.callSignal(0, up)
 
         elif self.btn.state == "down_pre" or self.btn.state == "down":  # Click and scroll
             self.btn.state = "down"  # the next up event won't trigger anything
             self.btn.timer.stop()
+            self.logger.info("rotary scrolled with click")
             self.callSignal(2, up)
 
         elif self.btn.state == "double_pre" or self.btn.state == "double":
             self.btn.state = "double"  # the next up event won't trigger anything
             self.btn.timer.stop()
+            self.logger.info("rotary scrolled with doubleclick")
             self.callSignal(4, up)
 
 
