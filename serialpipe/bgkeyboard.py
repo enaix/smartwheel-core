@@ -89,7 +89,7 @@ class SConn(ConnPipe):
 
         if self.keys["prbuttons"].get(k) is not None:
             btn = self.keys["prbuttons"][k]
-            self.prbuttons[btn["name"]].press(True)
+            self.prbuttons[btn["name"]].execPress(True)
 
     def on_release(self, key):
         """
@@ -104,15 +104,15 @@ class SConn(ConnPipe):
 
         if self.keys["prbuttons"].get(k) is not None:
             btn = self.keys["prbuttons"][k]
-            self.prbuttons[btn["name"]].press(False)
+            self.prbuttons[btn["name"]].execPress(False)
 
         if self.keys["clickbuttons"].get(k) is not None:
             btn = self.keys["clickbuttons"][k]
-            self.clickbuttons[btn["name"]].press()
+            self.clickbuttons[btn["name"]].execPress()
 
         if self.keys["encoders"].get(k) is not None:
             enc, up = self.keys["encoders"][k]
-            self.encoders[enc["name"]].rotate(up)  # TODO add audio keys workaround
+            self.encoders[enc["name"]].execRotate(up)  # TODO add audio keys workaround
 
     def run(self):
         """

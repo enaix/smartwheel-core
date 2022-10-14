@@ -1,10 +1,12 @@
-from PyQt5.QtCore import QThread, QObject, QTimer, pyqtSlot
+from PyQt5.QtCore import QThread, QObject, QTimer, pyqtSlot, pyqtSignal
 import time
 import logging
 
 
 class PRButton(QObject):
     """Press and release button"""
+    pressSignal = pyqtSignal(bool)
+
     def __init__(self, click_thresh, parent=None):
         """
         Initialize PRButton
@@ -17,6 +19,7 @@ class PRButton(QObject):
             QObject parent, default is None
         """
         super(PRButton, self).__init__(parent)
+        self.pressSignal.connect(self.press)
 
         self.arguments = [None, None, None]
         self.signals = [None, None, None]
@@ -47,9 +50,21 @@ class PRButton(QObject):
         self.signals = signals
         self.arguments = arguments
 
-    def press(self, down):
+    def execPress(self, down):
         """
         Press button event
+
+        Parameters
+        ----------
+        down
+            Is button pressed down
+        """
+        self.pressSignal.emit(down)
+
+    @pyqtSlot(bool)
+    def press(self, down):
+        """
+        Press button signal (call execPress instead)
 
         Parameters
         ----------
@@ -102,6 +117,8 @@ class PRButton(QObject):
 
 class ClickButton(QObject):
     """Simple click button without separate up and down events"""
+    pressSignal = pyqtSignal()
+
     def __init__(self, click_thresh, parent=None):
         """
         Initialize ClickButton
@@ -114,6 +131,7 @@ class ClickButton(QObject):
             QObject parent, default is None
         """
         super(ClickButton, self).__init__(parent)
+        self.pressSignal.connect(self.press)
 
         self.arguments = [None, None]
         self.signals = [None, None]
@@ -142,9 +160,16 @@ class ClickButton(QObject):
         self.signals = signals
         self.arguments = arguments
 
-    def press(self):
+    def execPress(self):
         """
         Press button event
+        """
+        self.pressSignal.emit()
+
+    @pyqtSlot()
+    def press(self):
+        """
+        Press button slot (call exec_press instead)
         """
         if self.state == "unpressed":  # single click
             self.state = "double_pre"
@@ -170,6 +195,8 @@ class ClickButton(QObject):
 
 class Rotary(QObject):
     """Simple rotary encoder with up and down events"""
+    rotateSignal = pyqtSignal(bool)
+
     def __init__(self, prbutton, parent=None):
         """
         Initialize Rotary
@@ -180,6 +207,7 @@ class Rotary(QObject):
             Linked PRButton
         """
         super(Rotary, self).__init__(parent)
+        self.rotateSignal.connect(self.execRotate)
 
         self.btn = prbutton
 
@@ -201,11 +229,11 @@ class Rotary(QObject):
         """
         self.signals = signals
         self.arguments = arguments
-        
+
     def callSignal(self, i, up):
         """
         Call the specified signal
-        
+
         Parameters
         ----------
         i
@@ -222,10 +250,22 @@ class Rotary(QObject):
             if self.signals[i+1] is not None:
                 self.signals[i+1].emit(self.arguments[1])
 
-    def rotate(self, up):
+    def execRotate(self, up):
         """
         Rotation event
-        
+
+        Parameters
+        ----------
+        up
+            Is the direction up (up - clockwise)
+        """
+        self.rotateSignal.emit(up)
+
+    @pyqtSlot(bool)
+    def rotate(self, up):
+        """
+        Rotation signal (call execRotate instead)
+
         Parameters
         ----------
         up
