@@ -8,6 +8,7 @@ from PyQt5.QtGui import *
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow
 from canvas import RootCanvas
+import logging
 
 # from serialpipe.serial import SConn
 # from serialpipe.keyboard import KeyboardPipe
@@ -36,6 +37,8 @@ class RootWindow(QMainWindow):
         self.rc = None
         self.kb = None
         self.app = QApplication(sys.argv)
+        logging.basicConfig(level=getattr(logging, conf.c["canvas"]["logging"].upper(), 2))
+        self.logger = logging.getLogger(__name__)
 
         super().__init__()
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
@@ -108,7 +111,7 @@ class RootWindow(QMainWindow):
                 cls.start()
                 self.serialModules[mod_name] = cls
             except BaseException as e:
-                print("Failed to load " + mod_name + ": ", e)
+                self.logger.error("Failed to load " + mod_name + ": ", e)
 
     def loadClasses(self):
         self.rc = RootCanvas(conf.c["canvas"], self.update)

@@ -174,7 +174,7 @@ class Rotary(QObject):
         self.btn = prbutton
 
         self.signals = [None]*6
-        self.arguments = [None] * 6
+        self.arguments = [None]*6
 
     def setupCallbacks(self, signals, arguments):
         """

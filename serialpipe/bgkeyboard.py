@@ -1,3 +1,5 @@
+import logging
+
 from serialpipe.base import ConnPipe, PRButton, ClickButton, Rotary
 from PyQt5.QtCore import *
 import json
@@ -21,6 +23,7 @@ class SConn(ConnPipe):
         super().__init__()
         self.keys = None
         self.conf = None
+        self.logger = logging.getLogger(__name__)
         self.config_file = config_file
         self.call = call_signal
         self.loadConfig()
@@ -41,28 +44,31 @@ class SConn(ConnPipe):
 
         for kbs in self.conf["keyboards"]:
             for k in kbs["keys"]:
-                self.keys["keyboards"][k["string"]] = kbs
+                self.keys["keyboards"][k["string"]] = (kbs, k)
 
         for btn in self.conf["prbuttons"]:
             self.keys["prbuttons"][btn["key"]] = btn
             self.prbuttons[btn["name"]] = PRButton(btn["threshold"])
             self.prbuttons[btn["name"]].setupCallbacks([self.call] * 3,
-                                                       [(btn, x) for x in
+                                                       [(btn, {"string": x}) for x in
                                                         ["press", "click", "doubleclick"]])
 
         for btn in self.conf["clickbuttons"]:
             self.keys["clickbuttons"][btn["key"]] = btn
             self.clickbuttons[btn["name"]] = ClickButton(btn["threshold"])
             self.clickbuttons[btn["name"]].setupCallbacks([self.call] * 2,
-                                                          [(btn, x) for x in
+                                                          [(btn, {"string": x}) for x in
                                                            ["click", "doubleclick"]])
 
         for enc in self.conf["encoders"]:
             self.keys["encoders"][enc["keyUp"]] = (enc, True)  # up
             self.keys["encoders"][enc["keyDown"]] = (enc, False)  # down
-            self.encoders[enc["name"]] = Rotary(enc["linkedButton"])
+
+            if self.prbuttons.get(enc["linkedButton"]) is None:
+                self.logger.error("Could not link " + enc["name"] + " with non-existent prbutton " + enc["linkedButton"])
+            self.encoders[enc["name"]] = Rotary(self.prbuttons[enc["linkedButton"]])
             self.encoders[enc["name"]].setupCallbacks([self.call] * 6,
-                                                      [(enc, x) for x in
+                                                      [(enc, {"string": x}) for x in
                                                        ["up", "down", "click up",
                                                         "click down", "double up", "double down"]])
 
@@ -75,8 +81,12 @@ class SConn(ConnPipe):
         key
             Key object
         """
-        k = str(key)
-        #print(k)
+        k = str(key).strip("\'")
+
+        if self.keys["keyboards"].get(k) is not None:
+            kb, btn = self.keys["keyboards"][k]
+            self.call.emit((kb, btn))
+
         if self.keys["prbuttons"].get(k) is not None:
             btn = self.keys["prbuttons"][k]
             self.prbuttons[btn["name"]].press(True)
@@ -90,11 +100,7 @@ class SConn(ConnPipe):
         key
             Key object
         """
-        k = str(key)
-        #print(k)
-        if self.keys["keyboards"].get(k) is not None:
-            btn = self.keys["keyboards"][k]
-            self.call.emit((btn, k))
+        k = str(key).strip("\'")
 
         if self.keys["clickbuttons"].get(k) is not None:
             btn = self.keys["clickbuttons"][k]

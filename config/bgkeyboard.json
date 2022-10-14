@@ -1,7 +1,7 @@
 {
   "keyboards": [
     {
-      "name": "keyboard1",
+      "name": "bgkeyboard1",
       "keys": [
         {"string": "w"},
         {"string": "a"}
@@ -10,14 +10,14 @@
   ],
   "prbuttons": [
     {
-      "name": "button1",
+      "name": "prbutton1",
       "key": "Key.enter",
       "threshold": 300
     }
   ],
   "clickbuttons": [
     {
-      "name": "button2",
+      "name": "escbutton2",
       "key": "Key.esc",
       "threshold": 300
     }
@@ -27,7 +27,7 @@
       "name": "rotary1",
       "keyUp": "Key.up",
       "keyDown": "Key.down",
-      "linkedButton": "button1"
+      "linkedButton": "prbutton1"
     }
   ]
 }

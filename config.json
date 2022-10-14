@@ -25,6 +25,7 @@
 		"modulesLoad": [0],
 		"serialModulesLoad": [0, 2],
 		"commonConfig": "config/common.json",
-		"actionEngineConfig": "config/actionengine.json"
+		"actionEngineConfig": "config/actionengine.json",
+		"logging": "INFO"
 	}
 }

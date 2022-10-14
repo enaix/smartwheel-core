@@ -3,6 +3,7 @@ import json
 import os
 import importlib
 import weakref
+import logging
 
 
 class ActionEngine(QObject):
@@ -22,6 +23,7 @@ class ActionEngine(QObject):
         """
         super().__init__()
         self.importConfig(config_file)
+        self.logger = logging.getLogger(__name__)
         self.current_module = 0
         self.current_module_getter = None
         self.current_module_list_getter = None
@@ -121,6 +123,7 @@ class ActionEngine(QObject):
             return "module"
         return "wheel"
 
+
     @pyqtSlot(tuple)
     def processCall(self, p_call):
         """
@@ -131,13 +134,21 @@ class ActionEngine(QObject):
         ----------
         p_call
             callAction in the form of (bind, command)
+            bind is a dict that contains 'name' string
+            command is a dict with 'string' field (the command)
         """
         elem, call = p_call
         cur_state = self.getState()
+
+        if elem.get("name") is None or call.get("string") is None:
+            self.logger.warning("actionengine could not parse the signal")
+
+        self.logger.info("Incoming call: " + call["string"])
+
         i = self.conf["commandBind"].get(elem["name"], None)
         if i is not None:
             c = list(j for j in i if j["command"] == call["string"])
-            if c != []:
+            if c:  # c != []
                 for act in c:
                     for a in act["actions"]:
                         cmd = self.getWheelAction(a)
@@ -152,7 +163,7 @@ class ActionEngine(QObject):
                                 self.wheel_actions[cmd["type"]].run(cmd["name"], self.canvas, weakref.ref(self))
                 self.canvas().update_func()
         else:
-            print("Warn: actionengine could not parse call with empty name")
+            self.logger.warning("actionengine could not find call with this name")
 
     def loadModulesConf(self, conf):
         self.modules.append(conf)
