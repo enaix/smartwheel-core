@@ -71,3 +71,5 @@ If you don't have a standalone dial, you may 3D print one: there is a Freecad mo
 ## Gallery
 
 Short video (sorry for the poor quality): ![smartwheel.mp4](https://github.com/enaix/smartwheel-core/raw/master/extra/smartwheel.mp4)
+
+Update: added UI overlays ![smartwheel2.mp4](https://github.com/enaix/smartwheel-core/raw/master/extra/simplescreenrecorder-2022-10-10_12.54.42.mp4)
