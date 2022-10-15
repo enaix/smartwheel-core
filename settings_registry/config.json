@@ -1,6 +1,7 @@
 {
   "tabs": [
-    {"name": "General", "config": "general.json"}
+    {"name": "General", "config": "general.json"},
+    {"name": "Appearance", "config": "appearance.json"}
   ],
   "groupMinimalHeight": 100,
   "spacing": 200

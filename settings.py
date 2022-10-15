@@ -1,7 +1,7 @@
 # from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QPushButton, QSpacerItem, \
-    QSizePolicy, QGroupBox, QSpinBox, QLabel, QFormLayout, QScrollArea, QLineEdit, QComboBox
+    QSizePolicy, QGroupBox, QSpinBox, QLabel, QFormLayout, QScrollArea, QLineEdit, QComboBox, QCheckBox
 import json
 import logging
 import os
@@ -83,7 +83,7 @@ class SettingsWindow(QWidget):
                 if hasattr(mod["class"], "conf"):
                     self.settings[mod["name"]] = mod["class"].conf
                 else:
-                    self.logger.error("ui." + mod["name"] + " has no conf attribute")
+                    self.logger.error(mod["name"] + " has no conf attribute")
 
     def getValue(self, module, prop, index=None):
         """
@@ -174,6 +174,14 @@ class SettingsWindow(QWidget):
                     ok, value = self.getValue(elem["module"], elem["prop"])
                     if ok:
                         wid.setCurrentText(value)
+                    else:
+                        self.logger.warning("Could not get value for " + elem["name"])
+
+                elif elem["type"] == "bool":
+                    wid = QCheckBox()
+                    ok, value = self.getValue(elem["module"], elem["prop"])
+                    if ok:
+                        wid.setChecked(value)
                     else:
                         self.logger.warning("Could not get value for " + elem["name"])
 

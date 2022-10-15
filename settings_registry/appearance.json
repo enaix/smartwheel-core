@@ -1,0 +1,18 @@
+{
+  "items": [
+    {"name": "Wheel rendering", "options": [
+      {"name": "Set fixed wheel size", "type": "bool", "module": "common", "prop": "isWheelWidthFixed"},
+      {"name": "Fixed wheel width", "type": "int", "min": 0, "max": 10000, "module": "common", "prop": "fixedWheelWidth"},
+      {"name": "Draw wheel circle", "type": "bool", "module": "common", "prop": "drawWheelCircle"},
+      {"name": "Number of sections", "type": "int", "min": 1, "max": 100, "module": "common", "prop": "selectionWheelEntries"}
+    ]},
+    {"name": "Color palette", "options": [
+      {"name": "Background wheel color", "type": "string", "module": "common", "prop": "bgWheelColor"},
+      {"name": "Wheel texture color", "type": "string", "module": "common", "prop": "wheelTextureColor"},
+      {"name": "Background sections color", "type": "string", "module": "common", "prop": "selectionWheelBG"},
+      {"name": "Foreground sections color", "type": "string", "module": "common", "prop": "selectionWheelFG"},
+      {"name": "Overlay color", "type": "string", "module": "common", "prop": "overlayColor"},
+      {"name": "Pointer color", "type": "string", "module": "ui.wheel", "prop": "pointerColor"}
+    ]}
+  ]
+}
