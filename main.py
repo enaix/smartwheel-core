@@ -9,6 +9,7 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow
 from canvas import RootCanvas
 import logging
+from settings import SettingsWindow
 
 # from serialpipe.serial import SConn
 # from serialpipe.keyboard import KeyboardPipe
@@ -34,13 +35,15 @@ class WConfig:
 
 class RootWindow(QMainWindow):
     def __init__(self):
+        self.app = QApplication(sys.argv)
+        super(RootWindow, self).__init__()
         self.rc = None
         self.kb = None
-        self.app = QApplication(sys.argv)
         logging.basicConfig(level=getattr(logging, conf.c["canvas"]["logging"].upper(), 2))
         self.logger = logging.getLogger(__name__)
+        self.settings = SettingsWindow("settings_registry/config.json")
+        self.settings.show()
 
-        super().__init__()
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         # self.mainWindow = QMainWindow(self)
         # self.mainWindow.setWindowFlags(QtCore.Qt.FramelessWindowHint)

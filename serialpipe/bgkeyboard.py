@@ -64,8 +64,9 @@ class SConn(ConnPipe):
             self.keys["encoders"][enc["keyUp"]] = (enc, True)  # up
             self.keys["encoders"][enc["keyDown"]] = (enc, False)  # down
 
-            if self.prbuttons.get(enc["linkedButton"]) is None:
+            if enc["linkedButton"] is not None and self.prbuttons.get(enc["linkedButton"]) is None:
                 self.logger.error("Could not link " + enc["name"] + " with non-existent prbutton " + enc["linkedButton"])
+
             self.encoders[enc["name"]] = Rotary(self.prbuttons[enc["linkedButton"]])
             self.encoders[enc["name"]].setupCallbacks([self.call] * 6,
                                                       [(enc, {"string": x}) for x in
