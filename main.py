@@ -20,7 +20,10 @@ import weakref
 
 class WConfig:
     def __init__(self):
-        with open("config.json", "r") as f:
+        with open("launch.json", "r") as f:
+            self.launch_config = json.load(f)
+
+        with open(os.path.join(self.launch_config["config_dir"], "config.json"), "r") as f:
             self.c = json.load(f)
         self.processConfig()
 
@@ -115,7 +118,8 @@ class RootWindow(QMainWindow):
             mod = importlib.import_module(mod_name)
 
             try:
-                cls = mod.SConn(conf.c["canvas"]["serialModules"][i]["config"], self.rc.ae.callAction)
+                cls = mod.SConn(os.path.join(conf.launch_config["config_dir"],
+                                             conf.c["canvas"]["serialModules"][i]["config"]), self.rc.ae.callAction)
                 cls.start()
                 self.serialModules[mod_name] = cls
                 self.serialModulesNames.append(mod_name)
@@ -123,7 +127,7 @@ class RootWindow(QMainWindow):
                 self.logger.error("Failed to load " + mod_name + ": ", e)
 
     def loadClasses(self):
-        self.rc = RootCanvas(conf.c["canvas"], self.update)
+        self.rc = RootCanvas(conf.c["canvas"], conf.launch_config["config_dir"], self.update)
 
     def draw(self):
         self.rc.draw(self.qp)

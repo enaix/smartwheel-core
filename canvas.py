@@ -20,8 +20,9 @@ class MDict(dict):
 
 class RootCanvas:
     """Main canvas class, manages wheel modules"""
-    def __init__(self, WConfig, update_func):
+    def __init__(self, WConfig, config_dir, update_func):
         self.common_config = None
+        self.config_dir = config_dir
         self.conf = WConfig
         self.update_func = update_func
         self.loadCommonConf()
@@ -39,7 +40,7 @@ class RootCanvas:
 
     def loadCommonConf(self):
         try:
-            with open(self.conf["commonConfig"], 'r') as f:
+            with open(os.path.join(self.config_dir, self.conf["commonConfig"]), 'r') as f:
                 self.common_config = json.load(f)
         except BaseException:
             print("Could not find config file", self.conf["commonConfig"])
@@ -62,7 +63,8 @@ class RootCanvas:
             Configuration of the module
         """
         mod = importlib.import_module(meta["name"])
-        ui = mod.UIElem(meta["config"], {**self.conf, **self.common_config}, self.wheel_modules, self.update_func)
+        ui = mod.UIElem(os.path.join(self.config_dir, meta["config"]), {**self.conf, **self.common_config},
+                        self.wheel_modules, self.update_func)
         return ui
 
     def loadSections(self, modules_list, parent_mod=None):
@@ -110,12 +112,13 @@ class RootCanvas:
             conf["wheelWidth"] = self.common_config["fixedWheelWidth"]
         else:
             conf["wheelWidth"] = self.conf["width"] // 4
+        conf["configDir"] = self.config_dir
         self.common_config = {**self.common_config, **conf}
 
     def loadWheelModule(self, module):
         mod = importlib.import_module(module["name"])
         if module.get("config", None) is not None:
-            ui = mod.UIElem(module["config"], {**self.conf, **self.common_config})
+            ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), {**self.conf, **self.common_config})
         else:
             ui = mod.UIElem("", module)
         module["class"] = ui
@@ -137,8 +140,11 @@ class RootCanvas:
         self.conf["internal"] = {}
         for i in range(len(self.conf["internalModules"])):
             mod = self.conf["internalModules"][i]
-            mod_class = importlib.import_module(mod["name"]).Internal({**self.conf, **self.common_config},
-                                                                      mod.get("config", None))
+            if mod.get("config") is not None:
+                cnf = os.path.join(self.config_dir, mod["config"])
+            else:
+                cnf = None
+            mod_class = importlib.import_module(mod["name"]).Internal({**self.conf, **self.common_config}, cnf)
             self.conf["internal"][mod_class.name] = {"class": mod_class, "signals": mod_class.getSignals()}
 
     def startInternalModules(self):
@@ -158,7 +164,7 @@ class RootCanvas:
         return self.cur_wheel_modules[i]
 
     def loadActionEngine(self):
-        self.ae = ActionEngine(self.wheel_modules, self.conf["actionEngineConfig"])
+        self.ae = ActionEngine(self.wheel_modules, os.path.join(self.config_dir, self.conf["actionEngineConfig"]))
         self.ae.current_module_list_getter = self.getCurModList
         self.ae.current_module_getter = self.conf["modules"][0]["class"].getCurModule
         self.ae.canvas = weakref.ref(self)
