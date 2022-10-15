@@ -2,3 +2,4 @@ pyserial
 pynput
 pyqt5
 numpydoc
+pyqtdarktheme

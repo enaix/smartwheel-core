@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow
 from canvas import RootCanvas
 import logging
 from settings import SettingsWindow
+import qdarktheme
 
 # from serialpipe.serial import SConn
 # from serialpipe.keyboard import KeyboardPipe
@@ -36,6 +37,7 @@ class WConfig:
 class RootWindow(QMainWindow):
     def __init__(self):
         self.app = QApplication(sys.argv)
+        self.app.setStyleSheet(qdarktheme.load_stylesheet())
         super(RootWindow, self).__init__()
         self.rc = None
         self.kb = None
