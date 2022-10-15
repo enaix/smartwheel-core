@@ -1,0 +1,10 @@
+{
+  "items": [
+    {"name": "Window", "options": [
+      {"name": "Position x", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "geometry", "index": 0},
+      {"name": "Position y", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "geometry", "index": 1},
+      {"name": "Window size", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "geometry", "index": [2, 3]},
+      {"name": "Padding", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "padding"}
+    ]}
+  ]
+}

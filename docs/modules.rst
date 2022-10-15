@@ -10,3 +10,4 @@ Modules navigation
    main
    serialpipe
    ui
+   settings
