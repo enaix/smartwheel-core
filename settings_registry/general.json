@@ -5,6 +5,9 @@
       {"name": "Position y", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "window.geometry", "index": 1},
       {"name": "Window size", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "window.geometry", "index": [2, 3]},
       {"name": "Padding", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "window.padding"}
+    ]},
+    {"name": "Application", "options": [
+      {"name": "Logging level", "type": "combo", "options": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], "module": "canvas", "prop": "logging"}
     ]}
   ]
 }

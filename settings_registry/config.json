@@ -1,5 +1,7 @@
 {
   "tabs": [
     {"name": "General", "config": "general.json"}
-  ]
+  ],
+  "groupMinimalHeight": 100,
+  "spacing": 200
 }

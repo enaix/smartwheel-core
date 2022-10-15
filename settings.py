@@ -1,6 +1,7 @@
-from PyQt5.QtGui import *
+# from PyQt5.QtGui import *
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QPushButton, QSpacerItem, \
-    QSizePolicy, QGroupBox, QSpinBox, QLabel, QFormLayout, QScrollArea
+    QSizePolicy, QGroupBox, QSpinBox, QLabel, QFormLayout, QScrollArea, QLineEdit, QComboBox
 import json
 import logging
 import os
@@ -61,6 +62,7 @@ class SettingsWindow(QWidget):
         self.settings["main"] = conf().c
         self.settings["canvas"] = main_class().rc.conf
         self.settings["common"] = main_class().rc.common_config
+        self.settings["settings"] = self.conf
 
         # Parsing serial modules
         self.settings["serial"] = {}
@@ -127,14 +129,24 @@ class SettingsWindow(QWidget):
         """
         tab = self.conf["tabs"][index]
         scroll = QScrollArea()
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setWidgetResizable(True)
         layout = QVBoxLayout()
+        wrapper = QWidget()
+        wrapper.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         for elem_group in tab["conf"]["items"]:
             form = QFormLayout()
+            form.setHorizontalSpacing(self.conf["spacing"])
             group = QGroupBox(elem_group["name"])
+            # group.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+            # group.setMinimumHeight(self.conf["groupMinimalHeight"])
+            # group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
             for elem in elem_group["options"]:
                 label = QLabel(elem["name"])
                 wid = None
+
                 if elem["type"] == "int":
                     wid = QSpinBox()
                     if elem.get("min") is not None:
@@ -148,13 +160,31 @@ class SettingsWindow(QWidget):
                     else:
                         self.logger.warning("Could not get value for " + elem["name"])
 
+                elif elem["type"] == "string":
+                    wid = QLineEdit()
+                    ok, value = self.getValue(elem["module"], elem["prop"])
+                    if ok:
+                        wid.setText(value)
+                    else:
+                        self.logger.warning("Could not get value for " + elem["name"])
+
+                elif elem["type"] == "combo":
+                    wid = QComboBox()
+                    wid.insertItems(0, elem["options"])
+                    ok, value = self.getValue(elem["module"], elem["prop"])
+                    if ok:
+                        wid.setCurrentText(value)
+                    else:
+                        self.logger.warning("Could not get value for " + elem["name"])
+
                 if wid is not None:
                     form.addRow(label, wid)
 
             group.setLayout(form)
             layout.addWidget(group)
 
-        scroll.setLayout(layout)
+        wrapper.setLayout(layout)
+        scroll.setWidget(wrapper)
 
         return scroll
 
