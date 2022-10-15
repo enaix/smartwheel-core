@@ -11,6 +11,7 @@ from canvas import RootCanvas
 import logging
 from settings import SettingsWindow
 import qdarktheme
+import weakref
 
 # from serialpipe.serial import SConn
 # from serialpipe.keyboard import KeyboardPipe
@@ -43,8 +44,6 @@ class RootWindow(QMainWindow):
         self.kb = None
         logging.basicConfig(level=getattr(logging, conf.c["canvas"]["logging"].upper(), 2))
         self.logger = logging.getLogger(__name__)
-        self.settings = SettingsWindow("settings_registry/config.json")
-        self.settings.show()
 
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         # self.mainWindow = QMainWindow(self)
@@ -57,6 +56,9 @@ class RootWindow(QMainWindow):
         self.setGeometry(*conf.c["window"]["geometry"])
         self.loadClasses()
         self.loadSerial()
+
+        self.settings = SettingsWindow("settings_registry/config.json", weakref.ref(self), weakref.ref(conf))
+        self.settings.show()
 
         self.show()
         # self.qp = QPainter(self)
@@ -106,6 +108,7 @@ class RootWindow(QMainWindow):
         # TODO load them from loop
 
         self.serialModules = {}
+        self.serialModulesNames = []
 
         for i in conf.c["canvas"]["serialModulesLoad"]:
             mod_name = conf.c["canvas"]["serialModules"][i]["name"]
@@ -115,6 +118,7 @@ class RootWindow(QMainWindow):
                 cls = mod.SConn(conf.c["canvas"]["serialModules"][i]["config"], self.rc.ae.callAction)
                 cls.start()
                 self.serialModules[mod_name] = cls
+                self.serialModulesNames.append(mod_name)
             except BaseException as e:
                 self.logger.error("Failed to load " + mod_name + ": ", e)
 

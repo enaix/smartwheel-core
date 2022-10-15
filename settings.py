@@ -7,15 +7,38 @@ import os
 
 
 class SettingsWindow(QWidget):
-    def __init__(self, config_file, parent=None):
+    def __init__(self, config_file, main_class, conf_class, parent=None):
+        """
+        Init SettingsWindow
+        
+        Parameters
+        ==========
+        config_file
+            Path to settings registry
+        main_class
+            Weakref to RootWindow object
+        conf_class
+            Weakref to WConfig object
+        """
         super(SettingsWindow, self).__init__(parent)
+        self.hook = None
         self.conf = None
+        self.settings = {}
         self.logger = logging.getLogger(__name__)
         self.loadConfig(config_file)
+        self.setConfigHook(main_class, conf_class)
 
         self.initLayout()
 
     def loadConfig(self, config_file):
+        """
+        Import settings registry
+
+        Parameters
+        ==========
+        config_file
+            Settings registry config.json file
+        """
         with open(config_file, "r") as f:
             self.conf = json.load(f)
 
@@ -24,7 +47,84 @@ class SettingsWindow(QWidget):
                 with open(os.path.join("settings_registry", self.conf["tabs"][i]["config"]), "r") as f:
                     self.conf["tabs"][i]["conf"] = json.load(f)
 
+    def setConfigHook(self, main_class, conf):
+        """
+        Set hooks for the settings class in order to load/save global settings
+
+        Parameters
+        ==========
+        main_class
+            Weakref to RootWindow object
+        conf
+            Weakref to WConfig object
+        """
+        self.settings["main"] = conf().c
+        self.settings["canvas"] = main_class().rc.conf
+        self.settings["common"] = main_class().rc.common_config
+
+        # Parsing serial modules
+        self.settings["serial"] = {}
+        serial = main_class().serialModules
+
+        for name in main_class().serialModulesNames:
+            if hasattr(serial[name], "conf"):
+                self.settings["serial"][name] = serial[name].conf
+            else:
+                self.logger.error("serialpipe." + name + " has no conf attribute")
+
+        # Parsing canvas section modules
+        self.settings["modules"] = {}
+        modules = main_class().rc.conf["modules"]
+
+        for mod in modules:
+            if mod.get("class") is not None:
+                if hasattr(mod["class"], "conf"):
+                    self.settings[mod["name"]] = mod["class"].conf
+                else:
+                    self.logger.error("ui." + mod["name"] + " has no conf attribute")
+
+    def getValue(self, module, prop, index=None):
+        """
+        Get property from the application
+        
+        Parameters
+        ==========
+        module
+            Module name (in self.settings)
+        prop
+            Property keys, separated by `.`
+        index
+            If not None, the index in the property array. If an array, then it's duplicated at specified indices
+        """
+        if self.settings.get(module) is None:
+            self.logger.error("Could not get value: no module " + module)
+            return False, None
+
+        props = prop.split('.')
+        cur_prop = self.settings[module]
+        for p in props:
+            if cur_prop.get(p) is None:
+                self.logger.error("Could not get value: no property " + module + "." + prop)
+                return False, None
+            else:
+                cur_prop = cur_prop[p]
+
+        if index is None:
+            return True, cur_prop
+        elif type(index) == list:
+            return True, cur_prop[index[0]]
+        else:
+            return True, cur_prop[index]
+
     def initTab(self, index):
+        """
+        Parse registry and generate elements
+
+        Parameters
+        ==========
+        index
+            Tab index
+        """
         tab = self.conf["tabs"][index]
         scroll = QScrollArea()
         layout = QVBoxLayout()
@@ -42,6 +142,12 @@ class SettingsWindow(QWidget):
                     if elem.get("max") is not None:
                         wid.setMaximum(elem["max"])
 
+                    ok, value = self.getValue(elem["module"], elem["prop"], elem.get("index"))
+                    if ok:
+                        wid.setValue(value)
+                    else:
+                        self.logger.warning("Could not get value for " + elem["name"])
+
                 if wid is not None:
                     form.addRow(label, wid)
 
@@ -53,6 +159,9 @@ class SettingsWindow(QWidget):
         return scroll
 
     def initLayout(self):
+        """
+        Generate layout
+        """
         baseLayout = QVBoxLayout(self)
 
         tabWidget = QTabWidget()

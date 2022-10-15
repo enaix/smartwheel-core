@@ -36,7 +36,6 @@ class RootCanvas:
         self.loadModules()
         self.tick = 0
         self.loadActionEngine()
-        #self.loadSerial()
 
     def loadCommonConf(self):
         try:
@@ -47,16 +46,36 @@ class RootCanvas:
             os.exit(1)
 
     def loadModules(self):
-        """load modules from the directory"""
+        """
+        Read module classes from `modules` config
+        """
         for i in self.conf["modulesLoad"]:
             self.conf["modules"][i]["class"] = self.importModule(self.conf["modules"][i])
 
     def importModule(self, meta):
+        """
+        Import a single module class
+
+        Parameters
+        ==========
+        meta
+            Configuration of the module
+        """
         mod = importlib.import_module(meta["name"])
         ui = mod.UIElem(meta["config"], {**self.conf, **self.common_config}, self.wheel_modules, self.update_func)
         return ui
 
     def loadSections(self, modules_list, parent_mod=None):
+        """
+        Configure already loaded modules or recursively load them in folders
+
+        Parameters
+        ==========
+        modules_list
+            `wheelModules` option from config
+        parent_mod
+            Folder module (None if it's a root)
+        """
         mods = MList()
         for i in modules_list:
             mod_dict = next((m for m in self.conf["modules"] if m["name"] == i["name"]), None)
@@ -83,6 +102,9 @@ class RootCanvas:
         return mods
 
     def processCommonConfig(self):
+        """
+        Add some properties to the common config
+        """
         conf = {}
         if self.common_config["isWheelWidthFixed"]:
             conf["wheelWidth"] = self.common_config["fixedWheelWidth"]

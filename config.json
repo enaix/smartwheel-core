@@ -9,7 +9,8 @@
 			{"name": "ui.media", "config": "config/media.json"},
 			{"name": "ui.hue", "config": "config/hue.json"}
 		],
-		"wheelModules": [{"name": "ui.media"},
+		"wheelModules": [
+			{"name": "ui.media"},
 			{"name": "ui.folder", "config": "config/folder.json", "modules": [{"name": "ui.media"}]},
 			{"name": "ui.hue"}
 		],
