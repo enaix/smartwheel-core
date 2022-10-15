@@ -7,6 +7,12 @@
 	"pointerMargin": 3,
 	"pointerColor": "#ffffff",
 	"pixmapScale": 30,
-	"overlayOpacity": 0.4,
-	"overlayWidth": 10
+	"drawOverlayCircles": true,
+	"overlayCirclesColor": "#404040",
+	"overlayCirclesOpacity": 0.4,
+	"overlayCirclesWidth": 10,
+	"drawOverlayRects": true,
+	"overlayRectsColor": "#404040",
+	"overlayRectsOpacity": 0.3,
+	"overlayRectsWidth": 20
 }

@@ -1,7 +1,7 @@
 # from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QPushButton, QSpacerItem, \
-    QSizePolicy, QGroupBox, QSpinBox, QLabel, QFormLayout, QScrollArea, QLineEdit, QComboBox, QCheckBox
+    QSizePolicy, QGroupBox, QSpinBox, QLabel, QFormLayout, QScrollArea, QLineEdit, QComboBox, QCheckBox, QDoubleSpinBox
 import json
 import logging
 import os
@@ -138,17 +138,30 @@ class SettingsWindow(QWidget):
 
         for elem_group in tab["conf"]["items"]:
             form = QFormLayout()
-            form.setHorizontalSpacing(self.conf["spacing"])
             group = QGroupBox(elem_group["name"])
-            # group.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-            # group.setMinimumHeight(self.conf["groupMinimalHeight"])
-            # group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
             for elem in elem_group["options"]:
                 label = QLabel(elem["name"])
                 wid = None
 
                 if elem["type"] == "int":
                     wid = QSpinBox()
+                    if elem.get("min") is not None:
+                        wid.setMinimum(elem["min"])
+                    if elem.get("max") is not None:
+                        wid.setMaximum(elem["max"])
+
+                    ok, value = self.getValue(elem["module"], elem["prop"], elem.get("index"))
+                    if ok:
+                        wid.setValue(value)
+                    else:
+                        self.logger.warning("Could not get value for " + elem["name"])
+
+                elif elem["type"] == "float":
+                    wid = QDoubleSpinBox()
+
+                    if elem.get("step") is not None:
+                        wid.setSingleStep(elem["step"])
+
                     if elem.get("min") is not None:
                         wid.setMinimum(elem["min"])
                     if elem.get("max") is not None:
@@ -186,7 +199,13 @@ class SettingsWindow(QWidget):
                         self.logger.warning("Could not get value for " + elem["name"])
 
                 if wid is not None:
-                    form.addRow(label, wid)
+                    wid.setMinimumWidth(self.conf["fieldWidth"])
+                    wid.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+                    widWrapper = QHBoxLayout()
+                    spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+                    widWrapper.addSpacerItem(spacer)
+                    widWrapper.addWidget(wid)
+                    form.addRow(label, widWrapper)
 
             group.setLayout(form)
             layout.addWidget(group)

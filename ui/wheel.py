@@ -369,29 +369,32 @@ class UIElem(BaseUIElem):
         self.drawOverlays(1 - self._opacity / 255, circleWidth)
 
     def drawOverlays(self, opacity, circleWidth):
-        brush = QBrush(QColor(self.conf["overlayColor"]))
+        brush = QBrush(QColor(self.conf["overlayCirclesColor"]))
 
         self.qp.setBrush(brush)
-        self.qp.setPen(QPen(QColor(self.conf["overlayColor"])))
-        self.qp.setOpacity(opacity * self.conf["overlayOpacity"])
 
-        for i in range(0, 360, 360 // 10):
-            self.qp.drawEllipse(QPoint(self.conf["cx"] + int(math.cos(math.radians(i + (self._angle - 225) / 4)) *
-                                                             circleWidth // 3),
-                                       self.conf["cy"] + int(math.sin(math.radians(i + (self._angle - 225) / 4)) *
-                                                             circleWidth // 3)),
-                                self.conf["overlayWidth"], self.conf["overlayWidth"])
+        if self.conf["drawOverlayCircles"]:
+            self.qp.setPen(QPen(QColor(self.conf["overlayCirclesColor"])))
+            self.qp.setOpacity(opacity * self.conf["overlayCirclesOpacity"])
 
-        self.qp.setPen(QPen(QColor(self.conf["overlayColor"]), 20, Qt.SolidLine))
-        self.qp.setOpacity(0.3 * opacity)
+            for i in range(0, 360, 360 // 10):
+                self.qp.drawEllipse(QPoint(self.conf["cx"] + int(math.cos(math.radians(i + (self._angle - 225) / 4)) *
+                                                                 circleWidth // 3),
+                                           self.conf["cy"] + int(math.sin(math.radians(i + (self._angle - 225) / 4)) *
+                                                                 circleWidth // 3)),
+                                    self.conf["overlayCirclesWidth"], self.conf["overlayCirclesWidth"])
 
-        for i in range(0, 360, 360 // 6):
-            cx = math.cos(math.radians(i + (self._angle - 225) / 6))
-            cy = math.sin(math.radians(i + (self._angle - 225) / 6))
-            self.qp.drawLine(QPointF(self.conf["cx"] + cx * circleWidth * 0.3,
-                                    self.conf["cy"] + cy * circleWidth * 0.3),
-                             QPointF(self.conf["cx"] + cx * circleWidth * 0.45,
-                                    self.conf["cy"] + cy * circleWidth * 0.45))
+        if self.conf["drawOverlayRects"]:
+            self.qp.setPen(QPen(QColor(self.conf["overlayRectsColor"]), self.conf["overlayRectsWidth"], Qt.SolidLine))
+            self.qp.setOpacity(self.conf["overlayRectsOpacity"] * opacity)
+
+            for i in range(0, 360, 360 // 6):
+                cx = math.cos(math.radians(i + (self._angle - 225) / 6))
+                cy = math.sin(math.radians(i + (self._angle - 225) / 6))
+                self.qp.drawLine(QPointF(self.conf["cx"] + cx * circleWidth * 0.3,
+                                        self.conf["cy"] + cy * circleWidth * 0.3),
+                                 QPointF(self.conf["cx"] + cx * circleWidth * 0.45,
+                                        self.conf["cy"] + cy * circleWidth * 0.45))
 
         self.qp.setOpacity(1)
 

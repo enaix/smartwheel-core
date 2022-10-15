@@ -4,5 +4,5 @@
     {"name": "Appearance", "config": "appearance.json"}
   ],
   "groupMinimalHeight": 100,
-  "spacing": 200
+  "fieldWidth": 200
 }
