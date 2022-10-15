@@ -4,9 +4,11 @@ import importlib
 import sys
 import os
 import json
+
+from PyQt5.QtCore import pyqtSlot, QEvent
 from PyQt5.QtGui import *
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QDockWidget
 from canvas import RootCanvas
 import logging
 from settings import SettingsWindow
@@ -49,6 +51,7 @@ class RootWindow(QMainWindow):
         self.logger = logging.getLogger(__name__)
 
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WA_Hover, True)
         # self.mainWindow = QMainWindow(self)
         # self.mainWindow.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
@@ -59,12 +62,43 @@ class RootWindow(QMainWindow):
         self.setGeometry(*conf.c["window"]["geometry"])
         self.loadClasses()
         self.loadSerial()
+        self.initUI()
 
         self.settings = SettingsWindow("settings_registry/config.json", weakref.ref(self), weakref.ref(conf))
-        self.settings.show()
+        #self.settings.show()
 
         self.show()
         # self.qp = QPainter(self)
+
+    def initUI(self):
+        self.dock = QDockWidget()
+        self.dock.setMaximumWidth(300)
+        self.dock.setMaximumHeight(300)
+        self.settingsButton = QPushButton("Settings")
+        self.dock.setWidget(self.settingsButton)
+        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.dock)
+        self.dock.hide()
+
+        self.settingsButton.clicked.connect(self.openSettings)
+
+        self.installEventFilter(self)
+
+    @pyqtSlot()
+    def openSettings(self):
+        self.settings.show()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.HoverEnter:
+            self.dock.show()
+        elif event.type() == QEvent.HoverLeave:
+            self.dock.hide()
+        return super(RootWindow, self).eventFilter(obj, event)
+
+#    def onHovered(self, event):
+#        self.settingsButton.show()
+
+#    def leaveEvent(self, event):
+#        self.settingsButton.hide()
 
     def paintEvent(self, event):
         self.qp = QPainter(self)
