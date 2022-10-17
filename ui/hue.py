@@ -4,11 +4,13 @@ from PyQt5.QtCore import *
 import json
 import os
 import math
+import logging
 
 class UIElem(BaseUIElem):
     def __init__(self, config_file, WConfig):
         super().__init__()
         self.config_file = config_file
+        self.logger = logging.getLogger(__name__)
         self.loadConfig()
         self.conf = {**self.conf, **WConfig}
         self.icon_path = self.conf.get("icon_path", None)
@@ -41,7 +43,7 @@ class UIElem(BaseUIElem):
             
             color = QColor.fromHsl(int(self.hue_selection), int(self.to_map(self.sat_selection)), int(self.to_map(self.bri_selection)))
             r, g, b, _ = color.getRgbF()
-            print(r, g, b)
+            self.logger.debug(r, g, b)
             
             data = self.conf["internal"]["kritaAPI"]["class"].setColor(r, g, b)
             self.conf["internal"]["kritaServer"]["signals"]["send"].emit(data)

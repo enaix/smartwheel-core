@@ -2,6 +2,7 @@ from serialpipe.base import ConnPipe
 from PyQt5.QtCore import *
 import serial
 import json
+import logging
 
 
 class SConn(ConnPipe):
@@ -12,6 +13,7 @@ class SConn(ConnPipe):
         self.conf = None
         self.config_file = config_file
         self.call = call_signal
+        self.logger = logging.getLogger(__name__)
         self.loadConfig()
 
     def loadConfig(self):
@@ -55,5 +57,5 @@ class SConn(ConnPipe):
                 while self.isRunning() and s.is_open:
                     self.serialCall(s.readline())
         except BaseException as e:
-            print(e)
+            self.logger.error(e)
             return

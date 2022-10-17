@@ -76,7 +76,7 @@ class PRButton(QObject):
         if self.state == "up" and down:  # Unpressed
             self.state = "down_pre"  # Button down
             self.timer.stop()
-            self.logger.info("prbutton pressed down")
+            self.logger.debug("prbutton pressed down")
             if self.signals[0] is not None:
                 self.signals[0].emit(self.arguments[0])
 
@@ -84,22 +84,22 @@ class PRButton(QObject):
             self.state = "click_pre"
             self.timer.stop()
             self.timer.start()
-            self.logger.info("prbutton clicked, waiting for timeout")
+            self.logger.debug("prbutton clicked, waiting for timeout")
 
         elif self.state == "click_pre" and down:  # Single click and press down
             self.state = "double_pre"
             self.timer.stop()
-            self.logger.info("prbutton clicked and pressed down")
+            self.logger.debug("prbutton clicked and pressed down")
 
         elif self.state == "double_pre" and up:  # double click
             self.state = "up"
             self.timer.stop()
-            self.logger.info("prbutton doubleclicked")
+            self.logger.debug("prbutton doubleclicked")
             if self.signals[2] is not None:
                 self.signals[2].emit(self.arguments[2])
 
         elif up:  # drop the state
-            self.logger.info("prbutton state reset")
+            self.logger.debug("prbutton state reset")
             self.state = "up"
 
     @pyqtSlot()
@@ -109,7 +109,7 @@ class PRButton(QObject):
         """
         if self.state == "click_pre":  # single click
             self.state = "up"
-            self.logger.info("prbutton clicked, timeout exceeded")
+            self.logger.debug("prbutton clicked, timeout exceeded")
 
             if self.signals[1] is not None:
                 self.signals[1].emit(self.arguments[1])
@@ -275,25 +275,25 @@ class Rotary(QObject):
         """
         down = not up
         if self.btn is None:  # No linked btn
-            self.logger.info("rotary scrolled")
+            self.logger.debug("rotary scrolled")
             self.callSignal(0, up)
 
         elif self.btn.state == "up" or self.btn.state == "click_pre":  # Rotation up/down
             self.btn.state = "up"
             self.btn.timer.stop()
-            self.logger.info("rotary scrolled")
+            self.logger.debug("rotary scrolled")
             self.callSignal(0, up)
 
         elif self.btn.state == "down_pre" or self.btn.state == "down":  # Click and scroll
             self.btn.state = "down"  # the next up event won't trigger anything
             self.btn.timer.stop()
-            self.logger.info("rotary scrolled with click")
+            self.logger.debug("rotary scrolled with click")
             self.callSignal(2, up)
 
         elif self.btn.state == "double_pre" or self.btn.state == "double":
             self.btn.state = "double"  # the next up event won't trigger anything
             self.btn.timer.stop()
-            self.logger.info("rotary scrolled with doubleclick")
+            self.logger.debug("rotary scrolled with doubleclick")
             self.callSignal(4, up)
 
 

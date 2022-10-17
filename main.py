@@ -94,12 +94,6 @@ class RootWindow(QMainWindow):
             self.dock.hide()
         return super(RootWindow, self).eventFilter(obj, event)
 
-#    def onHovered(self, event):
-#        self.settingsButton.show()
-
-#    def leaveEvent(self, event):
-#        self.settingsButton.hide()
-
     def paintEvent(self, event):
         self.qp = QPainter(self)
         self.qp.setRenderHint(QPainter.Antialiasing)

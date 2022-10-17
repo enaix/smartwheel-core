@@ -5,6 +5,7 @@ import time
 import queue
 from PyQt5.QtCore import *
 from ui.internal.baseinternal import BaseInternal
+import logging
 
 class Internal(BaseInternal):
     sendSignal = pyqtSignal(str)
@@ -13,6 +14,7 @@ class Internal(BaseInternal):
 
     def __init__(self, WConfig, config_file):
         super().__init__()
+        self.logger = logging.getLogger(__name__)
         self.sendSignal.connect(self.send)
         self.signals = {"send": self.sendSignal}
         self.config_file = config_file
@@ -35,14 +37,14 @@ class Internal(BaseInternal):
     def run(self):
         ok = self.open_socket()
         if not ok:
-            print("Cannot open socket")
+            self.logger.warning("Cannot open socket")
         while True:
             self.wake.wait(self.mutex)
             #self.mutex.lock()
             #data_copy = self.data
             #self.mutex.unlock()
             while not self.data.empty():
-                print("Reading data")
+                self.logger.debug("Reading data")
                 self.sendData(self.data.get())
 
     def open_socket(self):
@@ -56,7 +58,7 @@ class Internal(BaseInternal):
                 self.sock.listen()
                 return True
             except BaseException as e:
-                print(e)
+                self.logger.error(e)
                 time.sleep(self.conf["errorTimeout"])
 
     @pyqtSlot(str)
@@ -67,7 +69,7 @@ class Internal(BaseInternal):
         #self.mutex.unlock()
 
     def sendData(self, data):
-        print(data)
+        self.logger.debug(data)
         try:
             if not hasattr(self, "conn"):
                 self.conn, _ = self.sock.accept()
@@ -76,7 +78,7 @@ class Internal(BaseInternal):
             try:
                 self.conn, _ = self.sock.accept()
             except BaseException as ex:
-                print(ex)
+                self.logger.error(ex)
                 return
-            print(e)
+            self.logger.error(e)
 

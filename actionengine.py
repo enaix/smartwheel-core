@@ -143,7 +143,7 @@ class ActionEngine(QObject):
         if elem.get("name") is None or call.get("string") is None:
             self.logger.warning("actionengine could not parse the signal")
 
-        self.logger.info("Incoming call: " + call["string"])
+        self.logger.debug("Incoming call: " + call["string"])
 
         i = self.conf["commandBind"].get(elem["name"], None)
         if i is not None:
