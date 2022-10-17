@@ -1,5 +1,5 @@
 # from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QPushButton, QSpacerItem, \
     QSizePolicy, QGroupBox, QSpinBox, QLabel, QFormLayout, QScrollArea, QLineEdit, QComboBox, QCheckBox, QDoubleSpinBox
 import json
@@ -88,7 +88,7 @@ class SettingsWindow(QWidget):
     def getValue(self, module, prop, index=None):
         """
         Get property from the application
-        
+
         Parameters
         ==========
         module
@@ -118,6 +118,66 @@ class SettingsWindow(QWidget):
         else:
             return True, cur_prop[index]
 
+    def setValue(self, obj, value):
+        """
+        Set property from the application
+        
+        Parameters
+        ==========
+        obj
+            QObject (widget) with `module`, `prop` (and `index`) properties
+        value
+            Value to set
+        """
+
+        module = obj.property("module")
+        prop = obj.property("prop")
+        index = obj.property("index")
+
+        if module is None:
+            self.logger.error("Could not obtain module value")
+
+        if self.settings.get(module) is None:
+            self.logger.error("Could not get value: no module " + str(module))
+            return
+
+        props = prop.split('.')
+        cur_prop = self.settings[module]
+        for p in props:
+            if cur_prop.get(p) is None:
+                self.logger.error("Could not get value: no property " + module + "." + prop)
+                return
+            else:
+                cur_prop = cur_prop[p]
+
+        if index is None:
+            cur_prop = value
+        elif type(index) == list:
+            for i in index:
+                cur_prop[i] = value
+        else:
+            cur_prop[index] = value
+
+    @pyqtSlot(int)
+    def setInt(self, value):
+        caller = self.sender()
+        self.setValue(caller, value)
+
+    @pyqtSlot(float)
+    def setFloat(self, value):
+        caller = self.sender()
+        self.setValue(caller, value)
+
+    @pyqtSlot(str)
+    def setStr(self, value):
+        caller = self.sender()
+        self.setValue(caller, value)
+
+    @pyqtSlot(bool)
+    def setBool(self, value):
+        caller = self.sender()
+        self.setValue(caller, value)
+
     def initTab(self, index):
         """
         Parse registry and generate elements
@@ -145,6 +205,7 @@ class SettingsWindow(QWidget):
 
                 if elem["type"] == "int":
                     wid = QSpinBox()
+                    wid.valueChanged.connect(self.setInt)
                     if elem.get("min") is not None:
                         wid.setMinimum(elem["min"])
                     if elem.get("max") is not None:
@@ -158,6 +219,7 @@ class SettingsWindow(QWidget):
 
                 elif elem["type"] == "float":
                     wid = QDoubleSpinBox()
+                    wid.valueChanged.connect(self.setFloat)
 
                     if elem.get("step") is not None:
                         wid.setSingleStep(elem["step"])
@@ -175,6 +237,8 @@ class SettingsWindow(QWidget):
 
                 elif elem["type"] == "string":
                     wid = QLineEdit()
+                    wid.textEdited.connect(self.setStr)
+
                     ok, value = self.getValue(elem["module"], elem["prop"])
                     if ok:
                         wid.setText(value)
@@ -183,6 +247,7 @@ class SettingsWindow(QWidget):
 
                 elif elem["type"] == "combo":
                     wid = QComboBox()
+                    wid.currentTextChanged.connect(self.setStr)
                     wid.insertItems(0, elem["options"])
                     ok, value = self.getValue(elem["module"], elem["prop"])
                     if ok:
@@ -192,6 +257,7 @@ class SettingsWindow(QWidget):
 
                 elif elem["type"] == "bool":
                     wid = QCheckBox()
+                    wid.toggled.connect(self.setBool)
                     ok, value = self.getValue(elem["module"], elem["prop"])
                     if ok:
                         wid.setChecked(value)
@@ -199,6 +265,11 @@ class SettingsWindow(QWidget):
                         self.logger.warning("Could not get value for " + elem["name"])
 
                 if wid is not None:
+                    wid.setProperty("module", elem["module"])
+                    wid.setProperty("prop", elem["prop"])
+                    if elem.get("index") is not None:
+                        wid.setProperty("index", elem["index"])
+
                     wid.setMinimumWidth(self.conf["fieldWidth"])
                     wid.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
                     widWrapper = QHBoxLayout()
