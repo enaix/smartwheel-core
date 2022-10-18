@@ -130,7 +130,7 @@ class SettingsWindow(QWidget):
             Value to set
         """
 
-        module = obj.property("module")
+        module = obj.property("widmodule")
         prop = obj.property("prop")
         index = obj.property("index")
 
@@ -205,7 +205,6 @@ class SettingsWindow(QWidget):
 
                 if elem["type"] == "int":
                     wid = QSpinBox()
-                    wid.valueChanged.connect(self.setInt)
                     if elem.get("min") is not None:
                         wid.setMinimum(elem["min"])
                     if elem.get("max") is not None:
@@ -217,9 +216,10 @@ class SettingsWindow(QWidget):
                     else:
                         self.logger.warning("Could not get value for " + elem["name"])
 
+                    wid.valueChanged.connect(self.setInt)
+
                 elif elem["type"] == "float":
                     wid = QDoubleSpinBox()
-                    wid.valueChanged.connect(self.setFloat)
 
                     if elem.get("step") is not None:
                         wid.setSingleStep(elem["step"])
@@ -235,9 +235,10 @@ class SettingsWindow(QWidget):
                     else:
                         self.logger.warning("Could not get value for " + elem["name"])
 
+                    wid.valueChanged.connect(self.setFloat)
+
                 elif elem["type"] == "string":
                     wid = QLineEdit()
-                    wid.textEdited.connect(self.setStr)
 
                     ok, value = self.getValue(elem["module"], elem["prop"])
                     if ok:
@@ -245,9 +246,10 @@ class SettingsWindow(QWidget):
                     else:
                         self.logger.warning("Could not get value for " + elem["name"])
 
+                    wid.textEdited.connect(self.setStr)
+
                 elif elem["type"] == "combo":
                     wid = QComboBox()
-                    wid.currentTextChanged.connect(self.setStr)
                     wid.insertItems(0, elem["options"])
                     ok, value = self.getValue(elem["module"], elem["prop"])
                     if ok:
@@ -255,17 +257,20 @@ class SettingsWindow(QWidget):
                     else:
                         self.logger.warning("Could not get value for " + elem["name"])
 
+                    wid.currentTextChanged.connect(self.setStr)
+
                 elif elem["type"] == "bool":
                     wid = QCheckBox()
-                    wid.toggled.connect(self.setBool)
                     ok, value = self.getValue(elem["module"], elem["prop"])
                     if ok:
                         wid.setChecked(value)
                     else:
                         self.logger.warning("Could not get value for " + elem["name"])
 
+                    wid.clicked.connect(self.setBool)
+
                 if wid is not None:
-                    wid.setProperty("module", elem["module"])
+                    wid.setProperty("widmodule", elem["module"])
                     wid.setProperty("prop", elem["prop"])
                     if elem.get("index") is not None:
                         wid.setProperty("index", elem["index"])
