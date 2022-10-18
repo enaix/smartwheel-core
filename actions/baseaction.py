@@ -2,7 +2,7 @@ class BaseAction:
     def __init(self):
         pass
 
-    def run(self):
+    def run(self, context):
         pass
 
 

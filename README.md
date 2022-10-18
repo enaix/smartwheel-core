@@ -35,11 +35,11 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 ## Release 0.0.1
 
 - [x] Stable version (Linux)
-- [ ] Documentation (in progress)
+- [x] Documentation (in progress)
 - [ ] Examples (in progress)
-- [ ] Initial encoders support (Linux)
+- [x] Initial encoders support (Linux)
 - [ ] Refactor api
-- [ ] Settings menu (?)
+- [ ] Settings menu (in progress)
 - [ ] Windows support (?)
 
 ## Features progress
@@ -49,16 +49,18 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [x] Keyboard bindings
   - [ ] Serial encoder integration (Partial)
   - [ ] UX Features (acceleration)
-  - [ ] Legacy knobs support
-- [ ] Settings editor
+  - [x] Keyboard knobs support (Almost)
+- [ ] Settings editor (Partial)
 - [ ] Custom plugins (from JSON)
 - [x] Folders support (Partial)
 - [x] Wheel UI
 - [ ] Addons
   - [x] Media
   - [x] Color picker
+  - [ ] Scroll
   - [ ] Files (Initial)
   - [ ] Rotate
+  - [ ] Timeline
   - [ ] Other ...
 - [x] Krita integration (Partial)
   - [x] Color
@@ -66,7 +68,6 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [ ] Brush
   - [ ] ...
 - [ ] Photoshop integration (?)
-- [ ] Serial display (?)
 
 ## DIY knob
 
