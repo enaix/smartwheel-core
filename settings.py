@@ -59,6 +59,8 @@ class SettingsWindow(QWidget):
         conf
             Weakref to WConfig object
         """
+        self.main_class = main_class  # weakref to the main class
+        self.confClass = conf  # weakref to wconfig
         self.settings["main"] = conf().c
         self.settings["canvas"] = main_class().rc.conf
         self.settings["common"] = main_class().rc.common_config
@@ -118,6 +120,33 @@ class SettingsWindow(QWidget):
         else:
             return True, cur_prop[index]
 
+    def dictWalk(self, d, props, value, index=None):
+        """
+        Recursively walk in nested dicts and apply value
+
+        Parameters
+        ==========
+        d
+            Target dict
+        props
+            List of keys
+        value
+            Value to apply
+        index
+            If not None, the index in the property array. If an array, then it's duplicated at specified indices
+        """
+        if len(props) == 1:
+            if index is None:
+                d[props[0]] = value
+            elif type(index) == list:
+                for i in index:
+                    d[props[0]][i] = value
+            else:
+                d[props[0]][index] = value
+            return
+
+        self.dictWalk(d[props[0]], props[1:], value, index)
+
     def setValue(self, obj, value):
         """
         Set property from the application
@@ -142,21 +171,10 @@ class SettingsWindow(QWidget):
             return
 
         props = prop.split('.')
-        cur_prop = self.settings[module]
-        for p in props:
-            if cur_prop.get(p) is None:
-                self.logger.error("Could not get value: no property " + module + "." + prop)
-                return
-            else:
-                cur_prop = cur_prop[p]
 
-        if index is None:
-            cur_prop = value
-        elif type(index) == list:
-            for i in index:
-                cur_prop[i] = value
-        else:
-            cur_prop[index] = value
+        self.dictWalk(self.settings[module], props, value, index)
+
+        self.main_class().update()
 
     @pyqtSlot(int)
     def setInt(self, value):
