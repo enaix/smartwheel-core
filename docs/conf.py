@@ -23,6 +23,9 @@ extensions = ['sphinx.ext.autodoc', 'numpydoc']
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+autoclass_content = 'both' # enable __self__
+
+autodoc_mock_imports = ['sip', 'PyQt5', 'PyQt5.QtGui', 'PyQt5.QtCore', 'PyQt5.QtWidgets']
 
 
 # -- Options for HTML output -------------------------------------------------
