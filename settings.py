@@ -78,14 +78,19 @@ class SettingsWindow(QWidget):
 
         # Parsing canvas section modules
         self.settings["modules"] = {}
-        modules = main_class().rc.conf["modules"]
+        main_modules = main_class().rc.conf["modules"]
+        wheel_modules = main_class().rc.wheel_modules
 
-        for mod in modules:
-            if mod.get("class") is not None:
-                if hasattr(mod["class"], "conf"):
-                    self.settings[mod["name"]] = mod["class"].conf
+        for i, modules in enumerate([main_modules, wheel_modules]):
+            for mod in modules:
+                if mod.get("class") is not None:
+                    if hasattr(mod["class"], "conf"):
+                        self.settings[mod["name"]] = mod["class"].conf
+                    else:
+                        self.logger.error(mod["name"] + " has no conf attribute")
                 else:
-                    self.logger.error(mod["name"] + " has no conf attribute")
+                    if i == 1:
+                        self.logger.error(mod["name"] + " has no class attribute")
 
     def getValue(self, module, prop, index=None):
         """
@@ -120,7 +125,7 @@ class SettingsWindow(QWidget):
         else:
             return True, cur_prop[index]
 
-    def dictWalk(self, d, props, value, index=None):
+    def dictWalk(self, d, props, value, index=None, _i=0):
         """
         Recursively walk in nested dicts and apply value
 
@@ -134,18 +139,35 @@ class SettingsWindow(QWidget):
             Value to apply
         index
             If not None, the index in the property array. If an array, then it's duplicated at specified indices
+        _i
+            (Private) Recursion depth
         """
+
+        key = "_" + str(_i)
+
+        if _i != 0:
+            key = "_" + str(_i-1)
+        
+        # We create the wrapper if needed
+        if d.get(key) is None:
+            w = {key: d}
+        else:
+            w = d
+
         if len(props) == 1:
             if index is None:
-                d[props[0]] = value
+                w[key][props[0]] = value
             elif type(index) == list:
                 for i in index:
-                    d[props[0]][i] = value
+                    w[key][props[0]][i] = value
             else:
-                d[props[0]][index] = value
+                w[key][props[0]][index] = value
             return
 
-        self.dictWalk(d[props[0]], props[1:], value, index)
+        # Python reference hack, we use a mutable type as a wrapper
+        wrapper = {"_"+str(_i): w[key][props[0]]}
+
+        self.dictWalk(wrapper, props[1:], value, index, _i+1)
 
     def setValue(self, obj, value):
         """
