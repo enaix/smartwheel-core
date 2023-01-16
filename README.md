@@ -39,8 +39,16 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 - [ ] Examples (in progress)
 - [x] Initial encoders support (Linux)
 - [ ] Refactor api
+  - [ ] Add modules asyncio background processes
+  - [ ] Finish folders support
 - [ ] Settings menu (in progress)
+  - [X] Basic stuff
+  - [ ] Custom handlers support
+  - [ ] Saving/presets
+  - [ ] Actions editor
+- [ ] Add fancy blur
 - [ ] Windows support (?)
+- [ ] Mac support {?)
 
 ## Features progress
 
