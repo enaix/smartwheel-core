@@ -81,6 +81,8 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 
 If you don't have a standalone dial, you may 3D print one: there is a Freecad model in `pad` folder. Sadly, some components don't fit, but I don't have time to fix it right now. DM me if you need the fixed case model.
 
+Upd: going to properly remodel it in F360 in the future
+
 ## Gallery
 
 Short video (sorry for the poor quality): ![smartwheel.mp4](https://github.com/enaix/smartwheel-core/raw/master/extra/smartwheel.mp4)
