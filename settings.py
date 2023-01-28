@@ -1,10 +1,12 @@
 # from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QPushButton, QSpacerItem, \
-    QSizePolicy, QGroupBox, QSpinBox, QLabel, QFormLayout, QScrollArea, QLineEdit, QComboBox, QCheckBox, QDoubleSpinBox
+    QSizePolicy, QGroupBox, QFormLayout, QScrollArea, QLabel
 import json
 import logging
 import os
+import weakref
+import importlib
 
 
 class SettingsWindow(QWidget):
@@ -24,10 +26,13 @@ class SettingsWindow(QWidget):
         super(SettingsWindow, self).__init__(parent)
         self.hook = None
         self.conf = None
+        self.handlers_conf = None
+        self.handlers = None
         self.settings = {}
         self.logger = logging.getLogger(__name__)
         self.loadConfig(config_file)
         self.setConfigHook(main_class, conf_class)
+        self.loadSettingsHandlers(self.conf["settings_handlers_dir"])
 
         self.initLayout()
 
@@ -91,6 +96,32 @@ class SettingsWindow(QWidget):
                 else:
                     if i == 1:
                         self.logger.error(mod["name"] + " has no class attribute")
+
+    def loadSettingsHandlers(self, handlers_dir):
+        """
+        Init settings handlers from the directory
+        
+        Parameters
+        ==========
+        handlers_dir
+            Directory containing settings handlers, must contain config.json file
+        """
+        s_config = os.path.join(handlers_dir, "config.json")
+        if not os.path.exists(s_config):
+            self.logger.error("Missing " + s_config + " file")
+            os.exit(1)
+
+        with open(s_config, 'r') as f:
+            self.handlers_conf = json.load(f)
+
+        self.handlers = {}
+        for mod_name in self.handlers_conf["handlers_modules"]:
+            handler = importlib.import_module(self.conf["settings_handlers_dir"] + "." + mod_name)
+            h_dict = handler.handlers
+            for k in h_dict:
+                if self.handlers.get(k) is not None:
+                    self.logger.warning("Setting handler " + k + " is defined twice. Overriding")
+                self.handlers[k] = h_dict[k](self.getValue, self.setValue, weakref.ref(self))
 
     def getValue(self, module, prop, index=None):
         """
@@ -198,26 +229,6 @@ class SettingsWindow(QWidget):
 
         self.main_class().update()
 
-    @pyqtSlot(int)
-    def setInt(self, value):
-        caller = self.sender()
-        self.setValue(caller, value)
-
-    @pyqtSlot(float)
-    def setFloat(self, value):
-        caller = self.sender()
-        self.setValue(caller, value)
-
-    @pyqtSlot(str)
-    def setStr(self, value):
-        caller = self.sender()
-        self.setValue(caller, value)
-
-    @pyqtSlot(bool)
-    def setBool(self, value):
-        caller = self.sender()
-        self.setValue(caller, value)
-
     def initTab(self, index):
         """
         Parse registry and generate elements
@@ -243,71 +254,10 @@ class SettingsWindow(QWidget):
                 label = QLabel(elem["name"])
                 wid = None
 
-                if elem["type"] == "int":
-                    wid = QSpinBox()
-                    if elem.get("min") is not None:
-                        wid.setMinimum(elem["min"])
-                    if elem.get("max") is not None:
-                        wid.setMaximum(elem["max"])
-
-                    ok, value = self.getValue(elem["module"], elem["prop"], elem.get("index"))
-                    if ok:
-                        wid.setValue(value)
-                    else:
-                        self.logger.warning("Could not get value for " + elem["name"])
-
-                    wid.valueChanged.connect(self.setInt)
-
-                elif elem["type"] == "float":
-                    wid = QDoubleSpinBox()
-
-                    if elem.get("step") is not None:
-                        wid.setSingleStep(elem["step"])
-
-                    if elem.get("min") is not None:
-                        wid.setMinimum(elem["min"])
-                    if elem.get("max") is not None:
-                        wid.setMaximum(elem["max"])
-
-                    ok, value = self.getValue(elem["module"], elem["prop"], elem.get("index"))
-                    if ok:
-                        wid.setValue(value)
-                    else:
-                        self.logger.warning("Could not get value for " + elem["name"])
-
-                    wid.valueChanged.connect(self.setFloat)
-
-                elif elem["type"] == "string":
-                    wid = QLineEdit()
-
-                    ok, value = self.getValue(elem["module"], elem["prop"])
-                    if ok:
-                        wid.setText(value)
-                    else:
-                        self.logger.warning("Could not get value for " + elem["name"])
-
-                    wid.textEdited.connect(self.setStr)
-
-                elif elem["type"] == "combo":
-                    wid = QComboBox()
-                    wid.insertItems(0, elem["options"])
-                    ok, value = self.getValue(elem["module"], elem["prop"])
-                    if ok:
-                        wid.setCurrentText(value)
-                    else:
-                        self.logger.warning("Could not get value for " + elem["name"])
-
-                    wid.currentTextChanged.connect(self.setStr)
-
-                elif elem["type"] == "bool":
-                    wid = QCheckBox()
-                    ok, value = self.getValue(elem["module"], elem["prop"])
-                    if ok:
-                        wid.setChecked(value)
-                    else:
-                        self.logger.warning("Could not get value for " + elem["name"])
-
-                    wid.clicked.connect(self.setBool)
+                if self.handlers.get(elem["type"]) is None:
+                    self.logger.error("Could not find the handler for type " + elem["type"])
+                else:
+                    wid = self.handlers[elem["type"]].initElem(elem)
 
                 if wid is not None:
                     wid.setProperty("widmodule", elem["module"])

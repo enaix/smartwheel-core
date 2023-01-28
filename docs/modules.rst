@@ -11,3 +11,4 @@ Modules navigation
    serialpipe
    ui
    settings
+   settings_handlers

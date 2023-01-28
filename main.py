@@ -8,7 +8,7 @@ import json
 from PyQt5.QtCore import pyqtSlot, QEvent
 from PyQt5.QtGui import *
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QDockWidget
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QDockWidget, QGraphicsBlurEffect
 from canvas import RootCanvas
 import logging
 from settings import SettingsWindow
@@ -83,6 +83,8 @@ class RootWindow(QMainWindow):
 
         self.installEventFilter(self)
 
+        #self.drawBlur()
+
     @pyqtSlot()
     def openSettings(self):
         self.settings.show()
@@ -93,6 +95,19 @@ class RootWindow(QMainWindow):
         elif event.type() == QEvent.HoverLeave:
             self.dock.hide()
         return super(RootWindow, self).eventFilter(obj, event)
+
+    def drawBlur(self):
+        self.blur_widget = QWidget(self)
+        self.blur_widget.setGeometry(0, 0, *conf.c["window"]["geometry"][2:])
+        self.blur_widget.setStyleSheet("border-radius: {}px;\
+                                       border: 0px solid white;\
+                                       background-color: rgba(0, 0, 0, 0.5);".format(conf.c["window"]["geometry"][2]/6))
+        #self.blur_widget.
+        self.blur_filter = QGraphicsBlurEffect()
+        self.blur_filter.setBlurRadius(15)
+        os.system("xprop -f _KDE_NET_WM_BLUR_BEHIND_REGION 32c -set _KDE_NET_WM_BLUR_BEHIND_REGION 0 -id " + str(int(self.winId())))
+        #self.blur_widget.setGraphicsEffect(self.blur_filter)
+        self.blur_widget.show()
 
     def paintEvent(self, event):
         self.qp = QPainter(self)

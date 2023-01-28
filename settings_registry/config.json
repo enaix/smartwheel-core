@@ -4,5 +4,6 @@
     {"name": "Appearance", "config": "appearance.json"}
   ],
   "groupMinimalHeight": 100,
-  "fieldWidth": 200
+  "fieldWidth": 200,
+  "settings_handlers_dir": "settings_handlers"
 }
