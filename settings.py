@@ -282,6 +282,15 @@ class SettingsWindow(QWidget):
 
         return scroll
 
+    @pyqtSlot()
+    def save(self):
+        self.confClass().saveConfig()
+
+    @pyqtSlot()
+    def saveAndQuit(self):
+        self.confClass().saveConfig()
+        self.close()
+
     def initLayout(self):
         """
         Generate layout
@@ -297,7 +306,9 @@ class SettingsWindow(QWidget):
 
         bottomPanel = QHBoxLayout()
         okButton = QPushButton("OK")
+        okButton.clicked.connect(self.saveAndQuit)
         applyButton = QPushButton("Apply")
+        applyButton.clicked.connect(self.save)
         cancelButton = QPushButton("Cancel")
         spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         bottomPanel.addSpacerItem(spacer)

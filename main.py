@@ -15,19 +15,19 @@ from settings import SettingsWindow
 import qdarktheme
 import weakref
 
-# from serialpipe.serial import SConn
-# from serialpipe.keyboard import KeyboardPipe
-# from serialpipe.bgkeyboard import BGKeyboard
-
 
 class WConfig:
     def __init__(self):
         with open("launch.json", "r") as f:
             self.launch_config = json.load(f)
 
-        with open(os.path.join(self.launch_config["config_dir"], "config.json"), "r") as f:
-            self.c = json.load(f)
+        self.c = self.loadConfig()
+        
         self.processConfig()
+
+    def loadConfig(self):
+        with open(os.path.join(self.launch_config["config_dir"], "config.json"), "r") as f:
+            return json.load(f)
 
     def processConfig(self):
         c_canvas = self.c["canvas"]
@@ -39,6 +39,39 @@ class WConfig:
         c_canvas["corner_x"] = self.c["window"]["padding"]
         c_canvas["corner_y"] = self.c["window"]["padding"]
 
+    def listIter(self, new, old):
+        if not len(new) == len(old):
+            return
+
+        for i in range(len(new)):
+            if type(new[i]) == type(old[i]):
+                if type(new[i]) == dict:
+                    self.dictIter(new[i], old[i])
+                elif type(new[i]) == list:
+                    self.listIter(new[i], old[i])
+                else:
+                    old[i] = new[i]
+
+    def dictIter(self, new, old):
+        for key, val in new.items():
+            if old.get(key) is not None and type(val) == type(old[key]):
+                if type(val) == dict:
+                    self.dictIter(new[key], old[key])
+                elif type(val) == list:
+                    self.listIter(val, old[key])
+                else:
+                    old[key] = val
+                    #print(key)
+
+    def saveConfig(self):
+        # We need to drop runtime variables, so we need to load the json file again
+        old_values = self.loadConfig()
+        
+        # recursively iterate over the dictionary
+        self.dictIter(self.c, old_values)
+
+        with open(os.path.join(self.launch_config["config_dir"], "config.json"), "w") as f:
+            json.dump(old_values, f, indent=4)
 
 class RootWindow(QMainWindow):
     def __init__(self):
