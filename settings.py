@@ -265,6 +265,7 @@ class SettingsWindow(QWidget):
                     if elem.get("index") is not None:
                         wid.setProperty("index", elem["index"])
 
+                    # TODO add option to add the widget to the bottom
                     wid.setMinimumWidth(self.conf["fieldWidth"])
                     wid.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
                     widWrapper = QHBoxLayout()

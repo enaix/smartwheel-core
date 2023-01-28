@@ -43,7 +43,7 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [ ] Finish folders support
 - [ ] Settings menu (in progress)
   - [X] Basic stuff
-  - [ ] Custom handlers support
+  - [X] Custom handlers support (Almost)
   - [ ] Saving/presets
   - [ ] Actions editor
 - [ ] Add fancy blur

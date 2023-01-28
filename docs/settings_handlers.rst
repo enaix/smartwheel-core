@@ -7,6 +7,8 @@ Each handler module must contain one or more classes inherited from `BaseHandler
 {"setting_type": SettingHandler}
 ```
 
+initElem method creates the widget, links it to the custom setter function and returns it. Please see `settings_handlers.basic` module for examples 
+
 Submodules
 ----------
 
