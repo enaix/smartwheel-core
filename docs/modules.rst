@@ -7,6 +7,7 @@ Modules navigation
    actionengine
    actions
    canvas
+   config
    main
    serialpipe
    ui
