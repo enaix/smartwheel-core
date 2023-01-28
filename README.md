@@ -39,8 +39,16 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 - [ ] Examples (in progress)
 - [x] Initial encoders support (Linux)
 - [ ] Refactor api
+  - [ ] Add modules asyncio background processes
+  - [ ] Finish folders support
 - [ ] Settings menu (in progress)
+  - [X] Basic stuff
+  - [ ] Custom handlers support
+  - [ ] Saving/presets
+  - [ ] Actions editor
+- [ ] Add fancy blur
 - [ ] Windows support (?)
+- [ ] Mac support {?)
 
 ## Features progress
 
@@ -72,6 +80,8 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 ## DIY knob
 
 If you don't have a standalone dial, you may 3D print one: there is a Freecad model in `pad` folder. Sadly, some components don't fit, but I don't have time to fix it right now. DM me if you need the fixed case model.
+
+Upd: going to properly remodel it in F360 in the future
 
 ## Gallery
 
