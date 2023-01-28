@@ -180,6 +180,14 @@ class RootCanvas:
         self.ae.wheel = weakref.ref(self.conf["modules"][0]["class"])
 
     def calculateSmoothFPS(self, new_time):
+        """
+        Calculate the average render time out of n frames
+
+        Parameters
+        ==========
+        new_time
+            The most recent frame render time
+        """
         if self.exec_window == 0:
             self.exec_times.put(new_time)
             self.exec_time = new_time
