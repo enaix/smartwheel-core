@@ -26,7 +26,11 @@
 		"modulesLoad": [0],
 		"serialModulesLoad": [0, 2],
 		"commonConfig": "common.json",
-		"actionEngineConfig": "actionengine.json",
+		"actionEngineConfig": "actionengine.json",	
+		"fps": 60,
+		"stabilizeFPS": true,
+		"fpsFramesSmooth": 10,
+		"logFPS": true,
 		"logging": "INFO"
 	}
 }

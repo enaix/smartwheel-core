@@ -7,6 +7,9 @@ import os
 from actionengine import ActionEngine
 from config import Config
 import weakref
+import time
+import queue
+import logging
 
 
 class MList(list):
@@ -26,6 +29,7 @@ class RootCanvas:
         self.config_dir = config_dir
         self.conf = WConfig
         self.update_func = update_func
+        self.logger = logging.getLogger(__name__)
         self.loadCommonConf()
         self.processCommonConfig()
         # TODO add try catch everywhere
@@ -38,6 +42,10 @@ class RootCanvas:
         self.loadModules()
         self.tick = 0
         self.loadActionEngine()
+
+        self.exec_time = 0.01
+        self.exec_window = 0
+        self.exec_times = queue.Queue()
 
     def loadCommonConf(self):
         try:
@@ -171,6 +179,24 @@ class RootCanvas:
         self.ae.canvas = weakref.ref(self)
         self.ae.wheel = weakref.ref(self.conf["modules"][0]["class"])
 
+    def calculateSmoothFPS(self, new_time):
+        if self.exec_window == 0:
+            self.exec_times.put(new_time)
+            self.exec_time = new_time
+            self.exec_window += 1
+            return
+
+        if self.exec_window < self.conf["fpsFramesSmooth"]:
+            self.exec_window += 1
+            self.exec_times.put(new_time)
+            self.exec_time = ((self.exec_window - 1) * self.exec_time + new_time) / self.exec_window
+            return
+
+        last_time = self.exec_times.get()
+        self.exec_times.put(new_time)
+
+        self.exec_time = (self.exec_window * self.exec_time - last_time + new_time) / self.exec_window
+
     def draw(self, qp):
         """
         Main draw function
@@ -186,5 +212,27 @@ class RootCanvas:
         m = self.getWheelModule()
         if self.conf["modules"][0]["class"].is_anim_running or (
                 m is not None and hasattr(m["class"], "is_anim_running") and m["class"].is_anim_running):
-            time.sleep(0.01)
+            
+            if self.conf["stabilizeFPS"]:
+                sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)
+            else:
+                sleep_time = 1 / self.conf["fps"]
+
+            time.sleep(sleep_time)
+            
+            start_time = time.time()
+
             self.update_func()  # TODO add another update event
+
+            e_time = (time.time() - start_time) * 1000 
+
+            if self.conf["stabilizeFPS"]:
+                if self.conf["logFPS"]:
+                    self.logger.info("FPS(AVG): " + str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1)))
+                self.calculateSmoothFPS(e_time)
+
+            else:
+                if self.conf["logFPS"]:
+                    self.logger.info("FPS: " + str(round(1 / (sleep_time + e_time), 1)))
+
+

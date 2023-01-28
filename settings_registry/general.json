@@ -6,7 +6,11 @@
       {"name": "Window size", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "window.geometry", "index": [2, 3]},
       {"name": "Padding", "type": "int", "min": 0, "max": 10000, "module": "main", "prop": "window.padding"}
     ]},
-    {"name": "Application", "options": [
+    {"name": "Application", "options": [ 
+      {"name": "FPS", "type": "int", "min": 1, "max": 1000, "module": "canvas", "prop": "fps"},
+      {"name": "Log FPS (INFO log)", "type": "bool", "module": "canvas", "prop": "logFPS"},
+      {"name": "Stabilize FPS", "type": "bool", "module": "canvas", "prop": "stabilizeFPS"},
+      {"name": "FPS stabilizer window", "type": "int", "min": 1, "max": 10000, "module": "canvas", "prop": "fpsFramesSmooth"},
       {"name": "Logging level", "type": "combo", "options": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], "module": "canvas", "prop": "logging"}
     ]}
   ]
