@@ -1,4 +1,4 @@
-![smartwheel core](/extra/banner.png)
+![smartwheel-core](/extra/render1.jpg)
 
 # Smartwheel Core
 
