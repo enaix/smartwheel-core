@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 import json
 import os
+import common
 
 
 class Config(QObject):
@@ -20,6 +21,8 @@ class Config(QObject):
         super(Config, self).__init__()
         self.config_file = config_file
         self.c = self.loadConfig()
+
+        common.config_manager.save.connect(self.saveConfig)
 
     def __getitem__(self, key):
         """

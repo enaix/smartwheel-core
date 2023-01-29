@@ -7,6 +7,7 @@ import logging
 import os
 import weakref
 import importlib
+import common
 
 
 class SettingsWindow(QWidget):
@@ -298,11 +299,11 @@ class SettingsWindow(QWidget):
         bottomPanel = QHBoxLayout()
 
         okButton = QPushButton("OK")
-        okButton.clicked.connect(self.confClass().saveConfig)
+        okButton.clicked.connect(common.config_manager.saveConfig)
         okButton.clicked.connect(self.close)
 
         applyButton = QPushButton("Apply")
-        applyButton.clicked.connect(self.confClass().saveConfig)
+        applyButton.clicked.connect(common.config_manager.saveConfig)
 
         cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(self.close)
