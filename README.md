@@ -60,8 +60,10 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 - [ ] Settings menu (in progress)
   - [X] Basic stuff
   - [X] Custom handlers support (Almost)
-  - [ ] Saving/presets
+  - [X] Saving
+  - [ ] Theme presets
   - [ ] Actions editor
+  - [ ] Modules import (.zip)
 - [ ] Add fancy blur
 - [ ] Windows support (?)
 - [ ] Mac support {?)
