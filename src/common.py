@@ -9,6 +9,14 @@ class ConfigManager(QObject):
 
     def __init__(self):
         super(ConfigManager, self).__init__()
+
+    def __new__(cls):
+        """
+        Singleton implementation
+        """
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(ConfigManager, cls).__new__(cls)
+        return cls.instance
     
     @pyqtSlot()
     def saveConfig(self):

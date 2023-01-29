@@ -12,14 +12,19 @@ from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QDo
 from canvas import RootCanvas
 import logging
 from settings import SettingsWindow
-from config import Config
+import config
 import qdarktheme
 import weakref
+import os
 
 
-class WConfig(Config):
+class WConfig(config.Config):
     def __init__(self, config_file, launch_config):
         super(WConfig, self).__init__(config_file)
+
+        if not self.loadConfig():
+            print("Fatal: error loading main config file. Exiting..")
+            os.exit(1)
 
         self.launch_config = launch_config
 

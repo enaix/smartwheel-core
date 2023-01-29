@@ -4,7 +4,8 @@
       {"name": "Set fixed wheel size", "type": "bool", "module": "common", "prop": "isWheelWidthFixed"},
       {"name": "Fixed wheel width", "type": "int", "min": 0, "max": 10000, "module": "common", "prop": "fixedWheelWidth"},
       {"name": "Draw wheel circle", "type": "bool", "module": "common", "prop": "drawWheelCircle"},
-      {"name": "Number of sections", "type": "int", "min": 1, "max": 100, "module": "common", "prop": "selectionWheelEntries"}
+      {"name": "Number of sections", "type": "int", "min": 1, "max": 100, "module": "common", "prop": "selectionWheelEntries"},
+      {"name": "Selection angle", "type": "int", "min": 0, "max": 360, "module": "common", "prop": "selectionAngle"}
     ]},
     {"name": "Overlays", "options": [
       {"name": "Draw circles", "type": "bool", "module": "ui.wheel", "prop": "drawOverlayCircles"},

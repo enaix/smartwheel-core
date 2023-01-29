@@ -5,7 +5,7 @@ import time
 import json
 import os
 from actionengine import ActionEngine
-from config import Config
+import config
 import weakref
 import time
 import queue
@@ -48,11 +48,9 @@ class RootCanvas:
         self.exec_times = queue.Queue()
 
     def loadCommonConf(self):
-        try:
-            with open(os.path.join(self.config_dir, self.conf["commonConfig"]), 'r') as f:
-                self.common_config = json.load(f)
-        except BaseException:
-            print("Could not find config file", self.conf["commonConfig"])
+        self.common_config = config.Config(os.path.join(self.config_dir, self.conf["commonConfig"]), self.logger)
+        if not self.common_config.loadConfig():
+            self.logger.error("Could not find common config file. Exiting..")
             os.exit(1)
 
     def loadModules(self):
@@ -122,7 +120,7 @@ class RootCanvas:
         else:
             conf["wheelWidth"] = self.conf["width"] // 4
         conf["configDir"] = self.config_dir
-        self.common_config = {**self.common_config, **conf}
+        self.common_config.c = {**self.common_config, **conf}
 
     def loadWheelModule(self, module):
         mod = importlib.import_module(module["name"])
