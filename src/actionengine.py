@@ -1,5 +1,5 @@
 from PyQt5.QtCore import *
-import json
+import config
 import os
 import importlib
 import weakref
@@ -22,8 +22,8 @@ class ActionEngine(QObject):
             Configuration file (actionengine.json)
         """
         super().__init__()
-        self.importConfig(config_file)
         self.logger = logging.getLogger(__name__)
+        self.importConfig(config_file)
         self.current_module = 0
         self.current_module_getter = None
         self.current_module_list_getter = None
@@ -45,8 +45,8 @@ class ActionEngine(QObject):
             Filename
 
         """
-        with open(config_file, "r") as f:
-            self.conf = json.load(f)
+        self.conf = config.Config(config_file, self.logger)
+        self.conf.loadConfig()
 
     def importActions(self):
         """

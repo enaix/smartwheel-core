@@ -2,7 +2,7 @@ import logging
 
 from serialpipe.base import ConnPipe, PRButton, ClickButton, Rotary
 from PyQt5.QtCore import *
-import json
+import config
 from pynput import keyboard
 
 
@@ -30,8 +30,8 @@ class SConn(ConnPipe):
         self.loadKeys()
 
     def loadConfig(self):
-        with open(self.config_file, "r") as f:
-            self.conf = json.load(f)
+        self.conf = config.Config(self.config_file, self.logger)
+        self.conf.loadConfig()
 
     def loadKeys(self):
         """

@@ -1,6 +1,6 @@
 from serialpipe.base import ConnPipe
 from PyQt5.QtCore import *
-import json
+import config
 
 
 class SConn(ConnPipe):
@@ -24,8 +24,8 @@ class SConn(ConnPipe):
         self.loadConfig()
 
     def loadConfig(self):
-        with open(self.config_file, "r") as f:
-            self.conf = json.load(f)
+        self.conf = config.Config(self.config_file)
+        self.conf.loadConfig()
 
     def findKey(self, key):
         """
