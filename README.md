@@ -36,7 +36,9 @@ Make sure that Python 3 is installed
 
 `pip3 install -r requirements.txt`
 
-`python3 main.py`
+`chmod +x ./launch.sh`
+
+`./launch.sh`
 
 ## We need your help!
 
