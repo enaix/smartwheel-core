@@ -1,7 +1,7 @@
 from ui.base import BaseUIElem
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-import json
+import config
 import os
 import math
 import logging
@@ -12,14 +12,14 @@ class UIElem(BaseUIElem):
         self.config_file = config_file
         self.logger = logging.getLogger(__name__)
         self.loadConfig()
-        self.conf = {**self.conf, **WConfig}
+        self.conf.c = {**self.conf, **WConfig}
         self.icon_path = self.conf.get("icon_path", None)
         self.initGUI()
         self.initWidthAnimation()
 
     def loadConfig(self):
-        with open(self.config_file, 'r') as f:
-            self.conf = json.load(f)
+        self.conf = config.Config(self.config_file)
+        self.conf.loadConfig()
 
     def checkOverflow(self, val):
         if val > 359:

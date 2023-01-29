@@ -2,7 +2,6 @@ import importlib
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import time
-import json
 import os
 from actionengine import ActionEngine
 import config

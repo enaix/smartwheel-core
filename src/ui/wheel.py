@@ -1,4 +1,4 @@
-import json
+import config
 import math
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -31,6 +31,7 @@ class Section:
         if self.module["class"].icon_path is None:
             self.pixmap = None  # QImage(os.path.join(self.parent().conf["iconsFolder"], "folder.png"))
         else:
+            # TODO replace with bitmap/pixmap
             self.pixmap = QImage(os.path.join(self.parent().conf["iconsFolder"], self.module["class"].icon_path))
 
     def draw_module(self, qp):
@@ -94,7 +95,7 @@ class UIElem(BaseUIElem):
         self.is_anim_running = False
         self.cur_section = 0
         self.loadConfig()
-        self.conf = {**self.conf, **WConfig}
+        self.conf.c = {**self.conf, **WConfig}
         self.initSections()
         self.initAnimation()
         self.initShadowAnimation()
@@ -117,8 +118,8 @@ class UIElem(BaseUIElem):
     prop_sections = pyqtProperty(int, fset=_set_sections_pos)
 
     def loadConfig(self):
-        with open(self.config_file, "r") as f:
-            self.conf = json.load(f)
+        self.conf = config.Config(self.config_file)
+        self.conf.loadConfig()
 
     def getX(self, a, w):
         return math.cos(math.radians(a)) * w // 2 + self.conf["cx"]

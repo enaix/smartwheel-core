@@ -1,4 +1,4 @@
-import json
+import config
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from ui.base import BaseUIElem
@@ -12,15 +12,15 @@ class UIElem(BaseUIElem):
         super().__init__()
         self.config_file = config_file
         self.loadConfig()
-        self.conf = {**self.conf, **WConfig}
+        self.conf.c = {**self.conf, **WConfig}
         self.icon_path = self.conf["icon_path"]
         self.meta_old = ""
         self.track_meta_old = []
         self.initGUI()
 
     def loadConfig(self):
-        with open(self.config_file, "r") as f:
-            self.conf = json.load(f)
+        self.conf = config.Config(self.config_file)
+        self.conf.loadConfig()
 
     def initGUI(self):
         self.updateVars()

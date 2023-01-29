@@ -1,5 +1,5 @@
 from ui.base import BaseUIElem
-import json
+import config
 
 class UIElem(BaseUIElem):
     def __init__(self, config_file, WConfig):
@@ -7,14 +7,14 @@ class UIElem(BaseUIElem):
         self.is_folder = True
         self.config_file = config_file
         self.loadConfig()
-        self.conf = {**self.conf, **WConfig}
+        self.conf.c = {**self.conf, **WConfig}
         self.icon_path = self.conf.get("iconPath", None)
         self.modules = self.conf["modules"]
         self.wrapper_pointer = None
 
     def loadConfig(self):
-        with open(self.config_file, 'r') as f:
-            self.conf = json.load(f)
+        self.conf = config.Config(self.config_file)
+        self.conf.loadConfig()
 
     def processKey(self, event):
         event["canvas"]().reloadWheelModules(False, self.wrapper_pointer()) # call canvas module
