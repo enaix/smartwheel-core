@@ -8,6 +8,7 @@ Modules navigation
    actions
    canvas
    config
+   common
    main
    serialpipe
    ui

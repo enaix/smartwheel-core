@@ -3,7 +3,7 @@ from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
 
 class ConfigManager(QObject):
     """
-    Global class that manages all config files
+    Global class that manages all config files. This module contains an instance of this class, acting as a singleton
     """
     save = pyqtSignal()
 
@@ -12,6 +12,9 @@ class ConfigManager(QObject):
     
     @pyqtSlot()
     def saveConfig(self):
+        """
+        Slot function that executes the saving of all Config objects, must be called from settings module
+        """
         self.save.emit()
 
 
