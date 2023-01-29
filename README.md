@@ -4,6 +4,8 @@
 
 A powerful keyboard knob controller with GUI
 
+![smartwheel-core ui](/extra/banner.png)
+
 ## Why do I need it?
 
 The main problem with keyboard encoders and standalone dials is that there aren't many features out of the box, but *they can be much, much more powerful than they are right now*. Have you seen those techy gadgets from Hollywood blockbusters that hackers use (like Q's fancy joystick from latest 007)? Smartwheel gives you the same functionality, but adapted for day-to-day use.
