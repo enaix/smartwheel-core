@@ -71,6 +71,7 @@ class SettingsWindow(QWidget):
         self.settings["canvas"] = main_class().rc.conf
         self.settings["common"] = main_class().rc.common_config
         self.settings["settings"] = self.conf
+        self.settings["actionengine"] = main_class().rc.ae.conf
 
         # Parsing serial modules
         self.settings["serial"] = {}
@@ -127,6 +128,7 @@ class SettingsWindow(QWidget):
     def getValue(self, module, prop, index=None):
         """
         Get property from the application
+        Returns (True, value) if found, (False, None) otherwise
 
         Parameters
         ==========
