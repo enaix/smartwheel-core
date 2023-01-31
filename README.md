@@ -64,6 +64,7 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Custom handlers support (Almost)
   - [X] Saving
   - [ ] Theme presets
+  - [ ] Better overlays editor
   - [ ] Actions editor
   - [ ] Modules import (.zip)
 - [ ] Add fancy blur
