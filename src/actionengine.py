@@ -45,7 +45,7 @@ class ActionEngine(QObject):
             Filename
 
         """
-        self.conf = config.Config(config_file, self.logger)
+        self.conf = config.Config(config_file, self.logger, varsWhitelist=["commandBind"])
         self.conf.loadConfig()
 
     def importActions(self):

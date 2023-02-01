@@ -204,21 +204,29 @@ class SettingsWindow(QWidget):
 
         self.dictWalk(wrapper, props[1:], value, index, _i+1)
 
-    def setValue(self, obj, value):
+    def setValue(self, obj=None, value=None, module=None, prop=None, index=None):
         """
-        Set property from the application
+        Set property from the application.
+        Module, prop and index arguments may be fetched from the object properties (passing only obj and value) or passed directly (module, prop, index (optional) and value)
         
         Parameters
         ==========
         obj
-            QObject (widget) with `module`, `prop` (and `index`) properties
+            (Optional) QObject (widget) with `module`, `prop` (and `index`) properties
         value
-            Value to set
+            (Optional) Value to set
+        module
+            (Optional) Module name (in self.settings)
+        prop
+            (Optional) Property keys, separated by `.`
+        index
+            (Optional) If not None, the index in the property array. If an array, then it's duplicated at specified indices
         """
 
-        module = obj.property("widmodule")
-        prop = obj.property("prop")
-        index = obj.property("index")
+        if obj is not None:
+            module = obj.property("widmodule")
+            prop = obj.property("prop")
+            index = obj.property("index")
 
         if module is None:
             self.logger.error("Could not obtain module value")

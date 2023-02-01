@@ -136,6 +136,9 @@ class ActionList(BaseHandler):
 
         for i, a in enumerate(actions):
             enabled = QCheckBox()
+
+            enabled.setProperty("action_name", a["name"])
+
             if a.get("title") is not None:
                 title = QLabel(a["title"])
                 desc = QLabel(a["description"])
@@ -171,15 +174,15 @@ class ActionList(BaseHandler):
                     continue
                 
                 if a["type"] == "wheel":
-                    if bind["mode"] == "wheel":
-                        activateInModule.setChecked(False)
-                    else:
+                    if bind.get("onState") is not None and bind["onState"] == "module":
                         activateInModule.setChecked(True)
-                if a["type"] == "module":
-                    if bind["mode"] == "module":
-                        activateInWheel.setChecked(False)
                     else:
-                        activateInWheel.setChecked(True)   
+                        activateInModule.setChecked(False)
+                if a["type"] == "module":
+                    if bind.get("onState") is not None and bind["onState"] == "wheel":
+                        activateInWheel.setChecked(True)
+                    else:
+                        activateInWheel.setChecked(False)   
 
                 if not bind["checkState"]:
                     if not anyState.isChecked():
@@ -211,7 +214,11 @@ class ActionList(BaseHandler):
 
         panel = QHBoxLayout()
         okButton = QPushButton("OK")
+        okButton.clicked.connect(self.applyChanges)
+        okButton.clicked.connect(wrapper.close)
+
         cancelButton = QPushButton("Cancel")
+        cancelButton.clicked.connect(wrapper.close)
         spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         panel.addSpacerItem(spacer)
         panel.addWidget(cancelButton)
@@ -228,7 +235,83 @@ class ActionList(BaseHandler):
 
         wrapper.setWindowTitle("Edit actions")
 
+        okButton.setProperty("wrapper", wrapper)
+        okButton.setProperty("elem", elem)
+
         return wrapper
 
 
+    @pyqtSlot()
+    def applyChanges(self):
+        caller = self.sender()
+        wrapper = caller.property("wrapper")
+        elem = caller.property("elem")
+        
+        if wrapper is None or elem is None:
+            self.logger.error("Could not get apply button propery")
+            return
+
+        actions = []
+
+        for i, group in enumerate([wrapper.findChild(QVBoxLayout).itemAt(x).widget() for x in [0, 1]]):
+            grid = group.findChild(QGridLayout)
+
+            for j in range(1, grid.rowCount()):
+                enabled_button = grid.itemAtPosition(j, 0)
+                if enabled_button is None:
+                    continue
+
+                enabled = enabled_button.widget().isChecked()
+                if not enabled:
+                    continue
+
+                if i == 0: # wheel
+                    anyState = grid.itemAtPosition(j, 3).widget().isChecked()
+                    inModule = grid.itemAtPosition(j, 4).widget().isChecked()
+                    mode = "wheel"
+                    onState = mode
+                    if inModule:
+                        onState = "module"
+
+                if i == 1: # module
+                    anyState = grid.itemAtPosition(j, 2).widget().isChecked()
+                    inWheel = grid.itemAtPosition(j, 3).widget().isChecked()
+                    mode = "module"
+                    onState = mode
+                    if inWheel:
+                        onState = "wheel"
+
+                #ok, actions = self.value_getter("actionengine", "commandActions")
+                #if not ok:
+                #    self.logger.error("Could not get actionengine config")
+                #    return
+
+                actionName = grid.itemAtPosition(j, 0).widget().property("action_name")
+                
+                action = {"action": actionName, "mode": mode, "checkState": not anyState}
+
+                if not anyState and not mode == onState:
+                    action["onState"] = onState
+
+                actions.append(action)
+
+        # Saving
+        exists, elem_bind = self.value_getter("actionengine", "commandBind." + elem["device"])
+        if not exists:
+            elem_bind = [{"command": elem["command"], "actions": []}]
+
+        found = False
+        for i, e in enumerate(elem_bind):
+            if e.get("command") is not None and e["command"] == elem["command"]:
+                found = True
+                elem_bind[i]["actions"] = actions
+
+        if not found:
+            elem_bind.append({"command": elem["command"], "actions": actions})
+
+        self.value_setter(module="actionengine", prop="commandBind." + elem["device"], value=elem_bind)
+
+
 handlers = {"actions_picker": ActionPicker, "actions_list": ActionList}
+
+
