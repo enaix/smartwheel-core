@@ -4,11 +4,19 @@ from PyQt5.QtGui import QFont
 from .base import BaseHandler
 import logging
 
-class ActionItem(BaseHandler):
+class ActionPicker(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(ActionItem, self).__init__(value_getter, value_setter, parent_obj)
+        super(ActionPicker, self).__init__(value_getter, value_setter, parent_obj)
 
     def initElem(self, elem):
+        """
+        Initialize actions picker, should not be called directly from settings.py
+
+        Parameters
+        ==========
+        elem
+            Action engine command {"command": "commandBind.commandName"}
+        """
         wrapper = QWidget()
         wid = QHBoxLayout()
         sp = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -32,6 +40,14 @@ class ActionList(BaseHandler):
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
+        """
+        Initialize actions picker window, should not be called directly from settings.py
+
+        Parameters
+        ==========
+        elem
+            Action engine command name {"device": "commandBind", "command": "commandName"}
+        """
         #if parent_obj is None:
         #    self.logger.error("Could not load action editor: no parent object found")
         #    return None
@@ -50,6 +66,20 @@ class ActionList(BaseHandler):
         if not ok:
             self.logger.error("Could not get actionengine config")
             return None
+
+        if elem.get("device") is None or elem.get("command") is None:
+            self.logger.error("No command bind specified, could not launch action editor")
+            return None
+
+        # {"command": "commandName", "actions": [{"action": "...", "mode": "...", "repeat": ..}, ...]}
+        ok, elem_bind = self.value_getter("actionengine", "commandBind." + elem["device"])
+        if not ok:
+            elem_bind = []
+
+        elem_actions = []
+        for e in elem_bind:
+            if e.get("command") is not None and e["command"] == elem["command"]:
+                elem_actions = e.get("actions", [])
 
         font = QFont()
         font.setBold(True)
@@ -105,7 +135,39 @@ class ActionList(BaseHandler):
                 anyState.clicked.connect(activateInModule.setChecked)
             else:
                 activateInWheel = QCheckBox()
+                anyState.clicked.connect(activateInWheel.setDisabled)
+                anyState.clicked.connect(activateInWheel.setChecked)
 
+            if a.get("default") is not None:
+                if a["default"] == "any":
+                    anyState.click() # unchecked by deafult
+                elif a["default"] == "wheel":
+                    if bind["mode"] == "module":
+                        activateInWheel.click()
+                elif a["default"] == "module":
+                    if bind["mode"] == "wheel":
+                        activateInModule.click()
+
+            for j, bind in enumerate(elem_actions):
+                if bind["action"] == a["name"]:
+                    enabled.setChecked(True)
+                else:
+                    continue
+                
+                if a["type"] == "wheel":
+                    if bind["mode"] == "wheel":
+                        activateInModule.setChecked(False)
+                    else:
+                        activateInModule.setChecked(True)
+                if a["type"] == "module":
+                    if bind["mode"] == "module":
+                        activateInWheel.setChecked(False)
+                    else:
+                        activateInWheel.setChecked(True)   
+
+                if not bind["checkState"]:
+                    if not anyState.isChecked():
+                        anyState.click()
 
             if a["type"] == "wheel":
                 wheel_l.addWidget(enabled, i+1, 0, Qt.AlignLeft)
@@ -114,11 +176,21 @@ class ActionList(BaseHandler):
                     wheel_l.addWidget(desc, i+1, 2, Qt.AlignLeft)
                 wheel_l.addWidget(anyState, i+1, 3, Qt.AlignLeft)
                 wheel_l.addWidget(activateInModule, i+1, 4, Qt.AlignLeft)
+
+                for j in range(1, 5):
+                    enabled.clicked.connect(wheel_l.itemAtPosition(i+1, j).widget().setEnabled)
+                    if not enabled.isChecked():
+                        wheel_l.itemAtPosition(i+1, j).widget().setDisabled(True)
             else:
                 module_l.addWidget(enabled, i+1, 0, Qt.AlignLeft)
                 module_l.addWidget(title, i+1, 1, Qt.AlignLeft)
                 module_l.addWidget(anyState, i+1, 2, Qt.AlignLeft)
                 module_l.addWidget(activateInWheel, i+1, 3, Qt.AlignLeft)
+
+                for j in range(1, 4):
+                    enabled.clicked.connect(module_l.itemAtPosition(i+1, j).widget().setEnabled)
+                    if not enabled.isChecked():
+                        module_l.itemAtPosition(i+1, j).widget().setDisabled(True)
 
 
         panel = QHBoxLayout()
