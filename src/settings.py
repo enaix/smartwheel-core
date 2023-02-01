@@ -25,6 +25,7 @@ class SettingsWindow(QWidget):
             Weakref to WConfig object
         """
         super(SettingsWindow, self).__init__(parent)
+        self.setWindowTitle("Settings")
         self.hook = None
         self.conf = None
         self.handlers_conf = None

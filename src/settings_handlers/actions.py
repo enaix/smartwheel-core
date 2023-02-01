@@ -7,6 +7,8 @@ import logging
 class ActionPicker(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
         super(ActionPicker, self).__init__(value_getter, value_setter, parent_obj)
+        self.logger = logging.getLogger(__name__)
+        self.pickers = [] # Prevent pickers from being destroyed
 
     def initElem(self, elem):
         """
@@ -15,7 +17,7 @@ class ActionPicker(BaseHandler):
         Parameters
         ==========
         elem
-            Action engine command {"command": "commandBind.commandName"}
+            Action engine command {"name": "commandTitle", "device": "commandBind", "command": "commandName"}
         """
         wrapper = QWidget()
         wid = QHBoxLayout()
@@ -24,6 +26,20 @@ class ActionPicker(BaseHandler):
         editButton = QPushButton("...")
         deleteButton = QPushButton("x")
         
+        # Fetching the ActionList
+        if self.parent_obj is None:
+            self.logger.error("Could not get settings object")
+            return None
+
+        picker = self.parent_obj().handlers["actions_list"].initElem(elem)
+        if picker is None:
+            self.logger.error("Could not initialize actions window")
+            return None
+
+        self.pickers.append(picker)
+
+        editButton.clicked.connect(picker.show)
+
         wid.addWidget(label)
         wid.addSpacerItem(sp)
         wid.addWidget(editButton)
@@ -210,7 +226,9 @@ class ActionList(BaseHandler):
 
         wrapper.setLayout(layout)
 
+        wrapper.setWindowTitle("Edit actions")
+
         return wrapper
 
 
-handlers = {"actions": ActionList}
+handlers = {"actions_picker": ActionPicker, "actions_list": ActionList}
