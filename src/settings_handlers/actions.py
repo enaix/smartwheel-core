@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtWidgets import QWidget, QSizePolicy, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSpacerItem, QGridLayout, QCheckBox, QGroupBox
+from PyQt5.QtWidgets import QWidget, QSizePolicy, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSpacerItem, QGridLayout, QCheckBox, QGroupBox, QComboBox
 from PyQt5.QtGui import QFont
 from .base import BaseHandler
 import logging
@@ -106,16 +106,16 @@ class ActionList(BaseHandler):
         for group in ["wheel", "module"]:
             enabled_label = QLabel("Enabled")
             title_label = QLabel("Title")
-            any_label = QLabel("Call in any mode")
+            any_label = QLabel("Where to call")
             
             if group == "wheel":
                 desc_label = QLabel("Description")
                 desc_label.setFont(font)
-                module_label = QLabel("Call in module mode")
-                module_label.setFont(font)
-            else:
-                wheel_label = QLabel("Call in wheel mode")
-                wheel_label.setFont(font)
+                #module_label = QLabel("Call in module mode")
+                #module_label.setFont(font)
+            #else:
+                #wheel_label = QLabel("Call in wheel mode")
+                #wheel_label.setFont(font)
 
             enabled_label.setFont(font)
             title_label.setFont(font)
@@ -126,13 +126,13 @@ class ActionList(BaseHandler):
                 wheel_l.addWidget(title_label, 0, 1, Qt.AlignLeft)
                 wheel_l.addWidget(desc_label, 0, 2, Qt.AlignLeft)
                 wheel_l.addWidget(any_label, 0, 3, Qt.AlignLeft)
-                wheel_l.addWidget(module_label, 0, 4, Qt.AlignLeft)
+                #wheel_l.addWidget(module_label, 0, 4, Qt.AlignLeft)
 
             if group == "module":
                 module_l.addWidget(enabled_label, 0, 0, Qt.AlignLeft)
                 module_l.addWidget(title_label, 0, 1, Qt.AlignLeft)
                 module_l.addWidget(any_label, 0, 2, Qt.AlignLeft)
-                module_l.addWidget(wheel_label, 0, 3, Qt.AlignLeft)
+                #module_l.addWidget(wheel_label, 0, 3, Qt.AlignLeft)
 
         for i, a in enumerate(actions):
             enabled = QCheckBox()
@@ -146,26 +146,23 @@ class ActionList(BaseHandler):
                 title = QLabel(a["description"])
                 desc = None #QLabel("...")
 
-            anyState = QCheckBox()
-
-            if a["type"] == "wheel":
-                activateInModule = QCheckBox()
-                anyState.clicked.connect(activateInModule.setDisabled)
-                anyState.clicked.connect(activateInModule.setChecked)
-            else:
-                activateInWheel = QCheckBox()
-                anyState.clicked.connect(activateInWheel.setDisabled)
-                anyState.clicked.connect(activateInWheel.setChecked)
+            state = QComboBox()
+            state.insertItems(0, ["Wheel", "Module", "Anywhere"])
+            #anyState = QCheckBox()
 
             if a.get("default") is not None:
                 if a["default"] == "any":
-                    anyState.click() # unchecked by deafult
+                    state.setCurrentIndex(2)
                 elif a["default"] == "wheel":
                     if bind["mode"] == "module":
-                        activateInWheel.click()
+                        state.setCurrentIndex(1)
+                    else:
+                        state.setCurrentIndex(0)
                 elif a["default"] == "module":
                     if bind["mode"] == "wheel":
-                        activateInModule.click()
+                        state.setCurrentIndex(0)
+                    else:
+                        state.setCurrentIndex(1)
 
             for j, bind in enumerate(elem_actions):
                 if bind["action"] == a["name"]:
@@ -175,38 +172,35 @@ class ActionList(BaseHandler):
                 
                 if a["type"] == "wheel":
                     if bind.get("onState") is not None and bind["onState"] == "module":
-                        activateInModule.setChecked(True)
+                        state.setCurrentIndex(1)
                     else:
-                        activateInModule.setChecked(False)
+                        state.setCurrentIndex(0)
                 if a["type"] == "module":
                     if bind.get("onState") is not None and bind["onState"] == "wheel":
-                        activateInWheel.setChecked(True)
+                        state.setCurrentIndex(0)
                     else:
-                        activateInWheel.setChecked(False)   
+                        state.setCurrentIndex(1)   
 
                 if not bind["checkState"]:
-                    if not anyState.isChecked():
-                        anyState.click()
+                    state.setCurrentIndex(2)
 
             if a["type"] == "wheel":
                 wheel_l.addWidget(enabled, i+1, 0, Qt.AlignLeft)
                 wheel_l.addWidget(title, i+1, 1, Qt.AlignLeft)
-                if desc is not None:
-                    wheel_l.addWidget(desc, i+1, 2, Qt.AlignLeft)
-                wheel_l.addWidget(anyState, i+1, 3, Qt.AlignLeft)
-                wheel_l.addWidget(activateInModule, i+1, 4, Qt.AlignLeft)
+                wheel_l.addWidget(desc, i+1, 2, Qt.AlignLeft)
+                wheel_l.addWidget(state, i+1, 3, Qt.AlignLeft)
 
-                for j in range(1, 5):
-                    enabled.clicked.connect(wheel_l.itemAtPosition(i+1, j).widget().setEnabled)
-                    if not enabled.isChecked():
-                        wheel_l.itemAtPosition(i+1, j).widget().setDisabled(True)
+                for j in range(1, 4):
+                    if wheel_l.itemAtPosition(i+1, j) is not None:
+                        enabled.clicked.connect(wheel_l.itemAtPosition(i+1, j).widget().setEnabled)
+                        if not enabled.isChecked():
+                            wheel_l.itemAtPosition(i+1, j).widget().setDisabled(True)
             else:
                 module_l.addWidget(enabled, i+1, 0, Qt.AlignLeft)
                 module_l.addWidget(title, i+1, 1, Qt.AlignLeft)
-                module_l.addWidget(anyState, i+1, 2, Qt.AlignLeft)
-                module_l.addWidget(activateInWheel, i+1, 3, Qt.AlignLeft)
+                module_l.addWidget(state, i+1, 2, Qt.AlignLeft)
 
-                for j in range(1, 4):
+                for j in range(1, 3):
                     enabled.clicked.connect(module_l.itemAtPosition(i+1, j).widget().setEnabled)
                     if not enabled.isChecked():
                         module_l.itemAtPosition(i+1, j).widget().setDisabled(True)
@@ -266,21 +260,16 @@ class ActionList(BaseHandler):
                     continue
 
                 if i == 0: # wheel
-                    anyState = grid.itemAtPosition(j, 3).widget().isChecked()
-                    inModule = grid.itemAtPosition(j, 4).widget().isChecked()
+                    onState = grid.itemAtPosition(j, 3).widget().currentText().lower()
                     mode = "wheel"
-                    onState = mode
-                    if inModule:
-                        onState = "module"
 
                 if i == 1: # module
-                    anyState = grid.itemAtPosition(j, 2).widget().isChecked()
-                    inWheel = grid.itemAtPosition(j, 3).widget().isChecked()
+                    onState = grid.itemAtPosition(j, 2).widget().currentText().lower()
                     mode = "module"
-                    onState = mode
-                    if inWheel:
-                        onState = "wheel"
 
+                anyState = False
+                if onState == "anywhere":
+                    anyState = True
                 #ok, actions = self.value_getter("actionengine", "commandActions")
                 #if not ok:
                 #    self.logger.error("Could not get actionengine config")
