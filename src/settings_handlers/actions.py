@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QSizePolicy, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSpacerItem, QGridLayout, QCheckBox, QGroupBox, QComboBox
 from PyQt5.QtGui import QFont
 from .base import BaseHandler
@@ -48,6 +48,18 @@ class ActionPicker(BaseHandler):
         wrapper.setLayout(wid)
 
         return wrapper
+
+
+class OnShown(QWidget):
+    """
+    Widget that calls the shown signal when visible
+    Qt has no proper way to have 2 gridlayouts with the same column size, so I had to implement this hack
+    """
+    shown = pyqtSignal()
+
+    def showEvent(self, event):
+        self.shown.emit()
+        event.accept()
 
 
 class ActionList(BaseHandler):
@@ -100,22 +112,17 @@ class ActionList(BaseHandler):
         font = QFont()
         font.setBold(True)
 
-        wheel_l.setColumnStretch(10, 0)
-        module_l.setColumnStretch(10, 0)
+        for i, s in enumerate([10, 0, 0, 0]):
+            wheel_l.setColumnStretch(s, i)
+            module_l.setColumnStretch(s, i)
 
         for group in ["wheel", "module"]:
             enabled_label = QLabel("Enabled")
             title_label = QLabel("Title")
             any_label = QLabel("Where to call")
             
-            if group == "wheel":
-                desc_label = QLabel("Description")
-                desc_label.setFont(font)
-                #module_label = QLabel("Call in module mode")
-                #module_label.setFont(font)
-            #else:
-                #wheel_label = QLabel("Call in wheel mode")
-                #wheel_label.setFont(font)
+            desc_label = QLabel("Description")
+            desc_label.setFont(font)
 
             enabled_label.setFont(font)
             title_label.setFont(font)
@@ -126,25 +133,20 @@ class ActionList(BaseHandler):
                 wheel_l.addWidget(title_label, 0, 1, Qt.AlignLeft)
                 wheel_l.addWidget(desc_label, 0, 2, Qt.AlignLeft)
                 wheel_l.addWidget(any_label, 0, 3, Qt.AlignLeft)
-                #wheel_l.addWidget(module_label, 0, 4, Qt.AlignLeft)
 
             if group == "module":
                 module_l.addWidget(enabled_label, 0, 0, Qt.AlignLeft)
                 module_l.addWidget(title_label, 0, 1, Qt.AlignLeft)
-                module_l.addWidget(any_label, 0, 2, Qt.AlignLeft)
-                #module_l.addWidget(wheel_label, 0, 3, Qt.AlignLeft)
+                module_l.addWidget(desc_label, 0, 2, Qt.AlignLeft)
+                module_l.addWidget(any_label, 0, 3, Qt.AlignLeft)
 
         for i, a in enumerate(actions):
             enabled = QCheckBox()
 
             enabled.setProperty("action_name", a["name"])
 
-            if a.get("title") is not None:
-                title = QLabel(a["title"])
-                desc = QLabel(a["description"])
-            else:
-                title = QLabel(a["description"])
-                desc = None #QLabel("...")
+            title = QLabel(a["title"])
+            desc = QLabel(a["description"])
 
             state = QComboBox()
             state.insertItems(0, ["Wheel", "Module", "Anywhere"])
@@ -188,7 +190,7 @@ class ActionList(BaseHandler):
                 wheel_l.addWidget(enabled, i+1, 0, Qt.AlignLeft)
                 wheel_l.addWidget(title, i+1, 1, Qt.AlignLeft)
                 wheel_l.addWidget(desc, i+1, 2, Qt.AlignLeft)
-                wheel_l.addWidget(state, i+1, 3, Qt.AlignLeft)
+                wheel_l.addWidget(state, i+1, 3, Qt.AlignRight)
 
                 for j in range(1, 4):
                     if wheel_l.itemAtPosition(i+1, j) is not None:
@@ -198,13 +200,13 @@ class ActionList(BaseHandler):
             else:
                 module_l.addWidget(enabled, i+1, 0, Qt.AlignLeft)
                 module_l.addWidget(title, i+1, 1, Qt.AlignLeft)
-                module_l.addWidget(state, i+1, 2, Qt.AlignLeft)
+                module_l.addWidget(desc, i+1, 2, Qt.AlignLeft)
+                module_l.addWidget(state, i+1, 3, Qt.AlignRight)
 
-                for j in range(1, 3):
+                for j in range(1, 4):
                     enabled.clicked.connect(module_l.itemAtPosition(i+1, j).widget().setEnabled)
                     if not enabled.isChecked():
                         module_l.itemAtPosition(i+1, j).widget().setDisabled(True)
-
 
         panel = QHBoxLayout()
         okButton = QPushButton("OK")
@@ -213,6 +215,11 @@ class ActionList(BaseHandler):
 
         cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(wrapper.close)
+       
+        onShown = OnShown()
+        onShown.shown.connect(self.resizeCells)
+        panel.addWidget(onShown)
+
         spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         panel.addSpacerItem(spacer)
         panel.addWidget(cancelButton)
@@ -226,14 +233,27 @@ class ActionList(BaseHandler):
         layout.addLayout(panel)
 
         wrapper.setLayout(layout)
+        wrapper.sizePolicy().setHorizontalPolicy(QSizePolicy.Expanding)
 
         wrapper.setWindowTitle("Edit actions")
 
         okButton.setProperty("wrapper", wrapper)
         okButton.setProperty("elem", elem)
+        onShown.setProperty("wrapper", wrapper)
 
         return wrapper
 
+    @pyqtSlot()
+    def resizeCells(self):
+        caller = self.sender()
+        wrapper = caller.property("wrapper")
+        
+        wheel_l = wrapper.findChild(QVBoxLayout).itemAt(0).widget().findChild(QGridLayout)
+        module_l = wrapper.findChild(QVBoxLayout).itemAt(1).widget().findChild(QGridLayout)
+
+        title_width = max([l.cellRect(0, 1).width() for l in [wheel_l, module_l]])
+        wheel_l.setColumnMinimumWidth(1, title_width)
+        module_l.setColumnMinimumWidth(1, title_width)
 
     @pyqtSlot()
     def applyChanges(self):
@@ -259,21 +279,16 @@ class ActionList(BaseHandler):
                 if not enabled:
                     continue
 
+                onState = grid.itemAtPosition(j, 3).widget().currentText().lower()
                 if i == 0: # wheel
-                    onState = grid.itemAtPosition(j, 3).widget().currentText().lower()
                     mode = "wheel"
 
                 if i == 1: # module
-                    onState = grid.itemAtPosition(j, 2).widget().currentText().lower()
                     mode = "module"
 
                 anyState = False
                 if onState == "anywhere":
                     anyState = True
-                #ok, actions = self.value_getter("actionengine", "commandActions")
-                #if not ok:
-                #    self.logger.error("Could not get actionengine config")
-                #    return
 
                 actionName = grid.itemAtPosition(j, 0).widget().property("action_name")
                 
