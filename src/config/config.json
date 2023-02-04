@@ -52,15 +52,21 @@
         "serialModules": [
             {
                 "name": "serialpipe.serial",
-                "config": "serial.json"
+                "config": "serial.json",
+		"title": "Serial",
+		"description": "Serial keyboard/encoder"
             },
             {
                 "name": "serialpipe.keyboard",
-                "config": "keyboard.json"
+                "config": "keyboard.json",
+		"title": "Simple keyboard",
+		"description": "Basic keyboard input from window"
             },
             {
                 "name": "serialpipe.bgkeyboard",
-                "config": "bgkeyboard.json"
+                "config": "bgkeyboard.json",
+		"title": "Background keyboard",
+		"description": "System-wide keyboard listener"
             }
         ],
         "modulesLoad": [

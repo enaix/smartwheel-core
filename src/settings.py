@@ -272,8 +272,10 @@ class SettingsWindow(QWidget):
                     wid = self.handlers[elem["type"]].initElem(elem)
 
                 if wid is not None:
-                    wid.setProperty("widmodule", elem["module"])
-                    wid.setProperty("prop", elem["prop"])
+                    if elem.get("module") is not None:
+                        wid.setProperty("widmodule", elem["module"])
+                    if elem.get("prop") is not None:
+                        wid.setProperty("prop", elem["prop"])
                     if elem.get("index") is not None:
                         wid.setProperty("index", elem["index"])
 

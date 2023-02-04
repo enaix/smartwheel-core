@@ -1,7 +1,8 @@
 {
   "tabs": [
     {"name": "General", "config": "general.json"},
-    {"name": "Appearance", "config": "appearance.json"}
+    {"name": "Appearance", "config": "appearance.json"},
+    {"name": "Input", "config": "serial.json"}
   ],
   "groupMinimalHeight": 100,
   "fieldWidth": 200,
