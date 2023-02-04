@@ -20,7 +20,7 @@ import os
 
 class WConfig(config.Config):
     def __init__(self, config_file, launch_config):
-        super(WConfig, self).__init__(config_file)
+        super(WConfig, self).__init__(config_file, varsWhitelist=["serialModulesLoad"])
 
         if not self.loadConfig():
             print("Fatal: error loading main config file. Exiting..")
@@ -152,7 +152,6 @@ class RootWindow(QMainWindow):
         Init main serial connections
         """
         # TODO add serial.tools.miniterm in settings
-        # TODO load them from loop
 
         self.serialModules = {}
         self.serialModulesNames = []

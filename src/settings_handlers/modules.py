@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QGridLayout, QHBoxLayout, QCheckBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtGui import QFont
 
 from .base import BaseHandler
@@ -37,6 +37,11 @@ class ModulesLoader(BaseHandler):
             check = QCheckBox()
             options = QPushButton("...")
 
+            check.setProperty("name", mod["name"])
+
+            if i in elem["modulesLoad"]:
+                check.setChecked(True)
+
             for j, s in enumerate(["title", "description"]):
                 label = QLabel(mod[s])
 
@@ -58,11 +63,22 @@ class ModulesLoader(BaseHandler):
 
 
 class SerialLoader(BaseHandler):
+    """
+    Serial modules picker
+    """
     def __init__(self, value_getter, value_setter, parent_obj=None):
         super(SerialLoader, self).__init__(value_getter, value_setter, parent_obj)
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
+        """
+        Load serial modules picker
+
+        Parameters
+        ==========
+        elem
+            Element from config
+        """
         ok, modules = self.value_getter("canvas", "serialModules")
         if not ok:
             self.logger.error("Could not get serial modules")
@@ -80,8 +96,51 @@ class SerialLoader(BaseHandler):
         if picker is None:
             self.logger.error("Could not initialize modules picker")
             return None
+
+        layout = picker.findChild(QGridLayout)
+
+        for i in range(1, layout.rowCount()):
+            if layout.itemAtPosition(i, 0) is None:
+                break
+
+            checked = layout.itemAtPosition(i, 0).widget()
+            checked.clicked.connect(self.setEnabled)
         
         return picker
 
+    @pyqtSlot(bool)
+    def setEnabled(self, enabled):
+        caller = self.sender()
+        
+        name = caller.property("name")
+
+        ok, modules = self.value_getter("canvas", "serialModules")
+        if not ok:
+            self.logger.error("Could not get serial modules")
+            return
+
+        ok, modulesLoad = self.value_getter("canvas", "serialModulesLoad")
+        if not ok:
+            self.logger.error("Could not get loaded serial modules")
+            return
+
+        index = None
+        for i in range(len(modules)):
+            if modules[i]["name"] == name:
+                index = i
+                break
+
+        if index is None:
+            self.logger.error("Could not get module by name")
+            return
+
+        if enabled:
+            m_set = set(modulesLoad)
+            m_set.add(index)
+            modulesLoad = list(m_set)
+        else:
+            modulesLoad.remove(index)
+
+        self.value_setter(module="canvas", prop="serialModulesLoad", value=modulesLoad)
 
 handlers = {"modules": ModulesLoader, "serial": SerialLoader}

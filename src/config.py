@@ -134,6 +134,11 @@ class Config(QObject):
         if dropNew and not len(new) == len(old):
             return
 
+        # We need to unset the old list in order to prevent duplications errors
+        if not dropNew and len(new) < len(old):
+            for i in range(len(new), len(old)):
+                del old[i]
+
         for i in range(len(new)):
             if i < len(old):
                 if type(new[i]) == type(old[i]):
@@ -163,15 +168,16 @@ class Config(QObject):
         """
         for key, val in new.items():
             if old.get(key) is not None and type(val) == type(old[key]):
+                drop = dropNew
                 if dropNew and key in self.whitelist:
-                    dropNew = False
+                    drop = False
                 elif not dropNew and key in self.blacklist:
-                    dropNew = True
+                    drop = True
                 
                 if type(val) == dict:
-                    self.dictIter(new[key], old[key], dropNew)
+                    self.dictIter(new[key], old[key], drop)
                 elif type(val) == list:
-                    self.listIter(val, old[key], dropNew)
+                    self.listIter(val, old[key], drop)
                 else:
                     old[key] = val
                     #print(key)
