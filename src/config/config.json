@@ -66,6 +66,10 @@
         "modulesLoad": [
             0
         ],
+	"internalModulesLoad": [
+		0,
+		1
+	],
         "serialModulesLoad": [
             0,
             2

@@ -144,7 +144,7 @@ class RootCanvas:
 
     def loadInternalModules(self):
         self.conf["internal"] = {}
-        for i in range(len(self.conf["internalModules"])):
+        for i in self.conf["internalModulesLoad"]:
             mod = self.conf["internalModules"][i]
             if mod.get("config") is not None:
                 cnf = os.path.join(self.config_dir, mod["config"])
