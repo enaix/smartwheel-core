@@ -33,6 +33,8 @@ class ModulesLoader(BaseHandler):
             labels[i].setFont(font)
             layout.addWidget(labels[i], 0, i, Qt.AlignLeft)
 
+        #layout.setColumnStretch(10, 0)
+
         for i, mod in enumerate(elem["modules"]):
             check = QCheckBox()
             options = QPushButton("...")

@@ -283,13 +283,16 @@ class SettingsWindow(QWidget):
                     if elem.get("index") is not None:
                         wid.setProperty("index", elem["index"])
 
-                    wid.setMinimumWidth(self.conf["fieldWidth"])
-                    wid.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
                     widWrapper = QHBoxLayout()
-                    spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-                    widWrapper.addSpacerItem(spacer)
-                    widWrapper.addWidget(wid)
+
+                    if label is not None:
+                        wid.setMinimumWidth(self.conf["fieldWidth"])
+                        wid.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+                        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+                        widWrapper.addSpacerItem(spacer)
                     
+                    widWrapper.addWidget(wid)
+                   
                     if label is not None:
                         form.addRow(label, widWrapper)
                     else:
