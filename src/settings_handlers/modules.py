@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QGridLayout, QHBoxLayout, QCheckBox
+from PyQt5.QtWidgets import QWidget, QSizePolicy, QSpacerItem, QLabel, QPushButton, QGridLayout, QVBoxLayout, QHBoxLayout, QCheckBox
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtGui import QFont
 
@@ -56,8 +56,15 @@ class ModulesLoader(BaseHandler):
                     if not check.isChecked():
                         layout.itemAtPosition(i+1, j).widget().setDisabled(True)
 
+        vbox = QVBoxLayout()
+        vbox.addLayout(layout)
+        
+        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        vbox.addSpacerItem(spacer)
+
         wrapper = QWidget()
-        wrapper.setLayout(layout)
+        wrapper.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        wrapper.setLayout(vbox)
 
         return wrapper
 
@@ -97,7 +104,7 @@ class SerialLoader(BaseHandler):
             self.logger.error("Could not initialize modules picker")
             return None
 
-        layout = picker.findChild(QGridLayout)
+        layout = picker.findChild(QVBoxLayout).findChild(QGridLayout)
 
         for i in range(1, layout.rowCount()):
             if layout.itemAtPosition(i, 0) is None:
@@ -142,5 +149,6 @@ class SerialLoader(BaseHandler):
             modulesLoad.remove(index)
 
         self.value_setter(module="canvas", prop="serialModulesLoad", value=modulesLoad)
+
 
 handlers = {"modules": ModulesLoader, "serial": SerialLoader}

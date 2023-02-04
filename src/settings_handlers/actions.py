@@ -233,7 +233,6 @@ class ActionList(BaseHandler):
         layout.addLayout(panel)
 
         wrapper.setLayout(layout)
-        wrapper.sizePolicy().setHorizontalPolicy(QSizePolicy.Expanding)
 
         wrapper.setWindowTitle("Edit actions")
 

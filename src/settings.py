@@ -263,7 +263,11 @@ class SettingsWindow(QWidget):
             form = QFormLayout()
             group = QGroupBox(elem_group["name"])
             for elem in elem_group["options"]:
-                label = QLabel(elem["name"])
+                if elem.get("name") is not None:
+                    label = QLabel(elem["name"])
+                else:
+                    label = None
+
                 wid = None
 
                 if self.handlers.get(elem["type"]) is None:
@@ -279,14 +283,17 @@ class SettingsWindow(QWidget):
                     if elem.get("index") is not None:
                         wid.setProperty("index", elem["index"])
 
-                    # TODO add option to add the widget to the bottom
                     wid.setMinimumWidth(self.conf["fieldWidth"])
                     wid.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
                     widWrapper = QHBoxLayout()
                     spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
                     widWrapper.addSpacerItem(spacer)
                     widWrapper.addWidget(wid)
-                    form.addRow(label, widWrapper)
+                    
+                    if label is not None:
+                        form.addRow(label, widWrapper)
+                    else:
+                        form.addRow(widWrapper)
 
             group.setLayout(form)
             layout.addWidget(group)
