@@ -6,6 +6,7 @@ from ui.base import BaseUIElem
 # import importlib
 import os
 import weakref
+from tools import merge_dicts
 
 
 class Section:
@@ -95,7 +96,7 @@ class UIElem(BaseUIElem):
         self.is_anim_running = False
         self.cur_section = 0
         self.loadConfig()
-        self.conf.c = {**self.conf, **WConfig}
+        merge_dicts(self.conf, WConfig)
         self.initSections()
         self.initAnimation()
         self.initShadowAnimation()
