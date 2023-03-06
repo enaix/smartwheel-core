@@ -250,6 +250,9 @@ class Config(QObject):
         Save the config file
         Note: new variables are dropped by default (we need to purge runtime variables)
         """
+        if self.config_file is None:
+            return
+
         # We need to drop runtime variables, so we need to load the json file again
         ok, old_values = self.loadConfig(immediate=True)
         

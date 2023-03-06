@@ -1,0 +1,19 @@
+{
+    "name": "classic",
+    "title": "Classic",
+    "props": {
+        "ui.wheel.drawOverlayCircles": true,
+        "ui.wheel.drawOverlayRects": true,
+        "ui.wheel.overlayCirclesOpacity": 0.4,
+        "ui.wheel.overlayCirclesWidth": 10,
+        "ui.wheel.overlayCirclesColor": "#404040",
+        "ui.wheel.overlayRectsOpacity": 0.3,
+        "ui.wheel.overlayRectsWidth": 20,
+        "ui.wheel.overlayRectsColor": "#404040",
+        "common.bgWheelColor": "#171717",
+        "common.wheelTextureColor": "#404040",
+        "common.selectionWheelBG": "#171717",
+        "common.selectionWheelFG": "#cccccc",
+        "ui.wheel.pointerColor": "#ffffff"
+    }
+}
