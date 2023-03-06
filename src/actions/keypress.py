@@ -1,6 +1,9 @@
-from actions.baseaction import BaseAction
-from pynput.keyboard import Key, KeyCode, Controller
 import os
+
+from pynput.keyboard import Controller, Key, KeyCode
+
+from actions.baseaction import BaseAction
+
 
 class Action(BaseAction):
     def __init__(self):
@@ -24,7 +27,12 @@ class Action(BaseAction):
                     if up:
                         self.keeb.release(getattr(Key, context["key"]))
             else:
-                print("Error: cannot parse Key.", context["key"], ". Please check pynput.Key class",sep="")
+                print(
+                    "Error: cannot parse Key.",
+                    context["key"],
+                    ". Please check pynput.Key class",
+                    sep="",
+                )
                 print("Key context:", context)
                 return False
         elif context["key_class"] == "regular":

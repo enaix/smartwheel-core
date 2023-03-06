@@ -1,5 +1,6 @@
-from ui.base import BaseUIElem
 import config
+from ui.base import BaseUIElem
+
 
 class UIElem(BaseUIElem):
     def __init__(self, config_file, WConfig):
@@ -17,8 +18,9 @@ class UIElem(BaseUIElem):
         self.conf.loadConfig()
 
     def processKey(self, event):
-        event["canvas"]().reloadWheelModules(False, self.wrapper_pointer()) # call canvas module
+        event["canvas"]().reloadWheelModules(
+            False, self.wrapper_pointer()
+        )  # call canvas module
 
     def draw(self, qp, offset=None):
         pass
-

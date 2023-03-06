@@ -1,9 +1,10 @@
 import logging
 
-from serialpipe.base import ConnPipe, PRButton, ClickButton, Rotary
-from PyQt5.QtCore import *
-import config
 from pynput import keyboard
+from PyQt5.QtCore import *
+
+import config
+from serialpipe.base import ClickButton, ConnPipe, PRButton, Rotary
 
 
 class SConn(ConnPipe):
@@ -37,7 +38,12 @@ class SConn(ConnPipe):
         """
         Initialize dicts of keys to quickly find them
         """
-        self.keys = {"keyboards": {}, "prbuttons": {}, "clickbuttons": {}, "encoders": {}}
+        self.keys = {
+            "keyboards": {},
+            "prbuttons": {},
+            "clickbuttons": {},
+            "encoders": {},
+        }
         self.prbuttons = {}
         self.clickbuttons = {}
         self.encoders = {}
@@ -49,29 +55,49 @@ class SConn(ConnPipe):
         for btn in self.conf["prbuttons"]:
             self.keys["prbuttons"][btn["key"]] = btn
             self.prbuttons[btn["name"]] = PRButton(btn["threshold"])
-            self.prbuttons[btn["name"]].setupCallbacks([self.call] * 3,
-                                                       [(btn, {"string": x}) for x in
-                                                        ["press", "click", "doubleclick"]])
+            self.prbuttons[btn["name"]].setupCallbacks(
+                [self.call] * 3,
+                [(btn, {"string": x}) for x in ["press", "click", "doubleclick"]],
+            )
 
         for btn in self.conf["clickbuttons"]:
             self.keys["clickbuttons"][btn["key"]] = btn
             self.clickbuttons[btn["name"]] = ClickButton(btn["threshold"])
-            self.clickbuttons[btn["name"]].setupCallbacks([self.call] * 2,
-                                                          [(btn, {"string": x}) for x in
-                                                           ["click", "doubleclick"]])
+            self.clickbuttons[btn["name"]].setupCallbacks(
+                [self.call] * 2,
+                [(btn, {"string": x}) for x in ["click", "doubleclick"]],
+            )
 
         for enc in self.conf["encoders"]:
             self.keys["encoders"][enc["keyUp"]] = (enc, True)  # up
             self.keys["encoders"][enc["keyDown"]] = (enc, False)  # down
 
-            if enc["linkedButton"] is not None and self.prbuttons.get(enc["linkedButton"]) is None:
-                self.logger.error("Could not link " + enc["name"] + " with non-existent prbutton " + enc["linkedButton"])
+            if (
+                enc["linkedButton"] is not None
+                and self.prbuttons.get(enc["linkedButton"]) is None
+            ):
+                self.logger.error(
+                    "Could not link "
+                    + enc["name"]
+                    + " with non-existent prbutton "
+                    + enc["linkedButton"]
+                )
 
             self.encoders[enc["name"]] = Rotary(self.prbuttons[enc["linkedButton"]])
-            self.encoders[enc["name"]].setupCallbacks([self.call] * 6,
-                                                      [(enc, {"string": x}) for x in
-                                                       ["up", "down", "click up",
-                                                        "click down", "double up", "double down"]])
+            self.encoders[enc["name"]].setupCallbacks(
+                [self.call] * 6,
+                [
+                    (enc, {"string": x})
+                    for x in [
+                        "up",
+                        "down",
+                        "click up",
+                        "click down",
+                        "double up",
+                        "double down",
+                    ]
+                ],
+            )
 
     def on_press(self, key):
         """
@@ -82,7 +108,7 @@ class SConn(ConnPipe):
         key
             Key object
         """
-        k = str(key).strip("\'")
+        k = str(key).strip("'")
 
         if self.keys["keyboards"].get(k) is not None:
             kb, btn = self.keys["keyboards"][k]
@@ -101,7 +127,7 @@ class SConn(ConnPipe):
         key
             Key object
         """
-        k = str(key).strip("\'")
+        k = str(key).strip("'")
 
         if self.keys["prbuttons"].get(k) is not None:
             btn = self.keys["prbuttons"][k]
@@ -119,5 +145,7 @@ class SConn(ConnPipe):
         """
         The main listener loop
         """
-        with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
+        with keyboard.Listener(
+            on_press=self.on_press, on_release=self.on_release
+        ) as listener:
             listener.join()

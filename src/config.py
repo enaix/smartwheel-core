@@ -1,21 +1,32 @@
-from PyQt5.QtCore import QObject, pyqtSlot
 import json
 import os
-import common
 import weakref
+
+from PyQt5.QtCore import QObject, pyqtSlot
+
+import common
 
 
 class Config(QObject):
     """
     Universal configuration class that supports loading and saving json config files.
-    
+
     Supports direct access by key (ConfigObject["key"]) and other dict methods.
 
     It acts like collections.ChainMap: all source dicts are stored while merging (update method), which is used in updating settings on-the-fly.
-    
+
     Note: assertion does not work directly! Config = some_other_dict cannot be overloaded, use Config.c = some_other_dict instead.
     """
-    def __init__(self, config_file=None, config_dict=None, logger=None, ignoreNewVars=True, varsWhitelist=[], varsBlacklist=[]):
+
+    def __init__(
+        self,
+        config_file=None,
+        config_dict=None,
+        logger=None,
+        ignoreNewVars=True,
+        varsWhitelist=[],
+        varsBlacklist=[],
+    ):
         """
         Initialize Config object
         Note: the config file needs to be loaded manually by calling loadConfig()
@@ -37,13 +48,13 @@ class Config(QObject):
         """
         super(Config, self).__init__()
         self.config_file = config_file
-        #self.c = self.loadConfig()
+        # self.c = self.loadConfig()
         self.c = config_dict
         self.logger = logger
         self.ignoreNew = ignoreNewVars
         self.whitelist = varsWhitelist
         self.blacklist = varsBlacklist
-        self.links = [] # Storing source dicts to allow updating the variables
+        self.links = []  # Storing source dicts to allow updating the variables
 
         common.config_manager.save.connect(self.saveConfig)
 
@@ -181,7 +192,7 @@ class Config(QObject):
     def listIter(self, new, old, dropNew=True):
         """
         Recursively iterate through the list and update old config value iff it is present in config file
-        
+
         Parameters
         ==========
         new
@@ -209,14 +220,14 @@ class Config(QObject):
                     else:
                         old[i] = new[i]
             elif not dropNew:
-                    old.append(new[i])
+                old.append(new[i])
             else:
                 return
 
     def dictIter(self, new, old, dropNew=True):
         """
         Recursively iterate through the dict and update old config value iff it is present in config file
-        
+
         Parameters
         ==========
         new
@@ -233,14 +244,14 @@ class Config(QObject):
                     drop = False
                 elif not dropNew and key in self.blacklist:
                     drop = True
-                
+
                 if type(val) == dict:
                     self.dictIter(new[key], old[key], drop)
                 elif type(val) == list:
                     self.listIter(val, old[key], drop)
                 else:
                     old[key] = val
-                    #print(key)
+                    # print(key)
             elif not dropNew:
                 old[key] = val
 
@@ -255,7 +266,7 @@ class Config(QObject):
 
         # We need to drop runtime variables, so we need to load the json file again
         ok, old_values = self.loadConfig(immediate=True)
-        
+
         if not ok:
             if self.logger is not None:
                 self.logger.error("Failed to apply config")
@@ -269,5 +280,3 @@ class Config(QObject):
 
         with open(self.config_file, "w") as f:
             json.dump(old_values, f, indent=4)
-
-

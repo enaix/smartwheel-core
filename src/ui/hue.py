@@ -1,10 +1,13 @@
-from ui.base import BaseUIElem
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-import config
-import os
-import math
 import logging
+import math
+import os
+
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
+import config
+from ui.base import BaseUIElem
+
 
 class UIElem(BaseUIElem):
     def __init__(self, config_file, WConfig):
@@ -40,14 +43,18 @@ class UIElem(BaseUIElem):
                 self.sat_selection = self.checkOverflow(self.sat_selection + dlt)
             elif self.mode == 2:
                 self.bri_selection = self.checkOverflow(self.bri_selection + dlt)
-            
-            color = QColor.fromHsl(int(self.hue_selection), int(self.to_map(self.sat_selection)), int(self.to_map(self.bri_selection)))
+
+            color = QColor.fromHsl(
+                int(self.hue_selection),
+                int(self.to_map(self.sat_selection)),
+                int(self.to_map(self.bri_selection)),
+            )
             r, g, b, _ = color.getRgbF()
             self.logger.debug(r, g, b)
-            
+
             data = self.conf["internal"]["kritaAPI"]["class"].setColor(r, g, b)
             self.conf["internal"]["kritaServer"]["signals"]["send"].emit(data)
-            #print(self.hue_selection, self.sat_selection, self.bri_selection)
+            # print(self.hue_selection, self.sat_selection, self.bri_selection)
 
     def initGUI(self):
         self.hue_selection = self.conf["HueStartAngle"]
@@ -55,7 +62,7 @@ class UIElem(BaseUIElem):
         self.bri_selection = self.conf["BriStartAngle"]
         self.mode = 0
         self.angle_delta = self.to_map(1, 0, 359, 0, 255)
-        
+
         self.delta = 360 // self.conf["selectionWheelEntries"]
         if self.conf["isHSLWidthFixed"]:
             self.hsl_width = self.conf["HSLCircleWidth"]
@@ -74,11 +81,17 @@ class UIElem(BaseUIElem):
         self.hsl_elem_width = [self.hsl_select_width, self.hsl_width, self.hsl_width]
         self.hsl_padding_width = [self.hsl_padding, self.hsl_padding, self.hsl_padding]
 
-        self.color_window_width = (self.conf["width"] * 3) / 4 - self.hsl_width * 2 - self.hsl_select_width - self.hsl_padding * 3 - self.conf["colorWidgetPadding"]
+        self.color_window_width = (
+            (self.conf["width"] * 3) / 4
+            - self.hsl_width * 2
+            - self.hsl_select_width
+            - self.hsl_padding * 3
+            - self.conf["colorWidgetPadding"]
+        )
 
         # ---
-        #self.kr_handler = KritaHandler()
-        #self.kr_api = KritaAPI()
+        # self.kr_handler = KritaHandler()
+        # self.kr_api = KritaAPI()
         # ---
 
     def _set_width(self, w):
@@ -97,7 +110,7 @@ class UIElem(BaseUIElem):
 
     def startWidthAnimation(self):
         self.is_anim_running = True
-        #self.width_anim.stop()
+        # self.width_anim.stop()
         self.width_anim.start()
 
     def to_map(self, value, i_min=0, i_max=359, o_min=0, o_max=255):
@@ -110,7 +123,7 @@ class UIElem(BaseUIElem):
         return math.sin(math.radians(a)) * h / 2 + self.conf["cy"]
 
     def drawHueWheel(self, qp, width):
-        width -= sum(self.hsl_elem_width[1:3]) + self.hsl_padding*2
+        width -= sum(self.hsl_elem_width[1:3]) + self.hsl_padding * 2
         if self.mode == 0:
             hsl_w = self.hsl_width + self.hsl_sw
         elif self.mode == 1:
@@ -119,7 +132,14 @@ class UIElem(BaseUIElem):
             hsl_w = self.hsl_width
         self.hsl_elem_width[0] = hsl_w
 
-        grad = QConicalGradient(QPoint(self.conf["cx"], self.conf["cy"]), 359 - self.hue_selection + self.conf["selectionAngle"] - 90 - (self.delta//4))
+        grad = QConicalGradient(
+            QPoint(self.conf["cx"], self.conf["cy"]),
+            359
+            - self.hue_selection
+            + self.conf["selectionAngle"]
+            - 90
+            - (self.delta // 4),
+        )
         grad.setColorAt(0, QColor(255, 0, 0))
         grad.setColorAt(1.0 / 6, QColor(255, 255, 0))
         grad.setColorAt(2.0 / 6, QColor(0, 255, 0))
@@ -133,8 +153,14 @@ class UIElem(BaseUIElem):
         qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), width // 2, width // 2)
         self.drawPadding(qp, width - hsl_w)
 
-        a = self.conf["selectionAngle"] - 90 + (self.delta//4)
-        self.drawColorPoint(qp, self.getX(a + 90.0, width - hsl_w / 2), self.getY(a + 90, width - hsl_w / 2), (hsl_w) / 4, QColor.fromHsl(int(self.hue_selection), 255, 128))
+        a = self.conf["selectionAngle"] - 90 + (self.delta // 4)
+        self.drawColorPoint(
+            qp,
+            self.getX(a + 90.0, width - hsl_w / 2),
+            self.getY(a + 90, width - hsl_w / 2),
+            (hsl_w) / 4,
+            QColor.fromHsl(int(self.hue_selection), 255, 128),
+        )
 
     def drawSatWheel(self, qp, width):
         width -= self.hsl_elem_width[2] + self.hsl_padding
@@ -146,8 +172,15 @@ class UIElem(BaseUIElem):
             hsl_w = self.hsl_width
         self.hsl_elem_width[1] = hsl_w
 
-        grad = QConicalGradient(QPoint(self.conf["cx"], self.conf["cy"]), 359 - self.sat_selection + self.conf["selectionAngle"] - 90 - (self.delta//4))
-        
+        grad = QConicalGradient(
+            QPoint(self.conf["cx"], self.conf["cy"]),
+            359
+            - self.sat_selection
+            + self.conf["selectionAngle"]
+            - 90
+            - (self.delta // 4),
+        )
+
         grad.setColorAt(0, QColor.fromHsl(int(self.hue_selection), 0, 128))
         grad.setColorAt(1, QColor.fromHsl(int(self.hue_selection), 255, 128))
 
@@ -155,9 +188,17 @@ class UIElem(BaseUIElem):
         qp.setBrush(QBrush(grad))
         qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), width // 2, width // 2)
         self.drawPadding(qp, width - hsl_w)
-        
-        a = self.conf["selectionAngle"] - 90 + (self.delta//4)
-        self.drawColorPoint(qp, self.getX(a + 90.0, width - hsl_w / 2), self.getY(a + 90, width - hsl_w / 2), (hsl_w) / 4, QColor.fromHsl(int(self.hue_selection), int(self.to_map(self.sat_selection)), 128))
+
+        a = self.conf["selectionAngle"] - 90 + (self.delta // 4)
+        self.drawColorPoint(
+            qp,
+            self.getX(a + 90.0, width - hsl_w / 2),
+            self.getY(a + 90, width - hsl_w / 2),
+            (hsl_w) / 4,
+            QColor.fromHsl(
+                int(self.hue_selection), int(self.to_map(self.sat_selection)), 128
+            ),
+        )
 
     def drawBriWheel(self, qp, width):
         hsl_w = self.hsl_width
@@ -167,26 +208,58 @@ class UIElem(BaseUIElem):
             hsl_w = self.hsl_select_width - self.hsl_sw
         self.hsl_elem_width[2] = hsl_w
 
-        grad = QConicalGradient(QPoint(self.conf["cx"], self.conf["cy"]), 359 - self.bri_selection + self.conf["selectionAngle"] - 90 - (self.delta//4))
+        grad = QConicalGradient(
+            QPoint(self.conf["cx"], self.conf["cy"]),
+            359
+            - self.bri_selection
+            + self.conf["selectionAngle"]
+            - 90
+            - (self.delta // 4),
+        )
 
         grad.setColorAt(0, QColor(0, 0, 0))
-        grad.setColorAt(0.5, QColor.fromHsl(int(self.hue_selection), int(self.to_map(self.sat_selection)), 128))
+        grad.setColorAt(
+            0.5,
+            QColor.fromHsl(
+                int(self.hue_selection), int(self.to_map(self.sat_selection)), 128
+            ),
+        )
         grad.setColorAt(1, QColor(255, 255, 255))
-        
+
         qp.setPen(QPen(grad, 1))
         qp.setBrush(QBrush(grad))
         qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), width // 2, width // 2)
         self.drawPadding(qp, width - hsl_w)
 
-        a = self.conf["selectionAngle"] - 90 + (self.delta//4)
+        a = self.conf["selectionAngle"] - 90 + (self.delta // 4)
 
-        self.drawColorPoint(qp, self.getX(a + 90.0, width - hsl_w / 2), self.getY(a + 90, width - hsl_w / 2), (hsl_w) / 4, QColor.fromHsl(int(self.hue_selection), int(self.to_map(self.sat_selection)), int(self.to_map(self.bri_selection))))
+        self.drawColorPoint(
+            qp,
+            self.getX(a + 90.0, width - hsl_w / 2),
+            self.getY(a + 90, width - hsl_w / 2),
+            (hsl_w) / 4,
+            QColor.fromHsl(
+                int(self.hue_selection),
+                int(self.to_map(self.sat_selection)),
+                int(self.to_map(self.bri_selection)),
+            ),
+        )
 
     def drawColorPoint(self, qp, cx, cy, radius, color):
         if qGray(color.rgb()) >= self.conf["colorDotLightnessThreshold"]:
-            qp.setPen(QPen(QColor(self.conf["colorDotDarkStrokeColor"]), self.conf["colorDotStrokeWidth"]))
+            qp.setPen(
+                QPen(
+                    QColor(self.conf["colorDotDarkStrokeColor"]),
+                    self.conf["colorDotStrokeWidth"],
+                )
+            )
         else:
-            qp.setPen(QPen(QColor(self.conf["colorDotLightStrokeColor"]), self.conf["colorDotStrokeWidth"]))
+            qp.setPen(
+                QPen(
+                    QColor(self.conf["colorDotLightStrokeColor"]),
+                    self.conf["colorDotStrokeWidth"],
+                )
+            )
 
         radius -= 0
 
@@ -199,7 +272,12 @@ class UIElem(BaseUIElem):
         qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), width // 2, width // 2)
 
     def drawColorWindow(self, qp, color, width, offset):
-        qp.setPen(QPen(QColor(self.conf["colorDotLightStrokeColor"]), self.conf["colorDotStrokeWidth"]))
+        qp.setPen(
+            QPen(
+                QColor(self.conf["colorDotLightStrokeColor"]),
+                self.conf["colorDotStrokeWidth"],
+            )
+        )
 
         width = min(width, self.conf["colorWidgetMaxWidth"] / 2)
 
@@ -207,9 +285,26 @@ class UIElem(BaseUIElem):
         if self.conf["colorWidgetShape"] == "circle":
             qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), width, width)
         elif self.conf["colorWidgetShape"] == "square":
-            qp.drawRect(QRect(self.conf["cx"] - width, self.conf["cy"] - width, width * 2, width * 2))
+            qp.drawRect(
+                QRect(
+                    self.conf["cx"] - width,
+                    self.conf["cy"] - width,
+                    width * 2,
+                    width * 2,
+                )
+            )
         elif self.conf["colorWidgetShape"] == "hybrid":
-            qp.drawRoundedRect(QRectF(self.conf["cx"] - width, self.conf["cy"] - width, width * 2, width * 2), self.conf["wheelWidth"] - offset, self.conf["wheelWidth"] - offset, Qt.RelativeSize)
+            qp.drawRoundedRect(
+                QRectF(
+                    self.conf["cx"] - width,
+                    self.conf["cy"] - width,
+                    width * 2,
+                    width * 2,
+                ),
+                self.conf["wheelWidth"] - offset,
+                self.conf["wheelWidth"] - offset,
+                Qt.RelativeSize,
+            )
 
     def draw(self, qp, offset=None):
         if self.width_anim.state() == 0:
@@ -218,5 +313,13 @@ class UIElem(BaseUIElem):
         self.drawSatWheel(qp, (self.conf["width"] * 3) // 4 + offset)
         self.drawHueWheel(qp, (self.conf["width"] * 3) // 4 + offset)
 
-        self.drawColorWindow(qp, QColor.fromHsl(int(self.hue_selection), int(self.to_map(self.sat_selection)), int(self.to_map(self.bri_selection))), (self.color_window_width + offset) / 2, offset)
-        
+        self.drawColorWindow(
+            qp,
+            QColor.fromHsl(
+                int(self.hue_selection),
+                int(self.to_map(self.sat_selection)),
+                int(self.to_map(self.bri_selection)),
+            ),
+            (self.color_window_width + offset) / 2,
+            offset,
+        )

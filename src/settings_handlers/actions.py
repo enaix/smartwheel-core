@@ -1,14 +1,29 @@
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
-from PyQt5.QtWidgets import QWidget, QSizePolicy, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSpacerItem, QGridLayout, QCheckBox, QGroupBox, QComboBox
-from PyQt5.QtGui import QFont
-from .base import BaseHandler
 import logging
+
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QVBoxLayout,
+    QWidget,
+)
+
+from .base import BaseHandler
+
 
 class ActionPicker(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
         super(ActionPicker, self).__init__(value_getter, value_setter, parent_obj)
         self.logger = logging.getLogger(__name__)
-        self.pickers = [] # Prevent pickers from being destroyed
+        self.pickers = []  # Prevent pickers from being destroyed
 
     def initElem(self, elem):
         """
@@ -25,7 +40,7 @@ class ActionPicker(BaseHandler):
         label = QLabel(elem["name"])
         editButton = QPushButton("...")
         deleteButton = QPushButton("x")
-        
+
         # Fetching the ActionList
         if self.parent_obj is None:
             self.logger.error("Could not get settings object")
@@ -44,7 +59,7 @@ class ActionPicker(BaseHandler):
         wid.addSpacerItem(sp)
         wid.addWidget(editButton)
         wid.addWidget(deleteButton)
-        
+
         wrapper.setLayout(wid)
 
         return wrapper
@@ -55,6 +70,7 @@ class OnShown(QWidget):
     Widget that calls the shown signal when visible
     Qt has no proper way to have 2 gridlayouts with the same column size, so I had to implement this hack
     """
+
     shown = pyqtSignal()
 
     def showEvent(self, event):
@@ -76,7 +92,7 @@ class ActionList(BaseHandler):
         elem
             Action engine command name {"device": "commandBind", "command": "commandName"}
         """
-        #if parent_obj is None:
+        # if parent_obj is None:
         #    self.logger.error("Could not load action editor: no parent object found")
         #    return None
         wrapper = QWidget()
@@ -90,17 +106,21 @@ class ActionList(BaseHandler):
         module = QGroupBox("Module actions")
 
         ok, actions = self.value_getter("actionengine", "commandActions")
-        
+
         if not ok:
             self.logger.error("Could not get actionengine config")
             return None
 
         if elem.get("device") is None or elem.get("command") is None:
-            self.logger.error("No command bind specified, could not launch action editor")
+            self.logger.error(
+                "No command bind specified, could not launch action editor"
+            )
             return None
 
         # {"command": "commandName", "actions": [{"action": "...", "mode": "...", "repeat": ..}, ...]}
-        ok, elem_bind = self.value_getter("actionengine", "commandBind." + elem["device"])
+        ok, elem_bind = self.value_getter(
+            "actionengine", "commandBind." + elem["device"]
+        )
         if not ok:
             elem_bind = []
 
@@ -120,7 +140,7 @@ class ActionList(BaseHandler):
             enabled_label = QLabel("Enabled")
             title_label = QLabel("Title")
             any_label = QLabel("Where to call")
-            
+
             desc_label = QLabel("Description")
             desc_label.setFont(font)
 
@@ -150,7 +170,7 @@ class ActionList(BaseHandler):
 
             state = QComboBox()
             state.insertItems(0, ["Wheel", "Module", "Anywhere"])
-            #anyState = QCheckBox()
+            # anyState = QCheckBox()
 
             if a.get("default") is not None:
                 if a["default"] == "any":
@@ -171,7 +191,7 @@ class ActionList(BaseHandler):
                     enabled.setChecked(True)
                 else:
                     continue
-                
+
                 if a["type"] == "wheel":
                     if bind.get("onState") is not None and bind["onState"] == "module":
                         state.setCurrentIndex(1)
@@ -181,32 +201,36 @@ class ActionList(BaseHandler):
                     if bind.get("onState") is not None and bind["onState"] == "wheel":
                         state.setCurrentIndex(0)
                     else:
-                        state.setCurrentIndex(1)   
+                        state.setCurrentIndex(1)
 
                 if not bind["checkState"]:
                     state.setCurrentIndex(2)
 
             if a["type"] == "wheel":
-                wheel_l.addWidget(enabled, i+1, 0, Qt.AlignLeft)
-                wheel_l.addWidget(title, i+1, 1, Qt.AlignLeft)
-                wheel_l.addWidget(desc, i+1, 2, Qt.AlignLeft)
-                wheel_l.addWidget(state, i+1, 3, Qt.AlignRight)
+                wheel_l.addWidget(enabled, i + 1, 0, Qt.AlignLeft)
+                wheel_l.addWidget(title, i + 1, 1, Qt.AlignLeft)
+                wheel_l.addWidget(desc, i + 1, 2, Qt.AlignLeft)
+                wheel_l.addWidget(state, i + 1, 3, Qt.AlignRight)
 
                 for j in range(1, 4):
-                    if wheel_l.itemAtPosition(i+1, j) is not None:
-                        enabled.clicked.connect(wheel_l.itemAtPosition(i+1, j).widget().setEnabled)
+                    if wheel_l.itemAtPosition(i + 1, j) is not None:
+                        enabled.clicked.connect(
+                            wheel_l.itemAtPosition(i + 1, j).widget().setEnabled
+                        )
                         if not enabled.isChecked():
-                            wheel_l.itemAtPosition(i+1, j).widget().setDisabled(True)
+                            wheel_l.itemAtPosition(i + 1, j).widget().setDisabled(True)
             else:
-                module_l.addWidget(enabled, i+1, 0, Qt.AlignLeft)
-                module_l.addWidget(title, i+1, 1, Qt.AlignLeft)
-                module_l.addWidget(desc, i+1, 2, Qt.AlignLeft)
-                module_l.addWidget(state, i+1, 3, Qt.AlignRight)
+                module_l.addWidget(enabled, i + 1, 0, Qt.AlignLeft)
+                module_l.addWidget(title, i + 1, 1, Qt.AlignLeft)
+                module_l.addWidget(desc, i + 1, 2, Qt.AlignLeft)
+                module_l.addWidget(state, i + 1, 3, Qt.AlignRight)
 
                 for j in range(1, 4):
-                    enabled.clicked.connect(module_l.itemAtPosition(i+1, j).widget().setEnabled)
+                    enabled.clicked.connect(
+                        module_l.itemAtPosition(i + 1, j).widget().setEnabled
+                    )
                     if not enabled.isChecked():
-                        module_l.itemAtPosition(i+1, j).widget().setDisabled(True)
+                        module_l.itemAtPosition(i + 1, j).widget().setDisabled(True)
 
         panel = QHBoxLayout()
         okButton = QPushButton("OK")
@@ -215,7 +239,7 @@ class ActionList(BaseHandler):
 
         cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(wrapper.close)
-       
+
         onShown = OnShown()
         onShown.shown.connect(self.resizeCells)
         panel.addWidget(onShown)
@@ -246,9 +270,13 @@ class ActionList(BaseHandler):
     def resizeCells(self):
         caller = self.sender()
         wrapper = caller.property("wrapper")
-        
-        wheel_l = wrapper.findChild(QVBoxLayout).itemAt(0).widget().findChild(QGridLayout)
-        module_l = wrapper.findChild(QVBoxLayout).itemAt(1).widget().findChild(QGridLayout)
+
+        wheel_l = (
+            wrapper.findChild(QVBoxLayout).itemAt(0).widget().findChild(QGridLayout)
+        )
+        module_l = (
+            wrapper.findChild(QVBoxLayout).itemAt(1).widget().findChild(QGridLayout)
+        )
 
         title_width = max([l.cellRect(0, 1).width() for l in [wheel_l, module_l]])
         wheel_l.setColumnMinimumWidth(1, title_width)
@@ -259,14 +287,16 @@ class ActionList(BaseHandler):
         caller = self.sender()
         wrapper = caller.property("wrapper")
         elem = caller.property("elem")
-        
+
         if wrapper is None or elem is None:
             self.logger.error("Could not get apply button propery")
             return
 
         actions = []
 
-        for i, group in enumerate([wrapper.findChild(QVBoxLayout).itemAt(x).widget() for x in [0, 1]]):
+        for i, group in enumerate(
+            [wrapper.findChild(QVBoxLayout).itemAt(x).widget() for x in [0, 1]]
+        ):
             grid = group.findChild(QGridLayout)
 
             for j in range(1, grid.rowCount()):
@@ -279,10 +309,10 @@ class ActionList(BaseHandler):
                     continue
 
                 onState = grid.itemAtPosition(j, 3).widget().currentText().lower()
-                if i == 0: # wheel
+                if i == 0:  # wheel
                     mode = "wheel"
 
-                if i == 1: # module
+                if i == 1:  # module
                     mode = "module"
 
                 anyState = False
@@ -290,8 +320,12 @@ class ActionList(BaseHandler):
                     anyState = True
 
                 actionName = grid.itemAtPosition(j, 0).widget().property("action_name")
-                
-                action = {"action": actionName, "mode": mode, "checkState": not anyState}
+
+                action = {
+                    "action": actionName,
+                    "mode": mode,
+                    "checkState": not anyState,
+                }
 
                 if not anyState and not mode == onState:
                     action["onState"] = onState
@@ -299,7 +333,9 @@ class ActionList(BaseHandler):
                 actions.append(action)
 
         # Saving
-        exists, elem_bind = self.value_getter("actionengine", "commandBind." + elem["device"])
+        exists, elem_bind = self.value_getter(
+            "actionengine", "commandBind." + elem["device"]
+        )
         if not exists:
             elem_bind = [{"command": elem["command"], "actions": []}]
 
@@ -312,9 +348,9 @@ class ActionList(BaseHandler):
         if not found:
             elem_bind.append({"command": elem["command"], "actions": actions})
 
-        self.value_setter(module="actionengine", prop="commandBind." + elem["device"], value=elem_bind)
+        self.value_setter(
+            module="actionengine", prop="commandBind." + elem["device"], value=elem_bind
+        )
 
 
 handlers = {"actions_picker": ActionPicker, "actions_list": ActionList}
-
-

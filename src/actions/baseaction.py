@@ -4,5 +4,3 @@ class BaseAction:
 
     def run(self, context):
         pass
-
-

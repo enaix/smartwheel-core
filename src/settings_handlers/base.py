@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 
+
 class BaseHandler(QObject):
     """
     Base settings handler class
@@ -44,7 +45,7 @@ class BaseHandler(QObject):
     def fetchValue(self, wid):
         """
         (Presets) Get value of the widget, must return the value or None if not supported
-        
+
         Parameters
         ==========
         wid
@@ -64,5 +65,6 @@ class BaseHandler(QObject):
             Value to set
         """
         return False
+
 
 handlers = {}

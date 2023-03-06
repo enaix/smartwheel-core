@@ -1,5 +1,6 @@
-#from PyQt5.QtGui import *
+# from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+
 
 class BaseUIElem(QObject):
     def __init__(self):
@@ -8,6 +9,6 @@ class BaseUIElem(QObject):
 
     def loadConfig(self):
         pass
-    
+
     def draw(self, qp, offset=None):
         pass

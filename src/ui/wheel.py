@@ -1,12 +1,15 @@
-import config
 import math
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from ui.base import BaseUIElem
+
 # import importlib
 import os
 import weakref
+
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
+import config
 from tools import merge_dicts
+from ui.base import BaseUIElem
 
 
 class Section:
@@ -33,7 +36,11 @@ class Section:
             self.pixmap = None  # QImage(os.path.join(self.parent().conf["iconsFolder"], "folder.png"))
         else:
             # TODO replace with bitmap/pixmap
-            self.pixmap = QImage(os.path.join(self.parent().conf["iconsFolder"], self.module["class"].icon_path))
+            self.pixmap = QImage(
+                os.path.join(
+                    self.parent().conf["iconsFolder"], self.module["class"].icon_path
+                )
+            )
 
     def draw_module(self, qp):
         if self.module is not None:
@@ -46,7 +53,9 @@ class Section:
         w = self.parent().conf["pixmapScale"]
         self.pixmap.width = w
         self.pixmap.height = w
-        self.pixmap = self.pixmap.scaled(QSize(w, w), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.pixmap = self.pixmap.scaled(
+            QSize(w, w), Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
 
     def reload_module(self, module):
         self.module = module
@@ -70,21 +79,33 @@ class Section:
     def draw(self, qp, start_w, end_w):
         end_w -= self.parent()._sections_pos
         self.update_vars()
-        x1, x2, y1, y2 = self.calculate_coords(self.end_angle + self.delta, start_w, end_w)
+        x1, x2, y1, y2 = self.calculate_coords(
+            self.end_angle + self.delta, start_w, end_w
+        )
 
-        xa1, xa2, ya1, ya2 = self.calculate_coords(self.start_angle + self.delta,
-                                                   start_w + self.parent().conf["pixmapScale"], end_w)
+        xa1, xa2, ya1, ya2 = self.calculate_coords(
+            self.start_angle + self.delta,
+            start_w + self.parent().conf["pixmapScale"],
+            end_w,
+        )
 
-        xb1, xb2, yb1, yb2 = self.calculate_coords(self.end_angle + self.delta,
-                                                   start_w + self.parent().conf["pixmapScale"], end_w)
+        xb1, xb2, yb1, yb2 = self.calculate_coords(
+            self.end_angle + self.delta,
+            start_w + self.parent().conf["pixmapScale"],
+            end_w,
+        )
 
         brush = QBrush()
         pen = QPen(QColor(self.parent().conf["selectionWheelFG"]), 1, Qt.SolidLine)
         qp.setBrush(brush)
         qp.setPen(pen)
         qp.drawLine(QPointF(x1, y1), QPointF(x2, y2))
-        self.draw_icon(((xa1 + xa2) // 2 + (xb1 + xb2) // 2) // 2 - self.parent().conf["pixmapScale"] // 2,
-                       ((ya1 + ya2) // 2 + (yb1 + yb2) // 2) // 2 - self.parent().conf["pixmapScale"] // 2)
+        self.draw_icon(
+            ((xa1 + xa2) // 2 + (xb1 + xb2) // 2) // 2
+            - self.parent().conf["pixmapScale"] // 2,
+            ((ya1 + ya2) // 2 + (yb1 + yb2) // 2) // 2
+            - self.parent().conf["pixmapScale"] // 2,
+        )
 
 
 class UIElem(BaseUIElem):
@@ -137,7 +158,9 @@ class UIElem(BaseUIElem):
         brush = QBrush(QColor(self.conf["selectionWheelBG"]))
         self.qp.setBrush(brush)
         self.qp.setPen(pen)
-        self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), width // 2, height // 2)
+        self.qp.drawEllipse(
+            QPoint(self.conf["cx"], self.conf["cy"]), width // 2, height // 2
+        )
 
         self.drawSections(width, circleWidth)
 
@@ -161,7 +184,10 @@ class UIElem(BaseUIElem):
         if self.sections_timer.isActive():
             self.sections_timer.start(self.conf["sectionsHideTimeout"])
         else:
-            self.sections_timer.start(self.conf["sectionsHideTimeout"] + self.conf["sectionsAnimationDuration"])
+            self.sections_timer.start(
+                self.conf["sectionsHideTimeout"]
+                + self.conf["sectionsAnimationDuration"]
+            )
         self.showSections()
         # self.sections_timer.singleShot(self.conf["sectionsHideTimeout"] + self.conf["sectionsAnimationDuration"], self.hideSections)
         # self.startSectionsAnimation(True)
@@ -193,9 +219,18 @@ class UIElem(BaseUIElem):
     def initSections(self):
         self.delta = 360 // self.conf["selectionWheelEntries"]
         self._angle = self.conf["selectionAngle"]
-        self.sections = [Section(self.delta * i + self.conf["selectionAngle"] - self.delta // 4,
-                                 self.delta * i + self.delta + self.conf["selectionAngle"] - self.delta // 4, self,
-                                 self.getModule(i)) for i in range(self.conf["selectionWheelEntries"])]
+        self.sections = [
+            Section(
+                self.delta * i + self.conf["selectionAngle"] - self.delta // 4,
+                self.delta * i
+                + self.delta
+                + self.conf["selectionAngle"]
+                - self.delta // 4,
+                self,
+                self.getModule(i),
+            )
+            for i in range(self.conf["selectionWheelEntries"])
+        ]
         self.sections[0].is_selected = True
         self.cur_section = 0
 
@@ -268,12 +303,15 @@ class UIElem(BaseUIElem):
             return
         pen = QPen(QColor(self.conf["wheelTextureColor"]))
         self.qp.setPen(pen)
-        opac = str(hex(self._opacity).split('x')[-1].zfill(2))  # TODO reformat this code
+        opac = str(
+            hex(self._opacity).split("x")[-1].zfill(2)
+        )  # TODO reformat this code
         brush = QBrush(QColor("#" + opac + self.conf["bgWheelColor"][1:]))
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
-        brush = QBrush(QColor("#" + opac + self.conf["wheelTextureColor"][1:]),
-                       Qt.BDiagPattern)
+        brush = QBrush(
+            QColor("#" + opac + self.conf["wheelTextureColor"][1:]), Qt.BDiagPattern
+        )
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
 
@@ -343,11 +381,14 @@ class UIElem(BaseUIElem):
         pen = QPen(QColor(self.conf["pointerColor"]), 3, Qt.SolidLine)
         self.qp.setPen(pen)
         # draw pointer
-        self.qp.drawArc(self.conf["corner_x"] - self.conf["pointerMargin"],
-                        self.conf["corner_y"] - self.conf["pointerMargin"],
-                        self.conf["width"] + self.conf["pointerMargin"],
-                        self.conf["height"] + self.conf["pointerMargin"],
-                        - 90 * 16 + self.conf["selectionAngle"] * 16 + (self.delta // 4) * 16, - self.delta * 16)
+        self.qp.drawArc(
+            self.conf["corner_x"] - self.conf["pointerMargin"],
+            self.conf["corner_y"] - self.conf["pointerMargin"],
+            self.conf["width"] + self.conf["pointerMargin"],
+            self.conf["height"] + self.conf["pointerMargin"],
+            -90 * 16 + self.conf["selectionAngle"] * 16 + (self.delta // 4) * 16,
+            -self.delta * 16,
+        )
         # p = QPalette()
         # gradient = QConicalGradient(self.conf["cx"], self.conf["cy"], self.conf["selectionAngle"])
         # gradient.setColorAt(0.0, QColor.fromHsv(0, 0, 255))
@@ -364,10 +405,18 @@ class UIElem(BaseUIElem):
         self.qp.setPen(pen)
         brush = QBrush(QColor(self.conf["bgWheelColor"]))
         self.qp.setBrush(brush)
-        self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), circleWidth // 2, circleHeight // 2)
+        self.qp.drawEllipse(
+            QPoint(self.conf["cx"], self.conf["cy"]),
+            circleWidth // 2,
+            circleHeight // 2,
+        )
         brush = QBrush(QColor(self.conf["wheelTextureColor"]), Qt.BDiagPattern)
         self.qp.setBrush(brush)
-        self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), circleWidth // 2, circleHeight // 2)
+        self.qp.drawEllipse(
+            QPoint(self.conf["cx"], self.conf["cy"]),
+            circleWidth // 2,
+            circleHeight // 2,
+        )
         self.drawOverlays(1 - self._opacity / 255, circleWidth)
 
     def drawOverlays(self, opacity, circleWidth):
@@ -380,23 +429,48 @@ class UIElem(BaseUIElem):
             self.qp.setOpacity(opacity * self.conf["overlayCirclesOpacity"])
 
             for i in range(0, 360, 360 // 10):
-                self.qp.drawEllipse(QPoint(self.conf["cx"] + int(math.cos(math.radians(i + (self._angle - 225) / 4)) *
-                                                                 circleWidth // 3),
-                                           self.conf["cy"] + int(math.sin(math.radians(i + (self._angle - 225) / 4)) *
-                                                                 circleWidth // 3)),
-                                    self.conf["overlayCirclesWidth"], self.conf["overlayCirclesWidth"])
+                self.qp.drawEllipse(
+                    QPoint(
+                        self.conf["cx"]
+                        + int(
+                            math.cos(math.radians(i + (self._angle - 225) / 4))
+                            * circleWidth
+                            // 3
+                        ),
+                        self.conf["cy"]
+                        + int(
+                            math.sin(math.radians(i + (self._angle - 225) / 4))
+                            * circleWidth
+                            // 3
+                        ),
+                    ),
+                    self.conf["overlayCirclesWidth"],
+                    self.conf["overlayCirclesWidth"],
+                )
 
         if self.conf["drawOverlayRects"]:
-            self.qp.setPen(QPen(QColor(self.conf["overlayRectsColor"]), self.conf["overlayRectsWidth"], Qt.SolidLine))
+            self.qp.setPen(
+                QPen(
+                    QColor(self.conf["overlayRectsColor"]),
+                    self.conf["overlayRectsWidth"],
+                    Qt.SolidLine,
+                )
+            )
             self.qp.setOpacity(self.conf["overlayRectsOpacity"] * opacity)
 
             for i in range(0, 360, 360 // 6):
                 cx = math.cos(math.radians(i + (self._angle - 225) / 6))
                 cy = math.sin(math.radians(i + (self._angle - 225) / 6))
-                self.qp.drawLine(QPointF(self.conf["cx"] + cx * circleWidth * 0.3,
-                                        self.conf["cy"] + cy * circleWidth * 0.3),
-                                 QPointF(self.conf["cx"] + cx * circleWidth * 0.45,
-                                        self.conf["cy"] + cy * circleWidth * 0.45))
+                self.qp.drawLine(
+                    QPointF(
+                        self.conf["cx"] + cx * circleWidth * 0.3,
+                        self.conf["cy"] + cy * circleWidth * 0.3,
+                    ),
+                    QPointF(
+                        self.conf["cx"] + cx * circleWidth * 0.45,
+                        self.conf["cy"] + cy * circleWidth * 0.45,
+                    ),
+                )
 
         self.qp.setOpacity(1)
 
@@ -408,10 +482,18 @@ class UIElem(BaseUIElem):
             self.is_shadow_anim_running = False
         if self.sections_anim.state() == 0:
             self.is_sections_anim_running = False
-        self.is_anim_running = self.is_scroll_anim_running or self.is_shadow_anim_running or self.is_sections_anim_running
+        self.is_anim_running = (
+            self.is_scroll_anim_running
+            or self.is_shadow_anim_running
+            or self.is_sections_anim_running
+        )
         if self.conf["isWheelWidthFixed"]:
-            circleWidth = self.conf["width"] - self.conf["fixedWheelWidth"] + self._sections_pos
-            circleHeight = self.conf["height"] - self.conf["fixedWheelWidth"] + self._sections_pos
+            circleWidth = (
+                self.conf["width"] - self.conf["fixedWheelWidth"] + self._sections_pos
+            )
+            circleHeight = (
+                self.conf["height"] - self.conf["fixedWheelWidth"] + self._sections_pos
+            )
         else:
             circleWidth = (self.conf["width"] * 3) // 4 + self._sections_pos
             circleHeight = (self.conf["height"] * 3) // 4 + self._sections_pos

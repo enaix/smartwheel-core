@@ -1,14 +1,27 @@
-from PyQt5.QtWidgets import QWidget, QSizePolicy, QSpacerItem, QLabel, QPushButton, QGridLayout, QVBoxLayout, QHBoxLayout, QCheckBox
+import logging
+
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (
+    QCheckBox,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QVBoxLayout,
+    QWidget,
+)
 
 from .base import BaseHandler
-import logging
+
 
 class ModulesLoader(BaseHandler):
     """
     Common modules picker
     """
+
     def __init__(self, value_getter, value_setter, parent_obj=None):
         super(ModulesLoader, self).__init__(value_getter, value_setter, parent_obj)
         self.logger = logging.getLogger(__name__)
@@ -26,14 +39,14 @@ class ModulesLoader(BaseHandler):
 
         font = QFont()
         font.setBold(True)
-        
+
         labels = [QLabel(x) for x in ["Enabled", "Title", "Description", "Options"]]
-        
+
         for i in range(len(labels)):
             labels[i].setFont(font)
             layout.addWidget(labels[i], 0, i, Qt.AlignLeft)
 
-        #layout.setColumnStretch(10, 0)
+        # layout.setColumnStretch(10, 0)
 
         for i, mod in enumerate(elem["modules"]):
             check = QCheckBox()
@@ -47,20 +60,22 @@ class ModulesLoader(BaseHandler):
             for j, s in enumerate(["title", "description"]):
                 label = QLabel(mod[s])
 
-                layout.addWidget(label, i+1, j+1, Qt.AlignLeft)
+                layout.addWidget(label, i + 1, j + 1, Qt.AlignLeft)
 
-            layout.addWidget(check, i+1, 0, Qt.AlignLeft)
-            layout.addWidget(options, i+1, 3, Qt.AlignLeft)
+            layout.addWidget(check, i + 1, 0, Qt.AlignLeft)
+            layout.addWidget(options, i + 1, 3, Qt.AlignLeft)
 
             for j in range(1, 4):
-                if layout.itemAtPosition(i+1, j) is not None:
-                    check.clicked.connect(layout.itemAtPosition(i+1, j).widget().setEnabled)
+                if layout.itemAtPosition(i + 1, j) is not None:
+                    check.clicked.connect(
+                        layout.itemAtPosition(i + 1, j).widget().setEnabled
+                    )
                     if not check.isChecked():
-                        layout.itemAtPosition(i+1, j).widget().setDisabled(True)
+                        layout.itemAtPosition(i + 1, j).widget().setDisabled(True)
 
         vbox = QVBoxLayout()
         vbox.addLayout(layout)
-        
+
         spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         vbox.addSpacerItem(spacer)
 
@@ -75,6 +90,7 @@ class SerialLoader(BaseHandler):
     """
     Serial modules picker
     """
+
     def __init__(self, value_getter, value_setter, parent_obj=None):
         super(SerialLoader, self).__init__(value_getter, value_setter, parent_obj)
         self.logger = logging.getLogger(__name__)
@@ -97,7 +113,7 @@ class SerialLoader(BaseHandler):
         if not ok:
             self.logger.error("Could not get loaded serial modules")
             return None
-        
+
         elem["modules"] = modules
         elem["modulesLoad"] = modulesLoad
 
@@ -114,13 +130,13 @@ class SerialLoader(BaseHandler):
 
             checked = layout.itemAtPosition(i, 0).widget()
             checked.clicked.connect(self.setEnabled)
-        
+
         return picker
 
     @pyqtSlot(bool)
     def setEnabled(self, enabled):
         caller = self.sender()
-        
+
         name = caller.property("name")
 
         ok, modules = self.value_getter("canvas", "serialModules")

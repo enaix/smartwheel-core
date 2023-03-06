@@ -1,8 +1,10 @@
-from serialpipe.base import ConnPipe
-from PyQt5.QtCore import *
-import serial
-import config
 import logging
+
+import serial
+from PyQt5.QtCore import *
+
+import config
+from serialpipe.base import ConnPipe
 
 
 class SConn(ConnPipe):
@@ -32,7 +34,7 @@ class SConn(ConnPipe):
         # l = string.split()
         string = string.decode("utf-8").strip()
         print(string)
-        if string == '':
+        if string == "":
             return
         cmd = []
         for b in self.conf["binds"]:
@@ -53,7 +55,9 @@ class SConn(ConnPipe):
         if self.conf["useTimeout"]:
             tm = self.conf["timeout"]
         try:
-            with serial.Serial(self.conf["device"], self.conf["baudRate"], timeout=tm) as s:
+            with serial.Serial(
+                self.conf["device"], self.conf["baudRate"], timeout=tm
+            ) as s:
                 while self.isRunning() and s.is_open:
                     self.serialCall(s.readline())
         except BaseException as e:

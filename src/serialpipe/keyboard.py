@@ -1,6 +1,7 @@
-from serialpipe.base import ConnPipe
 from PyQt5.QtCore import *
+
 import config
+from serialpipe.base import ConnPipe
 
 
 class SConn(ConnPipe):

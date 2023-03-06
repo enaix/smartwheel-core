@@ -1,10 +1,12 @@
-from PyQt5.QtCore import QThread, QObject, QTimer, pyqtSlot, pyqtSignal
-import time
 import logging
+import time
+
+from PyQt5.QtCore import QObject, QThread, QTimer, pyqtSignal, pyqtSlot
 
 
 class PRButton(QObject):
     """Press and release button"""
+
     pressSignal = pyqtSignal(bool)
 
     def __init__(self, click_thresh, parent=None):
@@ -80,7 +82,9 @@ class PRButton(QObject):
             if self.signals[0] is not None:
                 self.signals[0].emit(self.arguments[0])
 
-        elif self.state == "down_pre" and up:  # Pressed down and up (need to check if rotary is not activated)
+        elif (
+            self.state == "down_pre" and up
+        ):  # Pressed down and up (need to check if rotary is not activated)
             self.state = "click_pre"
             self.timer.stop()
             self.timer.start()
@@ -117,6 +121,7 @@ class PRButton(QObject):
 
 class ClickButton(QObject):
     """Simple click button without separate up and down events"""
+
     pressSignal = pyqtSignal()
 
     def __init__(self, click_thresh, parent=None):
@@ -195,6 +200,7 @@ class ClickButton(QObject):
 
 class Rotary(QObject):
     """Simple rotary encoder with up and down events"""
+
     rotateSignal = pyqtSignal(bool)
 
     def __init__(self, prbutton, parent=None):
@@ -213,8 +219,8 @@ class Rotary(QObject):
 
         self.btn = prbutton
 
-        self.signals = [None]*6
-        self.arguments = [None]*6
+        self.signals = [None] * 6
+        self.arguments = [None] * 6
 
     def setupCallbacks(self, signals, arguments):
         """
@@ -243,14 +249,14 @@ class Rotary(QObject):
         up
             Is the direction up
         """
-        if i+1 > len(self.signals):
+        if i + 1 > len(self.signals):
             return
         if up:
             if self.signals[i] is not None:
                 self.signals[i].emit(self.arguments[0])
         else:
-            if self.signals[i+1] is not None:
-                self.signals[i+1].emit(self.arguments[1])
+            if self.signals[i + 1] is not None:
+                self.signals[i + 1].emit(self.arguments[1])
 
     def execRotate(self, up):
         """
@@ -278,13 +284,17 @@ class Rotary(QObject):
             self.logger.debug("rotary scrolled")
             self.callSignal(0, up)
 
-        elif self.btn.state == "up" or self.btn.state == "click_pre":  # Rotation up/down
+        elif (
+            self.btn.state == "up" or self.btn.state == "click_pre"
+        ):  # Rotation up/down
             self.btn.state = "up"
             self.btn.timer.stop()
             self.logger.debug("rotary scrolled")
             self.callSignal(0, up)
 
-        elif self.btn.state == "down_pre" or self.btn.state == "down":  # Click and scroll
+        elif (
+            self.btn.state == "down_pre" or self.btn.state == "down"
+        ):  # Click and scroll
             self.btn.state = "down"  # the next up event won't trigger anything
             self.btn.timer.stop()
             self.logger.debug("rotary scrolled with click")

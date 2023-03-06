@@ -1,10 +1,19 @@
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QInputDialog, QWidget, QLineEdit, QHBoxLayout, QComboBox, QPushButton
-from .base import BaseHandler
+import json
 import logging
 import os
 import weakref
-import json
+
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import (
+    QComboBox,
+    QHBoxLayout,
+    QInputDialog,
+    QLineEdit,
+    QPushButton,
+    QWidget,
+)
+
+from .base import BaseHandler
 
 
 class PresetHandler(BaseHandler):
@@ -29,7 +38,7 @@ class PresetHandler(BaseHandler):
         preset_names = []
 
         for p in preset_files:
-            with open(os.path.join("presets", elem["folder"], p), 'r') as f:
+            with open(os.path.join("presets", elem["folder"], p), "r") as f:
                 pr = json.load(f)
                 presets[pr["name"]] = pr
 
@@ -38,7 +47,9 @@ class PresetHandler(BaseHandler):
 
         preset_names.append("Custom")
 
-        self.value_setter(value=presets, module="settings", prop="presets." + str(elem["tab_index"]))
+        self.value_setter(
+            value=presets, module="settings", prop="presets." + str(elem["tab_index"])
+        )
 
         wid.insertItems(len(preset_names) - 1, preset_names)
         wid.setProperty("tab_index", elem["tab_index"])
@@ -73,7 +84,12 @@ class PresetHandler(BaseHandler):
         title
             Title to convert
         """
-        return ''.join([x if x.isalnum or x == '_' else '' for x in title.lower().replace(" ", "_")])
+        return "".join(
+            [
+                x if x.isalnum or x == "_" else ""
+                for x in title.lower().replace(" ", "_")
+            ]
+        )
 
     @pyqtSlot()
     def savePreset(self):
@@ -89,12 +105,14 @@ class PresetHandler(BaseHandler):
         folder = caller().property("presets_folder")
         module = caller().property("module")
         prop = caller().property("prop")
-        
+
         if ind is None:
             self.logger.warning("Could not get tab index from the preset picker")
             return
         if folder is None:
-            self.logger.warning("Could not get presets folder name from the preset picker")
+            self.logger.warning(
+                "Could not get presets folder name from the preset picker"
+            )
             return
         if module is None or prop is None:
             self.logger.warning("Could not get presets picker properties")
@@ -103,7 +121,13 @@ class PresetHandler(BaseHandler):
         preset = caller().currentText()
 
         if preset == "Custom":
-            title, ok = QInputDialog().getText(self.sender(), "New preset", "Preset name:", QLineEdit.Normal, "Preset" + str(caller().currentIndex() + 1))
+            title, ok = QInputDialog().getText(
+                self.sender(),
+                "New preset",
+                "Preset name:",
+                QLineEdit.Normal,
+                "Preset" + str(caller().currentIndex() + 1),
+            )
 
             if not ok or not title:
                 self.logger.info("Input dialog closed")
@@ -120,9 +144,10 @@ class PresetHandler(BaseHandler):
             title = preset
 
         name = self.parsePresetName(title)
-        
-        self.parent_obj().savePreset(ind, name, title, os.path.join("presets", folder, name + ".json"))
 
+        self.parent_obj().savePreset(
+            ind, name, title, os.path.join("presets", folder, name + ".json")
+        )
 
     @pyqtSlot(int)
     def setPreset(self, value):

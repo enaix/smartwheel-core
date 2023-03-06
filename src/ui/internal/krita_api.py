@@ -1,6 +1,9 @@
-from ui.internal.baseinternal import BaseInternal
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
 import json
+
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
+
+from ui.internal.baseinternal import BaseInternal
+
 
 class Internal(BaseInternal):
     def __init__(self, WConfig, config_file):

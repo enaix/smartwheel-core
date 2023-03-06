@@ -1,12 +1,25 @@
 # from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QPushButton, QSpacerItem, \
-    QSizePolicy, QGroupBox, QFormLayout, QScrollArea, QLabel
+import importlib
 import json
 import logging
 import os
 import weakref
-import importlib
+
+from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtWidgets import (
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSpacerItem,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
 import common
 
 
@@ -14,7 +27,7 @@ class SettingsWindow(QWidget):
     def __init__(self, config_file, main_class, conf_class, parent=None):
         """
         Init SettingsWindow
-        
+
         Parameters
         ==========
         config_file
@@ -54,7 +67,10 @@ class SettingsWindow(QWidget):
 
         if self.conf.get("tabs") is not None:
             for i in range(len(self.conf["tabs"])):
-                with open(os.path.join("settings_registry", self.conf["tabs"][i]["config"]), "r") as f:
+                with open(
+                    os.path.join("settings_registry", self.conf["tabs"][i]["config"]),
+                    "r",
+                ) as f:
                     self.conf["tabs"][i]["conf"] = json.load(f)
 
     def setConfigHook(self, main_class, conf):
@@ -105,7 +121,7 @@ class SettingsWindow(QWidget):
     def loadSettingsHandlers(self, handlers_dir):
         """
         Init settings handlers from the directory
-        
+
         Parameters
         ==========
         handlers_dir
@@ -116,17 +132,23 @@ class SettingsWindow(QWidget):
             self.logger.error("Missing " + s_config + " file")
             os.exit(1)
 
-        with open(s_config, 'r') as f:
+        with open(s_config, "r") as f:
             self.handlers_conf = json.load(f)
 
         self.handlers = {}
         for mod_name in self.handlers_conf["handlers_modules"]:
-            handler = importlib.import_module(self.conf["settings_handlers_dir"] + "." + mod_name)
+            handler = importlib.import_module(
+                self.conf["settings_handlers_dir"] + "." + mod_name
+            )
             h_dict = handler.handlers
             for k in h_dict:
                 if self.handlers.get(k) is not None:
-                    self.logger.warning("Setting handler " + k + " is defined twice. Overriding")
-                self.handlers[k] = h_dict[k](self.getValue, self.setValue, weakref.ref(self))
+                    self.logger.warning(
+                        "Setting handler " + k + " is defined twice. Overriding"
+                    )
+                self.handlers[k] = h_dict[k](
+                    self.getValue, self.setValue, weakref.ref(self)
+                )
 
     def getValue(self, module, prop, index=None):
         """
@@ -146,11 +168,13 @@ class SettingsWindow(QWidget):
             self.logger.error("Could not get value: no module " + module)
             return False, None
 
-        props = prop.split('.')
+        props = prop.split(".")
         cur_prop = self.settings[module]
         for p in props:
             if cur_prop.get(p) is None:
-                self.logger.error("Could not get value: no property " + module + "." + prop)
+                self.logger.error(
+                    "Could not get value: no property " + module + "." + prop
+                )
                 return False, None
             else:
                 cur_prop = cur_prop[p]
@@ -183,8 +207,8 @@ class SettingsWindow(QWidget):
         key = "_" + str(_i)
 
         if _i != 0:
-            key = "_" + str(_i-1)
-        
+            key = "_" + str(_i - 1)
+
         # We create the wrapper if needed
         if d.get(key) is None:
             w = {key: d}
@@ -202,15 +226,15 @@ class SettingsWindow(QWidget):
             return
 
         # Python reference hack, we use a mutable type as a wrapper
-        wrapper = {"_"+str(_i): w[key][props[0]]}
+        wrapper = {"_" + str(_i): w[key][props[0]]}
 
-        self.dictWalk(wrapper, props[1:], value, index, _i+1)
+        self.dictWalk(wrapper, props[1:], value, index, _i + 1)
 
     def setValue(self, obj=None, value=None, module=None, prop=None, index=None):
         """
         Set property from the application.
         Module, prop and index arguments may be fetched from the object properties (passing only obj and value) or passed directly (module, prop, index (optional) and value)
-        
+
         Parameters
         ==========
         obj
@@ -237,7 +261,7 @@ class SettingsWindow(QWidget):
             self.logger.error("Could not get value: no module " + str(module))
             return
 
-        props = prop.split('.')
+        props = prop.split(".")
 
         self.dictWalk(self.settings[module], props, value, index)
 
@@ -264,7 +288,7 @@ class SettingsWindow(QWidget):
             elem, handler = self.preset_tabs[index][key]
             prop = elem().property("preset_property")
             value = handler.fetchValue(elem())
-            
+
             if value is None:
                 continue
 
@@ -272,7 +296,7 @@ class SettingsWindow(QWidget):
 
         self.conf["presets"][str(index)][name] = preset
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(preset, f, indent=4)
 
         return True, preset
@@ -293,15 +317,21 @@ class SettingsWindow(QWidget):
         for key, value in preset["props"].items():
             p_elem = self.preset_tabs[index].get(key)
             if p_elem is None:
-                self.logger.warning("Could not find " + key + " widget from preset " + preset["title"])
+                self.logger.warning(
+                    "Could not find " + key + " widget from preset " + preset["title"]
+                )
                 continue
 
             elem, handler = p_elem
 
             ok = handler.updateValue(elem(), value)
             if not ok:
-                self.logger.warning("Could not set " + key + " widget value from preset " + preset["title"])
-            
+                self.logger.warning(
+                    "Could not set "
+                    + key
+                    + " widget value from preset "
+                    + preset["title"]
+                )
 
     def initTab(self, index):
         """
@@ -336,10 +366,12 @@ class SettingsWindow(QWidget):
 
                 wid = None
 
-                elem["tab_index"] = index # storing the index of the current tab
+                elem["tab_index"] = index  # storing the index of the current tab
 
                 if self.handlers.get(elem["type"]) is None:
-                    self.logger.error("Could not find the handler for type " + elem["type"])
+                    self.logger.error(
+                        "Could not find the handler for type " + elem["type"]
+                    )
                 else:
                     wid = self.handlers[elem["type"]].initElem(elem)
 
@@ -354,21 +386,30 @@ class SettingsWindow(QWidget):
                     if elem.get("index") is not None:
                         wid.setProperty("index", elem["index"])
                         prop_preset += "." + str(elem["index"])
-                    
-                    if tab["conf"].get("enable_presets", False) and elem.get("preset", False) and not prop_preset == "":
+
+                    if (
+                        tab["conf"].get("enable_presets", False)
+                        and elem.get("preset", False)
+                        and not prop_preset == ""
+                    ):
                         wid.setProperty("preset_property", prop_preset)
-                        self.preset_tabs[index][prop_preset] = (weakref.ref(wid), self.handlers[elem["type"]])
+                        self.preset_tabs[index][prop_preset] = (
+                            weakref.ref(wid),
+                            self.handlers[elem["type"]],
+                        )
 
                     widWrapper = QHBoxLayout()
 
                     if label is not None:
                         wid.setMinimumWidth(self.conf["fieldWidth"])
                         wid.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
-                        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+                        spacer = QSpacerItem(
+                            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
+                        )
                         widWrapper.addSpacerItem(spacer)
-                    
+
                     widWrapper.addWidget(wid)
-                   
+
                     if label is not None:
                         form.addRow(label, widWrapper)
                     else:

@@ -1,11 +1,14 @@
-import socket
-import os
 import json
-import time
-import queue
-from PyQt5.QtCore import *
-from ui.internal.baseinternal import BaseInternal
 import logging
+import os
+import queue
+import socket
+import time
+
+from PyQt5.QtCore import *
+
+from ui.internal.baseinternal import BaseInternal
+
 
 class Internal(BaseInternal):
     sendSignal = pyqtSignal(str)
@@ -28,7 +31,7 @@ class Internal(BaseInternal):
             self.sock.close()
 
     def loadConfig(self):
-        with open(self.config_file, 'r') as f:
+        with open(self.config_file, "r") as f:
             self.conf = {**json.load(f), **self.conf}
 
     def getSignals(self):
@@ -40,9 +43,9 @@ class Internal(BaseInternal):
             self.logger.warning("Cannot open socket")
         while True:
             self.wake.wait(self.mutex)
-            #self.mutex.lock()
-            #data_copy = self.data
-            #self.mutex.unlock()
+            # self.mutex.lock()
+            # data_copy = self.data
+            # self.mutex.unlock()
             while not self.data.empty():
                 self.logger.debug("Reading data")
                 self.sendData(self.data.get())
@@ -63,17 +66,17 @@ class Internal(BaseInternal):
 
     @pyqtSlot(str)
     def send(self, data):
-        #self.mutex.lock()
+        # self.mutex.lock()
         self.data.put(data)
         self.wake.wakeAll()
-        #self.mutex.unlock()
+        # self.mutex.unlock()
 
     def sendData(self, data):
         self.logger.debug(data)
         try:
             if not hasattr(self, "conn"):
                 self.conn, _ = self.sock.accept()
-            self.conn.sendall(data.encode('utf-8'))
+            self.conn.sendall(data.encode("utf-8"))
         except BaseException as e:
             try:
                 self.conn, _ = self.sock.accept()
@@ -81,4 +84,3 @@ class Internal(BaseInternal):
                 self.logger.error(ex)
                 return
             self.logger.error(e)
-

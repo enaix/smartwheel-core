@@ -4,4 +4,3 @@ class BaseWheelAction:
 
     def run(self):
         pass
-

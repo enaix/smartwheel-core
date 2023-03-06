@@ -1,21 +1,28 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import importlib
-import sys
-import os
 import json
-
-from PyQt5.QtCore import pyqtSlot, QEvent
-from PyQt5.QtGui import *
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QDockWidget, QGraphicsBlurEffect
-from canvas import RootCanvas
 import logging
-from settings import SettingsWindow
-import config
-import qdarktheme
-import weakref
 import os
+import sys
+import weakref
+
+import qdarktheme
+from PyQt5 import QtCore
+from PyQt5.QtCore import QEvent, pyqtSlot
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import (
+    QApplication,
+    QDockWidget,
+    QGraphicsBlurEffect,
+    QMainWindow,
+    QPushButton,
+    QWidget,
+)
+
+import config
+from canvas import RootCanvas
+from settings import SettingsWindow
 
 
 class WConfig(config.Config):
@@ -48,7 +55,9 @@ class RootWindow(QMainWindow):
         super(RootWindow, self).__init__()
         self.rc = None
         self.kb = None
-        logging.basicConfig(level=getattr(logging, conf.c["canvas"]["logging"].upper(), 2))
+        logging.basicConfig(
+            level=getattr(logging, conf.c["canvas"]["logging"].upper(), 2)
+        )
         self.logger = logging.getLogger(__name__)
 
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
@@ -65,8 +74,10 @@ class RootWindow(QMainWindow):
         self.loadSerial()
         self.initUI()
 
-        self.settings = SettingsWindow("settings_registry/config.json", weakref.ref(self), weakref.ref(conf))
-        #self.settings.show()
+        self.settings = SettingsWindow(
+            "settings_registry/config.json", weakref.ref(self), weakref.ref(conf)
+        )
+        # self.settings.show()
 
         self.show()
         # self.qp = QPainter(self)
@@ -84,7 +95,7 @@ class RootWindow(QMainWindow):
 
         self.installEventFilter(self)
 
-        #self.drawBlur()
+        # self.drawBlur()
 
     @pyqtSlot()
     def openSettings(self):
@@ -100,14 +111,21 @@ class RootWindow(QMainWindow):
     def drawBlur(self):
         self.blur_widget = QWidget(self)
         self.blur_widget.setGeometry(0, 0, *conf.c["window"]["geometry"][2:])
-        self.blur_widget.setStyleSheet("border-radius: {}px;\
+        self.blur_widget.setStyleSheet(
+            "border-radius: {}px;\
                                        border: 0px solid white;\
-                                       background-color: rgba(0, 0, 0, 0.5);".format(conf.c["window"]["geometry"][2]/6))
-        #self.blur_widget.
+                                       background-color: rgba(0, 0, 0, 0.5);".format(
+                conf.c["window"]["geometry"][2] / 6
+            )
+        )
+        # self.blur_widget.
         self.blur_filter = QGraphicsBlurEffect()
         self.blur_filter.setBlurRadius(15)
-        os.system("xprop -f _KDE_NET_WM_BLUR_BEHIND_REGION 32c -set _KDE_NET_WM_BLUR_BEHIND_REGION 0 -id " + str(int(self.winId())))
-        #self.blur_widget.setGraphicsEffect(self.blur_filter)
+        os.system(
+            "xprop -f _KDE_NET_WM_BLUR_BEHIND_REGION 32c -set _KDE_NET_WM_BLUR_BEHIND_REGION 0 -id "
+            + str(int(self.winId()))
+        )
+        # self.blur_widget.setGraphicsEffect(self.blur_filter)
         self.blur_widget.show()
 
     def paintEvent(self, event):
@@ -161,8 +179,13 @@ class RootWindow(QMainWindow):
             mod = importlib.import_module(mod_name)
 
             try:
-                cls = mod.SConn(os.path.join(conf.launch_config["config_dir"],
-                                             conf.c["canvas"]["serialModules"][i]["config"]), self.rc.ae.callAction)
+                cls = mod.SConn(
+                    os.path.join(
+                        conf.launch_config["config_dir"],
+                        conf.c["canvas"]["serialModules"][i]["config"],
+                    ),
+                    self.rc.ae.callAction,
+                )
                 cls.start()
                 self.serialModules[mod_name] = cls
                 self.serialModulesNames.append(mod_name)
@@ -170,13 +193,15 @@ class RootWindow(QMainWindow):
                 self.logger.error("Failed to load " + mod_name + ": ", e)
 
     def loadClasses(self):
-        self.rc = RootCanvas(conf.c_canvas, conf.launch_config["config_dir"], self.update)
+        self.rc = RootCanvas(
+            conf.c_canvas, conf.launch_config["config_dir"], self.update
+        )
 
     def draw(self):
         self.rc.draw(self.qp)
 
 
-def main(): 
+def main():
     root = RootWindow()
     sys.exit(root.app.exec_())
 

@@ -1,10 +1,11 @@
-from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 
 class ConfigManager(QObject):
     """
     Global class that manages all config files. This module contains an instance of this class, acting as a singleton
     """
+
     save = pyqtSignal()
 
     def __init__(self):
@@ -14,10 +15,10 @@ class ConfigManager(QObject):
         """
         Singleton implementation
         """
-        if not hasattr(cls, 'instance'):
+        if not hasattr(cls, "instance"):
             cls.instance = super(ConfigManager, cls).__new__(cls)
         return cls.instance
-    
+
     @pyqtSlot()
     def saveConfig(self):
         """

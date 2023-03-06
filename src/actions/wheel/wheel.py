@@ -1,5 +1,6 @@
 from actions.wheel.base import BaseWheelAction
 
+
 class WheelAction(BaseWheelAction):
     def __init__(self):
         self.type = "wheel"

@@ -1,9 +1,19 @@
-from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtGui import QPixmap, QIcon, QColor
-from PyQt5.QtWidgets import QSpinBox, QLineEdit, QComboBox, QCheckBox, QDoubleSpinBox, QPushButton
-from .base import BaseHandler
 import logging
+
+from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtGui import QColor, QIcon, QPixmap
+from PyQt5.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QLineEdit,
+    QPushButton,
+    QSpinBox,
+)
 from vcolorpicker import getColor, rgb2hex, useAlpha
+
+from .base import BaseHandler
+
 
 class IntHandler(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
@@ -63,7 +73,7 @@ class FloatHandler(BaseHandler):
             self.logger.warning("Could not get value for " + elem["name"])
 
         wid.valueChanged.connect(self.setFloat)
-        
+
         return wid
 
     @pyqtSlot(float)
@@ -169,6 +179,7 @@ class ColorHandler(BaseHandler):
         self.value_setter(value=value, module=module, prop=prop)
         return True
 
+
 class BoolHandler(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
         super(BoolHandler, self).__init__(value_getter, value_setter, parent_obj)
@@ -176,7 +187,7 @@ class BoolHandler(BaseHandler):
 
     def initElem(self, elem):
         wid = QCheckBox()
-        
+
         ok, value = self.value_getter(elem["module"], elem["prop"])
         if ok:
             wid.setChecked(value)
@@ -186,7 +197,7 @@ class BoolHandler(BaseHandler):
         wid.clicked.connect(self.setBool)
 
         return wid
-    
+
     @pyqtSlot(bool)
     def setBool(self, value):
         caller = self.sender()
@@ -207,9 +218,9 @@ class ComboHandler(BaseHandler):
 
     def initElem(self, elem):
         wid = QComboBox()
-        
+
         wid.insertItems(0, elem["options"])
-        
+
         ok, value = self.value_getter(elem["module"], elem["prop"])
         if ok:
             wid.setCurrentText(value)
@@ -233,6 +244,11 @@ class ComboHandler(BaseHandler):
         return True
 
 
-handlers = {"int": IntHandler, "float": FloatHandler, "string": StringHandler, "color": ColorHandler, "bool": BoolHandler, "combo": ComboHandler}
-
-
+handlers = {
+    "int": IntHandler,
+    "float": FloatHandler,
+    "string": StringHandler,
+    "color": ColorHandler,
+    "bool": BoolHandler,
+    "combo": ComboHandler,
+}

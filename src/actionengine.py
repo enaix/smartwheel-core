@@ -1,13 +1,16 @@
-from PyQt5.QtCore import *
-import config
-import os
 import importlib
-import weakref
 import logging
+import os
+import weakref
+
+from PyQt5.QtCore import *
+
+import config
 
 
 class ActionEngine(QObject):
     """Modules and wheel interactions interface"""
+
     callAction = pyqtSignal(tuple, name="action_call")
 
     def __init__(self, modules, config_file):
@@ -45,7 +48,9 @@ class ActionEngine(QObject):
             Filename
 
         """
-        self.conf = config.Config(config_file, self.logger, varsWhitelist=["commandBind"])
+        self.conf = config.Config(
+            config_file, self.logger, varsWhitelist=["commandBind"]
+        )
         self.conf.loadConfig()
 
     def importActions(self):
@@ -53,9 +58,11 @@ class ActionEngine(QObject):
         Import actions from `actions` folder
         """
         for mod in os.listdir("actions"):
-            if mod == "__init__.py" or mod[-3:] != '.py' or mod == "baseaction.py":
+            if mod == "__init__.py" or mod[-3:] != ".py" or mod == "baseaction.py":
                 continue
-            self.actions[mod[:-3]] = importlib.import_module("actions." + mod[:-3]).Action()
+            self.actions[mod[:-3]] = importlib.import_module(
+                "actions." + mod[:-3]
+            ).Action()
 
     def importWheelActions(self):
         """
@@ -63,9 +70,11 @@ class ActionEngine(QObject):
         """
         self.wheel_actions = {}
         for mod in os.listdir(os.path.join("actions", "wheel")):
-            if mod == "__init__.py" or mod[-3:] != '.py' or mod == "base.py":
+            if mod == "__init__.py" or mod[-3:] != ".py" or mod == "base.py":
                 continue
-            mod_class = importlib.import_module("actions.wheel." + mod[:-3]).WheelAction()
+            mod_class = importlib.import_module(
+                "actions.wheel." + mod[:-3]
+            ).WheelAction()
             self.wheel_actions[mod_class.type] = mod_class
 
     def getModule(self, i):
@@ -94,7 +103,9 @@ class ActionEngine(QObject):
         self.current_module = self.current_module_getter()
         if self.getModule(self.current_module) == None:
             return
-        context = self.modules[self.current_module]["class"].conf["actions"].get(call, None)
+        context = (
+            self.modules[self.current_module]["class"].conf["actions"].get(call, None)
+        )
         if context is None:
             return
         for i in context:
@@ -108,7 +119,7 @@ class ActionEngine(QObject):
         """
         Find wheel action
         a
-           TODO understand this 
+           TODO understand this
         """
         for i in self.conf["commandActions"]:
             if i["type"] == a["mode"] and i["name"] == a["action"]:
@@ -123,13 +134,12 @@ class ActionEngine(QObject):
             return "module"
         return "wheel"
 
-
     @pyqtSlot(tuple)
     def processCall(self, p_call):
         """
         Execute action by call (slot function)
         This is the main interface of ActionEngine, check serial.py for example
-        
+
         Parameters
         ----------
         p_call
@@ -160,7 +170,9 @@ class ActionEngine(QObject):
                             elif a.get("checkState", True) and a["mode"] != cur_state:
                                 continue
                             for _ in range(1 + a.get("repeat", 0)):
-                                self.wheel_actions[cmd["type"]].run(cmd["name"], self.canvas, weakref.ref(self))
+                                self.wheel_actions[cmd["type"]].run(
+                                    cmd["name"], self.canvas, weakref.ref(self)
+                                )
                 self.canvas().update_func()
         else:
             self.logger.warning("actionengine could not find call with this name")

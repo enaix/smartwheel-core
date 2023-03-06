@@ -1,29 +1,33 @@
 import importlib
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-import time
-import os
-from actionengine import ActionEngine
-import config
-import weakref
-import time
-import queue
 import logging
+import os
+import queue
+import time
+import weakref
+
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
+import config
+from actionengine import ActionEngine
 from tools import merge_dicts
 
 
 class MList(list):
     """Overloaded list class to store modules. Used to work with weakref"""
+
     pass
 
 
 class MDict(dict):
     """Overloaded dict class that represents a module. Uses weakref"""
+
     pass
 
 
 class RootCanvas:
     """Main canvas class, manages wheel modules"""
+
     def __init__(self, WConfig, config_dir, update_func):
         self.common_config = None
         self.config_dir = config_dir
@@ -48,7 +52,9 @@ class RootCanvas:
         self.exec_times = queue.Queue()
 
     def loadCommonConf(self):
-        self.common_config = config.Config(os.path.join(self.config_dir, self.conf["commonConfig"]), self.logger)
+        self.common_config = config.Config(
+            os.path.join(self.config_dir, self.conf["commonConfig"]), self.logger
+        )
         if not self.common_config.loadConfig():
             self.logger.error("Could not find common config file. Exiting..")
             os.exit(1)
@@ -58,7 +64,9 @@ class RootCanvas:
         Read module classes from `modules` config
         """
         for i in self.conf["modulesLoad"]:
-            self.conf["modules"][i]["class"] = self.importModule(self.conf["modules"][i])
+            self.conf["modules"][i]["class"] = self.importModule(
+                self.conf["modules"][i]
+            )
 
     def importModule(self, meta):
         """
@@ -70,8 +78,12 @@ class RootCanvas:
             Configuration of the module
         """
         mod = importlib.import_module(meta["name"])
-        ui = mod.UIElem(os.path.join(self.config_dir, meta["config"]), self.conf,
-                        self.wheel_modules, self.update_func)
+        ui = mod.UIElem(
+            os.path.join(self.config_dir, meta["config"]),
+            self.conf,
+            self.wheel_modules,
+            self.update_func,
+        )
         return ui
 
     def loadSections(self, modules_list, parent_mod=None):
@@ -87,7 +99,9 @@ class RootCanvas:
         """
         mods = MList()
         for i in modules_list:
-            mod_dict = next((m for m in self.conf["modules"] if m["name"] == i["name"]), None)
+            mod_dict = next(
+                (m for m in self.conf["modules"] if m["name"] == i["name"]), None
+            )
             if i["name"] == "ui.folder":
                 mod = MDict(i)
                 submod = self.loadSections(mod["modules"], mods)
@@ -153,7 +167,10 @@ class RootCanvas:
             else:
                 cnf = None
             mod_class = importlib.import_module(mod["name"]).Internal(self.conf, cnf)
-            self.conf["internal"][mod_class.name] = {"class": mod_class, "signals": mod_class.getSignals()}
+            self.conf["internal"][mod_class.name] = {
+                "class": mod_class,
+                "signals": mod_class.getSignals(),
+            }
 
     def startInternalModules(self):
         for i in self.conf["internal"]:
@@ -172,7 +189,10 @@ class RootCanvas:
         return self.cur_wheel_modules[i]
 
     def loadActionEngine(self):
-        self.ae = ActionEngine(self.wheel_modules, os.path.join(self.config_dir, self.conf["actionEngineConfig"]))
+        self.ae = ActionEngine(
+            self.wheel_modules,
+            os.path.join(self.config_dir, self.conf["actionEngineConfig"]),
+        )
         self.ae.current_module_list_getter = self.getCurModList
         self.ae.current_module_getter = self.conf["modules"][0]["class"].getCurModule
         self.ae.canvas = weakref.ref(self)
@@ -196,13 +216,17 @@ class RootCanvas:
         if self.exec_window < self.conf["fpsFramesSmooth"]:
             self.exec_window += 1
             self.exec_times.put(new_time)
-            self.exec_time = ((self.exec_window - 1) * self.exec_time + new_time) / self.exec_window
+            self.exec_time = (
+                (self.exec_window - 1) * self.exec_time + new_time
+            ) / self.exec_window
             return
 
         last_time = self.exec_times.get()
         self.exec_times.put(new_time)
 
-        self.exec_time = (self.exec_window * self.exec_time - last_time + new_time) / self.exec_window
+        self.exec_time = (
+            self.exec_window * self.exec_time - last_time + new_time
+        ) / self.exec_window
 
     def draw(self, qp):
         """
@@ -218,28 +242,31 @@ class RootCanvas:
         self.conf["modules"][0]["class"].draw(qp)  # render wheel
         m = self.getWheelModule()
         if self.conf["modules"][0]["class"].is_anim_running or (
-                m is not None and hasattr(m["class"], "is_anim_running") and m["class"].is_anim_running):
-            
+            m is not None
+            and hasattr(m["class"], "is_anim_running")
+            and m["class"].is_anim_running
+        ):
             if self.conf["stabilizeFPS"]:
                 sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)
             else:
                 sleep_time = 1 / self.conf["fps"]
 
             time.sleep(sleep_time)
-            
+
             start_time = time.time()
 
             self.update_func()  # TODO add another update event
 
-            e_time = (time.time() - start_time) * 1000 
+            e_time = (time.time() - start_time) * 1000
 
             if self.conf["stabilizeFPS"]:
                 if self.conf["logFPS"]:
-                    self.logger.info("FPS(AVG): " + str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1)))
+                    self.logger.info(
+                        "FPS(AVG): "
+                        + str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1))
+                    )
                 self.calculateSmoothFPS(e_time)
 
             else:
                 if self.conf["logFPS"]:
                     self.logger.info("FPS: " + str(round(1 / (sleep_time + e_time), 1)))
-
-
