@@ -3,3 +3,4 @@ pynput
 pyqt5
 numpydoc
 pyqtdarktheme
+vcolorpicker

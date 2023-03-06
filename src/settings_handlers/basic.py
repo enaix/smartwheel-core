@@ -1,7 +1,9 @@
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QSpinBox, QLineEdit, QComboBox, QCheckBox, QDoubleSpinBox
+from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtGui import QPixmap, QIcon, QColor
+from PyQt5.QtWidgets import QSpinBox, QLineEdit, QComboBox, QCheckBox, QDoubleSpinBox, QPushButton
 from .base import BaseHandler
 import logging
+from vcolorpicker import getColor, rgb2hex, useAlpha
 
 class IntHandler(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
@@ -108,6 +110,65 @@ class StringHandler(BaseHandler):
         return True
 
 
+class ColorHandler(BaseHandler):
+    def __init__(self, value_getter, value_setter, parent_obj=None):
+        super(ColorHandler, self).__init__(value_getter, value_setter, parent_obj)
+        self.logger = logging.getLogger(__name__)
+
+    def setIcon(self, wid, color):
+        pix = QPixmap(100, 100)
+        pix.fill(color)
+        icon = QIcon(pix)
+        wid.setIcon(icon)
+
+    def initElem(self, elem):
+        wid = QPushButton()
+
+        wid.setStyleSheet("QPushButton { text-align: left; }")
+
+        wid.setProperty("module", elem["module"])
+        wid.setProperty("prop", elem["prop"])
+
+        ok, value = self.value_getter(elem["module"], elem["prop"])
+        if ok:
+            wid.setText(value)
+        else:
+            self.logger.warning("Could not get value for " + elem["name"])
+
+        self.setIcon(wid, QColor(value))
+
+        wid.clicked.connect(self.setColor)
+
+        return wid
+
+    @pyqtSlot()
+    def setColor(self):
+        caller = self.sender()
+        color = QColor(caller.text()).getRgb()
+        if len(color) == 4:
+            useAlpha(True)
+
+        new_color = "#" + rgb2hex(getColor(color))
+        if not color == new_color:
+            self.value_setter(caller, new_color)
+            self.setIcon(caller, QColor(new_color))
+            caller.setText(new_color)
+
+    def fetchValue(self, wid):
+        return wid.text()
+
+    def updateValue(self, wid, value):
+        module = wid.property("module")
+        prop = wid.property("prop")
+
+        if module is None or prop is None:
+            self.logger.warning("Could not get color picker properties")
+            return False
+
+        wid.setText(value)
+        self.value_setter(value=value, module=module, prop=prop)
+        return True
+
 class BoolHandler(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
         super(BoolHandler, self).__init__(value_getter, value_setter, parent_obj)
@@ -172,6 +233,6 @@ class ComboHandler(BaseHandler):
         return True
 
 
-handlers = {"int": IntHandler, "float": FloatHandler, "string": StringHandler, "bool": BoolHandler, "combo": ComboHandler}
+handlers = {"int": IntHandler, "float": FloatHandler, "string": StringHandler, "color": ColorHandler, "bool": BoolHandler, "combo": ComboHandler}
 
 

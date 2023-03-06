@@ -16,17 +16,17 @@
       {"name": "Draw rectangles", "type": "bool", "module": "ui.wheel", "prop": "drawOverlayRects", "preset": true},
       {"name": "Circles opacity", "type": "float", "min": 0.0, "max": 1.0, "step": 0.1, "module": "ui.wheel", "prop": "overlayCirclesOpacity", "preset": true},
       {"name": "Circles width", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "overlayCirclesWidth", "preset": true},
-      {"name": "Circles color", "type": "string", "module": "ui.wheel", "prop": "overlayCirclesColor", "preset": true},
+      {"name": "Circles color", "type": "color", "module": "ui.wheel", "prop": "overlayCirclesColor", "preset": true},
       {"name": "Rectangles opacity", "type": "float", "min": 0.0, "max": 1.0, "step": 0.1, "module": "ui.wheel", "prop": "overlayRectsOpacity", "preset": true},
       {"name": "Rectangles width", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "overlayRectsWidth", "preset": true},
-      {"name": "Rectangles color", "type": "string", "module": "ui.wheel", "prop": "overlayRectsColor", "preset": true}
+      {"name": "Rectangles color", "type": "color", "module": "ui.wheel", "prop": "overlayRectsColor", "preset": true}
     ]},
     {"name": "Color palette", "options": [
-      {"name": "Background wheel color", "type": "string", "module": "common", "prop": "bgWheelColor", "preset": true},
-      {"name": "Wheel texture color", "type": "string", "module": "common", "prop": "wheelTextureColor", "preset": true},
-      {"name": "Background sections color", "type": "string", "module": "common", "prop": "selectionWheelBG", "preset": true},
-      {"name": "Foreground sections color", "type": "string", "module": "common", "prop": "selectionWheelFG", "preset": true},
-      {"name": "Pointer color", "type": "string", "module": "ui.wheel", "prop": "pointerColor", "preset": true}
+      {"name": "Background wheel color", "type": "color", "module": "common", "prop": "bgWheelColor", "preset": true},
+      {"name": "Wheel texture color", "type": "color", "module": "common", "prop": "wheelTextureColor", "preset": true},
+      {"name": "Background sections color", "type": "color", "module": "common", "prop": "selectionWheelBG", "preset": true},
+      {"name": "Foreground sections color", "type": "color", "module": "common", "prop": "selectionWheelFG", "preset": true},
+      {"name": "Pointer color", "type": "color", "module": "ui.wheel", "prop": "pointerColor", "preset": true}
     ]},
     {"name": "Animations", "options": [
       {"name": "Scroll animation duration", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "scrollAnimationDuration"},
