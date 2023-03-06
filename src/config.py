@@ -2,15 +2,17 @@ from PyQt5.QtCore import QObject, pyqtSlot
 import json
 import os
 import common
+import weakref
 
 
 class Config(QObject):
     """
     Universal configuration class that supports loading and saving json config files.
     Supports direct access by key (ConfigObject["key"]) and other dict methods.
+    It acts like collections.ChainMap: all source dicts are stored while merging (update method), which is used in updating settings on-the-fly.
     Note: assertion does not work directly! Config = some_other_dict cannot be overloaded, use Config.c = some_other_dict instead.
     """
-    def __init__(self, config_file, logger=None, ignoreNewVars=True, varsWhitelist=[], varsBlacklist=[]):
+    def __init__(self, config_file=None, config_dict=None, logger=None, ignoreNewVars=True, varsWhitelist=[], varsBlacklist=[]):
         """
         Initialize Config object
         Note: the config file needs to be loaded manually by calling loadConfig()
@@ -18,7 +20,9 @@ class Config(QObject):
         Parameters
         ==========
         config_file
-            Path to the configuration file
+            (Optional) Path to the configuration file
+        config_dict
+            (Optional) Dict containing initial values. Overwritten if config_file is specified.
         logger
             logger.Logger instance (recommended, will print to stdout if not given)
         ignoreNewVars
@@ -31,13 +35,47 @@ class Config(QObject):
         super(Config, self).__init__()
         self.config_file = config_file
         #self.c = self.loadConfig()
-        self.c = None
+        self.c = config_dict
         self.logger = logger
         self.ignoreNew = ignoreNewVars
         self.whitelist = varsWhitelist
         self.blacklist = varsBlacklist
+        self.links = [] # Storing source dicts to allow updating the variables
 
         common.config_manager.save.connect(self.saveConfig)
+
+    def __fetchkey(self, key):
+        """
+        Get the updated value from the linked dicts. Do not use directly
+
+        Parameters
+        ==========
+        key
+            Dictionary key
+        """
+        if len(self.links) == 0:
+            #print("Get [local]: " + key)
+            return self.c[key]
+
+        for i in range(len(self.links)):
+            if self.links[i].get(key) is not None:
+                #print("Get [link -> " + str(i) + "] " + key + ": " + str(self.links[i][key]))
+                return self.links[i][key]
+        #print("Get [no hit] " + key)
+        return self.c[key]
+
+    def update(self, other):
+        """
+        Call dict update method while saving the linked dict
+
+        Parameters
+        ==========
+        other
+            Other dict to merge
+        """
+        self.c.update(other)
+
+        self.links.append(other)
 
     def __getitem__(self, key):
         """
@@ -48,7 +86,7 @@ class Config(QObject):
         key
             The dictionary key
         """
-        return self.c[key]
+        return self.__fetchkey(key)
 
     def __setitem__(self, key, newvalue):
         """
@@ -81,8 +119,25 @@ class Config(QObject):
     def values(self):
         return self.c.values()
 
-    def get(self, *args, **kwargs):
-        return self.c.get(*args, **kwargs)
+    def get(self, key, default=None):
+        """
+        Re-implemented dict.get method that respects the linked source dicts
+
+        Parameters
+        ==========
+        key
+            Dict key
+        default
+            Value to return if the key is not found
+        """
+        if len(self.links) == 0:
+            return self.c.get(key, default)
+
+        for i in range(len(self.links)):
+            if self.links[i].get(key) is not None:
+                return self.links[i].get(key)
+
+        return self.c.get(key, default)
 
     def items(self):
         """
@@ -99,6 +154,11 @@ class Config(QObject):
         immediate
             If false (default), the function applies the config and does not return it's copy. True - it returns (bool, dict) without applying it
         """
+        if self.config_file is None:
+            if immediate:
+                return True, self.c
+            return True
+
         try:
             with open(self.config_file, "r") as f:
                 if immediate:

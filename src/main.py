@@ -31,14 +31,14 @@ class WConfig(config.Config):
         self.processConfig()
 
     def processConfig(self):
-        c_canvas = self.c["canvas"]
+        self.c_canvas = config.Config(config_dict=self.c["canvas"])
         c_geometry = self.c["window"]["geometry"]
-        c_canvas["width"] = c_geometry[2] - self.c["window"]["padding"] * 2
-        c_canvas["height"] = c_geometry[3] - self.c["window"]["padding"] * 2
-        c_canvas["cx"] = c_geometry[2] // 2
-        c_canvas["cy"] = c_geometry[3] // 2
-        c_canvas["corner_x"] = self.c["window"]["padding"]
-        c_canvas["corner_y"] = self.c["window"]["padding"]
+        self.c_canvas["width"] = c_geometry[2] - self.c["window"]["padding"] * 2
+        self.c_canvas["height"] = c_geometry[3] - self.c["window"]["padding"] * 2
+        self.c_canvas["cx"] = c_geometry[2] // 2
+        self.c_canvas["cy"] = c_geometry[3] // 2
+        self.c_canvas["corner_x"] = self.c["window"]["padding"]
+        self.c_canvas["corner_y"] = self.c["window"]["padding"]
 
 
 class RootWindow(QMainWindow):
@@ -170,7 +170,7 @@ class RootWindow(QMainWindow):
                 self.logger.error("Failed to load " + mod_name + ": ", e)
 
     def loadClasses(self):
-        self.rc = RootCanvas(conf.c["canvas"], conf.launch_config["config_dir"], self.update)
+        self.rc = RootCanvas(conf.c_canvas, conf.launch_config["config_dir"], self.update)
 
     def draw(self):
         self.rc.draw(self.qp)

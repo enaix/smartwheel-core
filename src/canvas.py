@@ -70,7 +70,7 @@ class RootCanvas:
             Configuration of the module
         """
         mod = importlib.import_module(meta["name"])
-        ui = mod.UIElem(os.path.join(self.config_dir, meta["config"]), self.conf,#{**self.conf, **self.common_config},
+        ui = mod.UIElem(os.path.join(self.config_dir, meta["config"]), self.conf,
                         self.wheel_modules, self.update_func)
         return ui
 
@@ -114,13 +114,11 @@ class RootCanvas:
         """
         Add some properties to the common config and merge it with self.conf
         """
-        conf = {}
         if self.common_config["isWheelWidthFixed"]:
-            conf["wheelWidth"] = self.common_config["fixedWheelWidth"]
+            self.common_config["wheelWidth"] = self.common_config["fixedWheelWidth"]
         else:
-            conf["wheelWidth"] = self.conf["width"] // 4
-        conf["configDir"] = self.config_dir
-        merge_dicts(self.common_config, conf)#{**self.common_config, **conf}
+            self.common_config["wheelWidth"] = self.conf["width"] // 4
+        self.common_config["configDir"] = self.config_dir
 
         # Merging configs in order to make settings editable on-the-fly
         merge_dicts(self.conf, self.common_config)
@@ -128,7 +126,7 @@ class RootCanvas:
     def loadWheelModule(self, module):
         mod = importlib.import_module(module["name"])
         if module.get("config", None) is not None:
-            ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)#{**self.conf, **self.common_config})
+            ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)
         else:
             ui = mod.UIElem("", module)
         module["class"] = ui
@@ -154,7 +152,7 @@ class RootCanvas:
                 cnf = os.path.join(self.config_dir, mod["config"])
             else:
                 cnf = None
-            mod_class = importlib.import_module(mod["name"]).Internal(self.conf, cnf)#{**self.conf, **self.common_config}, cnf)
+            mod_class = importlib.import_module(mod["name"]).Internal(self.conf, cnf)
             self.conf["internal"][mod_class.name] = {"class": mod_class, "signals": mod_class.getSignals()}
 
     def startInternalModules(self):

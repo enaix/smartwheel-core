@@ -5,6 +5,7 @@ from ui.base import BaseUIElem
 import os
 import subprocess
 import time
+from tools import merge_dicts
 
 
 class UIElem(BaseUIElem):
@@ -12,7 +13,7 @@ class UIElem(BaseUIElem):
         super().__init__()
         self.config_file = config_file
         self.loadConfig()
-        self.conf.c = {**self.conf, **WConfig}
+        merge_dicts(self.conf, WConfig)
         self.icon_path = self.conf["icon_path"]
         self.meta_old = ""
         self.track_meta_old = []

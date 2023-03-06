@@ -97,6 +97,7 @@ class UIElem(BaseUIElem):
         self.cur_section = 0
         self.loadConfig()
         merge_dicts(self.conf, WConfig)
+        print(self.conf.links[0].links)
         self.initSections()
         self.initAnimation()
         self.initShadowAnimation()
