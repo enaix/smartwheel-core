@@ -243,10 +243,25 @@ class SettingsWindow(QWidget):
 
         self.main_class().update()
 
-    def savePreset(self, index, name, filepath, title):
-        preset = {"name": name, "title": title}
+    def savePreset(self, index, name, title, filepath):
+        """
+        Save the specified preset
 
-        for elem, handler in self.preset_tabs:
+        Parameters
+        ==========
+        index
+            Settings tab index
+        name
+            Preset internal name
+        title
+            Preset title
+        filepath
+            Path to the preset json file (may not exist)
+        """
+        preset = {"name": name, "title": title, "props": {}}
+
+        for key, _ in self.preset_tabs[index].items():
+            elem, handler = self.preset_tabs[index][key]
             prop = elem().property("preset_property")
             value = handler.fetchValue(elem())
             
@@ -255,17 +270,27 @@ class SettingsWindow(QWidget):
 
             preset["props"][prop] = value
 
+        self.conf["presets"][str(index)][name] = preset
+
         with open(filepath, 'w') as f:
             json.dump(preset, f, indent=4)
 
         return True, preset
 
-    def loadPreset(self, index, filepath):
-        #with open(filepath, 'r') as f:
-        #    preset = json.load(f)
-        preset = self.conf["presets"][str(index)]
+    def loadPreset(self, index, name):
+        """
+        Load the preset from the handler
 
-        for key, value in preset["props"]:
+        Parameters
+        ==========
+        index
+            Settings tab index
+        name
+            Preset internal name
+        """
+        preset = self.conf["presets"][str(index)][name]
+
+        for key, value in preset["props"].items():
             p_elem = self.preset_tabs[index].get(key)
             if p_elem is None:
                 self.logger.warning("Could not find " + key + " widget from preset " + preset["title"])

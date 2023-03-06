@@ -35,6 +35,7 @@ class IntHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setValue(value)
+        return True
 
 
 class FloatHandler(BaseHandler):
@@ -73,6 +74,7 @@ class FloatHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setValue(value)
+        return True
 
 
 class StringHandler(BaseHandler):
@@ -89,7 +91,7 @@ class StringHandler(BaseHandler):
         else:
             self.logger.warning("Could not get value for " + elem["name"])
 
-        wid.textEdited.connect(self.setStr)
+        wid.textChanged.connect(self.setStr)
 
         return wid
 
@@ -103,6 +105,7 @@ class StringHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setText(value)
+        return True
 
 
 class BoolHandler(BaseHandler):
@@ -133,6 +136,7 @@ class BoolHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setChecked(value)
+        return True
 
 
 class ComboHandler(BaseHandler):

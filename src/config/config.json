@@ -87,5 +87,8 @@
         "fpsFramesSmooth": 10,
         "logFPS": false,
         "logging": "INFO"
+    },
+    "presets": {
+    	"appearance": "Custom"
     }
 }

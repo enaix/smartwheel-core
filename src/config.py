@@ -57,14 +57,11 @@ class Config(QObject):
             Dictionary key
         """
         if len(self.links) == 0:
-            #print("Get [local]: " + key)
             return self.c[key]
 
         for i in range(len(self.links)):
             if self.links[i].get(key) is not None:
-                #print("Get [link -> " + str(i) + "] " + key + ": " + str(self.links[i][key]))
                 return self.links[i][key]
-        #print("Get [no hit] " + key)
         return self.c[key]
 
     def update(self, other):

@@ -14,3 +14,4 @@ Modules navigation
    ui
    settings
    settings_handlers
+   tools

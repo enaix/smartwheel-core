@@ -2,7 +2,7 @@
   "enable_presets": true,
   "items": [
     {"name": "Theming", "options": [
-      {"name": "Application theme", "type": "preset", "folder": "appearance"}
+      {"name": "Application theme", "type": "preset", "folder": "appearance", "module": "main", "prop": "presets.appearance"}
     ]},
     {"name": "Wheel rendering", "options": [
       {"name": "Set fixed wheel size", "type": "bool", "module": "common", "prop": "isWheelWidthFixed"},
