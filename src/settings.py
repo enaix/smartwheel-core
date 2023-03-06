@@ -35,6 +35,8 @@ class SettingsWindow(QWidget):
         self.loadConfig(config_file)
         self.setConfigHook(main_class, conf_class)
         self.loadSettingsHandlers(self.conf["settings_handlers_dir"])
+        self.preset_tabs = {}
+        self.conf["presets"] = {}
 
         self.initLayout()
 
@@ -241,6 +243,41 @@ class SettingsWindow(QWidget):
 
         self.main_class().update()
 
+    def savePreset(self, index, name, filepath, title):
+        preset = {"name": name, "title": title}
+
+        for elem, handler in self.preset_tabs:
+            prop = elem().property("preset_property")
+            value = handler.fetchValue(elem())
+            
+            if value is None:
+                continue
+
+            preset["props"][prop] = value
+
+        with open(filepath, 'w') as f:
+            json.dump(preset, f, indent=4)
+
+        return True, preset
+
+    def loadPreset(self, index, filepath):
+        #with open(filepath, 'r') as f:
+        #    preset = json.load(f)
+        preset = self.conf["presets"][str(index)]
+
+        for key, value in preset["props"]:
+            p_elem = self.preset_tabs[index].get(key)
+            if p_elem is None:
+                self.logger.warning("Could not find " + key + " widget from preset " + preset["title"])
+                continue
+
+            elem, handler = p_elem
+
+            ok = handler.updateValue(elem(), value)
+            if not ok:
+                self.logger.warning("Could not set " + key + " widget value from preset " + preset["title"])
+            
+
     def initTab(self, index):
         """
         Parse registry and generate elements
@@ -251,6 +288,10 @@ class SettingsWindow(QWidget):
             Tab index
         """
         tab = self.conf["tabs"][index]
+
+        if tab["conf"].get("enable_presets", False):
+            self.preset_tabs[index] = {}
+
         scroll = QScrollArea()
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -270,18 +311,28 @@ class SettingsWindow(QWidget):
 
                 wid = None
 
+                elem["tab_index"] = index # storing the index of the current tab
+
                 if self.handlers.get(elem["type"]) is None:
                     self.logger.error("Could not find the handler for type " + elem["type"])
                 else:
                     wid = self.handlers[elem["type"]].initElem(elem)
 
                 if wid is not None:
+                    prop_preset = ""
                     if elem.get("module") is not None:
                         wid.setProperty("widmodule", elem["module"])
+                        prop_preset += elem["module"]
                     if elem.get("prop") is not None:
                         wid.setProperty("prop", elem["prop"])
+                        prop_preset += "." + elem["prop"]
                     if elem.get("index") is not None:
                         wid.setProperty("index", elem["index"])
+                        prop_preset += "." + str(elem["index"])
+                    
+                    if tab["conf"].get("enable_presets", False) and elem.get("preset", False) and not prop_preset == "":
+                        wid.setProperty("preset_property", prop_preset)
+                        self.preset_tabs[index][prop_preset] = (weakref.ref(wid), self.handlers[elem["type"]])
 
                     widWrapper = QHBoxLayout()
 

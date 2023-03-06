@@ -8,8 +8,11 @@ import weakref
 class Config(QObject):
     """
     Universal configuration class that supports loading and saving json config files.
+    
     Supports direct access by key (ConfigObject["key"]) and other dict methods.
+
     It acts like collections.ChainMap: all source dicts are stored while merging (update method), which is used in updating settings on-the-fly.
+    
     Note: assertion does not work directly! Config = some_other_dict cannot be overloaded, use Config.c = some_other_dict instead.
     """
     def __init__(self, config_file=None, config_dict=None, logger=None, ignoreNewVars=True, varsWhitelist=[], varsBlacklist=[]):

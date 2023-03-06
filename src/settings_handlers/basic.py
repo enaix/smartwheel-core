@@ -30,6 +30,12 @@ class IntHandler(BaseHandler):
         caller = self.sender()
         self.value_setter(caller, value)
 
+    def fetchValue(self, wid):
+        return wid.value()
+
+    def updateValue(self, wid, value):
+        wid.setValue(value)
+
 
 class FloatHandler(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
@@ -62,6 +68,12 @@ class FloatHandler(BaseHandler):
         caller = self.sender()
         self.value_setter(caller, value)
 
+    def fetchValue(self, wid):
+        return wid.value()
+
+    def updateValue(self, wid, value):
+        wid.setValue(value)
+
 
 class StringHandler(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
@@ -86,6 +98,12 @@ class StringHandler(BaseHandler):
         caller = self.sender()
         self.value_setter(caller, value)
 
+    def fetchValue(self, wid):
+        return wid.text()
+
+    def updateValue(self, wid, value):
+        wid.setText(value)
+
 
 class BoolHandler(BaseHandler):
     def __init__(self, value_getter, value_setter, parent_obj=None):
@@ -109,6 +127,12 @@ class BoolHandler(BaseHandler):
     def setBool(self, value):
         caller = self.sender()
         self.value_setter(caller, value)
+
+    def fetchValue(self, wid):
+        return wid.isChecked()
+
+    def updateValue(self, wid, value):
+        wid.setChecked(value)
 
 
 class ComboHandler(BaseHandler):
@@ -135,6 +159,13 @@ class ComboHandler(BaseHandler):
     def setStr(self, value):
         caller = self.sender()
         self.value_setter(caller, value)
+
+    def fetchValue(self, wid):
+        return wid.currentText()
+
+    def updateValue(self, wid, value):
+        wid.setCurrentText(value)
+        return True
 
 
 handlers = {"int": IntHandler, "float": FloatHandler, "string": StringHandler, "bool": BoolHandler, "combo": ComboHandler}

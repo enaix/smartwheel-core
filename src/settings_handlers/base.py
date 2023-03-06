@@ -41,5 +41,28 @@ class BaseHandler(QObject):
         """
         pass
 
+    def fetchValue(self, wid):
+        """
+        (Presets) Get value of the widget, must return the value or None if not supported
+        
+        Parameters
+        ==========
+        wid
+            Widget to fetch
+        """
+        return None
+
+    def updateValue(self, wid, value):
+        """
+        (Presets) Set the value of the widget, must return True if ok, False if not supported
+
+        Parameters
+        ==========
+        wid
+            Widget to update
+        value
+            Value to set
+        """
+        return False
 
 handlers = {}
