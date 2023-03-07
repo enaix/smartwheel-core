@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QSpinBox,
 )
-from vcolorpicker import getColor, rgb2hex, useAlpha
+from swcolorpicker import getColor, rgb2hex, useAlpha
 
 from .base import BaseHandler
 
