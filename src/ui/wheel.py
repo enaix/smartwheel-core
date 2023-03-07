@@ -454,7 +454,6 @@ class UIElem(BaseUIElem):
                     self.conf["overlayCirclesWidth"],
                     self.conf["overlayCirclesWidth"],
                 )
-
         if self.conf["drawOverlayRects"]:
             self.qp.setPen(
                 QPen(
@@ -482,12 +481,12 @@ class UIElem(BaseUIElem):
         self.qp.setOpacity(1)
 
     def draw(self, qp, offset=None):
-        if self.anim.state() == 0:
+        if self.anim.state() == QAbstractAnimation.State.Stopped:
             self.is_scroll_anim_running = False
-        if self.shadow_anim.state() == 0:
+        if self.shadow_anim.state() == QAbstractAnimation.State.Stopped:
             self.global_shadow = False
             self.is_shadow_anim_running = False
-        if self.sections_anim.state() == 0:
+        if self.sections_anim.state() == QAbstractAnimation.State.Stopped:
             self.is_sections_anim_running = False
         self.is_anim_running = (
             self.is_scroll_anim_running

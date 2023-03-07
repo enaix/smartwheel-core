@@ -307,7 +307,7 @@ class UIElem(BaseUIElem):
             )
 
     def draw(self, qp, offset=None):
-        if self.width_anim.state() == 0:
+        if self.width_anim.state() == QAbstractAnimation.State.Stopped:
             self.is_anim_running = False
         self.drawBriWheel(qp, (self.conf["width"] * 3) // 4 + offset)
         self.drawSatWheel(qp, (self.conf["width"] * 3) // 4 + offset)
