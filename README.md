@@ -57,20 +57,29 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 - [ ] Examples (in progress)
 - [x] Initial encoders support (Linux)
 - [ ] Refactor api
+  - [X] Move to PyQt6
   - [ ] Add modules asyncio background processes
   - [ ] Finish folders support
+  - [ ] Add colorable icons
 - [ ] Settings menu (in progress)
   - [X] Basic stuff
   - [X] Custom handlers support (Almost)
   - [X] Saving
-  - [ ] Theme presets
+  - [X] Theme presets
+  - [X] Add color picker
   - [ ] Better overlays editor
   - [ ] Actions editor
   - [ ] Modules import (.zip)
-- [ ] Add fancy blur
-- [ ] Windows support (?)
+- [ ] Windows support
+  - [ ] (Platform) Replace AF_UNIX socket with network socket
+  - [ ] (Platform) Replace pynput with winapi
+- [ ] Add fancy blur (?)
 - [ ] Mac support {?)
 
+Theme presets
+Better overlays editor
+Actions editor
+Modules import (.zip)
 ## Features progress
 
 - [x] Base structure (Plugins manager)
