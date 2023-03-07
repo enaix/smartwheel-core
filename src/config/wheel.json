@@ -14,5 +14,6 @@
 	"drawOverlayRects": true,
 	"overlayRectsColor": "#404040",
 	"overlayRectsOpacity": 0.3,
-	"overlayRectsWidth": 20
+	"overlayRectsWidth": 20,
+	"backgroundStyle": "diagonal"
 }

@@ -18,10 +18,10 @@ class Section:
         self.end_angle = end_angle
         self.angle = (start_angle + end_angle) // 2
         self.delta = 0
-        self.init_angle = parent._angle
+        self.init_angle = parent()._angle
         self.is_selected = False
         self.module = module
-        self.parent = weakref.ref(parent)
+        self.parent = parent
         self.pixmap = None
         if self.module is not None:
             self.load_module()
@@ -113,8 +113,9 @@ class Section:
 
 
 class UIElem(BaseUIElem):
-    def __init__(self, config_file, WConfig, modules, force_update):
+    def __init__(self, config_file, WConfig, modules, force_update, parent=None):
         super().__init__()
+        self.parent = parent
         self.config_file = config_file
         self.modules = modules
         self.force_update = force_update
@@ -230,7 +231,7 @@ class UIElem(BaseUIElem):
                 + self.delta
                 + self.conf["selectionAngle"]
                 - self.delta // 4,
-                self,
+                weakref.ref(self),
                 self.getModule(i),
             )
             for i in range(self.conf["selectionWheelEntries"])
@@ -314,10 +315,16 @@ class UIElem(BaseUIElem):
         brush = QBrush(QColor("#" + opac + self.conf["bgWheelColor"][1:]))
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
-        brush = QBrush(
-            QColor("#" + opac + self.conf["wheelTextureColor"][1:]),
-            Qt.BrushStyle.BDiagPattern,
-        )
+
+        brush = self.parent().brushes.get(self.conf["backgroundStyle"])
+        if brush is None:
+            brush = QBrush(
+                QColor("#" + opac + self.conf["wheelTextureColor"][1:]),
+                Qt.BrushStyle.BDiagPattern,
+            )
+        else:
+            brush.setColor(QColor("#" + opac + self.conf["wheelTextureColor"][1:]))
+
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
 
@@ -416,9 +423,16 @@ class UIElem(BaseUIElem):
             circleWidth // 2,
             circleHeight // 2,
         )
-        brush = QBrush(
-            QColor(self.conf["wheelTextureColor"]), Qt.BrushStyle.BDiagPattern
-        )
+
+        brush = self.parent().brushes.get(self.conf["backgroundStyle"])
+        if brush is None:
+            brush = QBrush(
+                QColor(self.conf["wheelTextureColor"]), Qt.BrushStyle.BDiagPattern
+            )
+        else:
+            brush.setColor(QColor(self.conf["wheelTextureColor"]))
+
+        
         self.qp.setBrush(brush)
         self.qp.drawEllipse(
             QPoint(self.conf["cx"], self.conf["cy"]),

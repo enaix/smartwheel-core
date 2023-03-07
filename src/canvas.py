@@ -4,6 +4,7 @@ import os
 import queue
 import time
 import weakref
+import json
 
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
@@ -38,6 +39,7 @@ class RootCanvas:
         self.processCommonConfig()
         # TODO add try catch everywhere
         self.loadInternalModules()
+        self.loadBrushes()
         self.startInternalModules()
         self.wheel_modules = self.loadSections(self.conf["wheelModules"])
         self.cur_wheel_modules = self.wheel_modules
@@ -83,6 +85,7 @@ class RootCanvas:
             self.conf,
             self.wheel_modules,
             self.update_func,
+            weakref.ref(self)
         )
         return ui
 
@@ -123,6 +126,31 @@ class RootCanvas:
                 mod_class["class"].wrapper_pointer = weakref.ref(mod_class)
             mods.append(mod_class)
         return mods
+
+    def loadBrushes(self):
+        b_config = os.path.join(self.conf["brushes_dir"], "config.json")
+        if not os.path.exists(b_config):
+            self.logger.error("Missing " + b_config + " file")
+            os._exit(1)
+
+        with open(b_config, "r") as f:
+            self.brushes_conf = json.load(f)
+        
+        self.brushes = {}
+
+        for mod_name in self.brushes_conf["brushes_modules"]:
+            brush = importlib.import_module(
+                self.conf["brushes_dir"] + "." + mod_name
+            )
+            b_dict = brush.brushes
+            for k in b_dict:
+                if self.brushes.get(k) is not None:
+                    self.logger.warning(
+                        "Brush " + k + " is defined twice. Overriding"
+                    )
+                self.brushes[k] = b_dict[k](
+                    weakref.ref(self)
+                )
 
     def processCommonConfig(self):
         """

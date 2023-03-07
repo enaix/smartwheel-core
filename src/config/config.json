@@ -86,7 +86,8 @@
         "stabilizeFPS": true,
         "fpsFramesSmooth": 10,
         "logFPS": false,
-        "logging": "INFO"
+        "logging": "INFO",
+  	"brushes_dir": "backgrounds"
     },
     "presets": {
     	"appearance": "Custom"
