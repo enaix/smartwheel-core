@@ -176,6 +176,7 @@ class ColorHandler(BaseHandler):
             return False
 
         wid.setText(value)
+        self.setIcon(wid, QColor(value))
         self.value_setter(value=value, module=module, prop=prop)
         return True
 
