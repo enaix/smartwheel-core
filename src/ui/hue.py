@@ -2,8 +2,8 @@ import logging
 import math
 import os
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 
 import config
 from ui.base import BaseUIElem
@@ -133,7 +133,7 @@ class UIElem(BaseUIElem):
         self.hsl_elem_width[0] = hsl_w
 
         grad = QConicalGradient(
-            QPoint(self.conf["cx"], self.conf["cy"]),
+            QPointF(self.conf["cx"], self.conf["cy"]),
             359
             - self.hue_selection
             + self.conf["selectionAngle"]
@@ -173,7 +173,7 @@ class UIElem(BaseUIElem):
         self.hsl_elem_width[1] = hsl_w
 
         grad = QConicalGradient(
-            QPoint(self.conf["cx"], self.conf["cy"]),
+            QPointF(self.conf["cx"], self.conf["cy"]),
             359
             - self.sat_selection
             + self.conf["selectionAngle"]
@@ -209,7 +209,7 @@ class UIElem(BaseUIElem):
         self.hsl_elem_width[2] = hsl_w
 
         grad = QConicalGradient(
-            QPoint(self.conf["cx"], self.conf["cy"]),
+            QPointF(self.conf["cx"], self.conf["cy"]),
             359
             - self.bri_selection
             + self.conf["selectionAngle"]
@@ -303,7 +303,7 @@ class UIElem(BaseUIElem):
                 ),
                 self.conf["wheelWidth"] - offset,
                 self.conf["wheelWidth"] - offset,
-                Qt.RelativeSize,
+                Qt.SizeMode.RelativeSize,
             )
 
     def draw(self, qp, offset=None):

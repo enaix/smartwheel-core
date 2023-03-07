@@ -1,6 +1,6 @@
 from krita import *
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt6.QtGui import QColor
+from PyQt6.QtCore import QThread, pyqtSignal
 import socket
 import os
 import json

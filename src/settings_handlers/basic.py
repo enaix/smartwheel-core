@@ -1,8 +1,8 @@
 import logging
 
-from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtGui import QColor, QIcon, QPixmap
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt, pyqtSlot
+from PyQt6.QtGui import QColor, QIcon, QPixmap
+from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,

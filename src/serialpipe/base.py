@@ -1,7 +1,7 @@
 import logging
 import time
 
-from PyQt5.QtCore import QObject, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal, pyqtSlot
 
 
 class PRButton(QObject):

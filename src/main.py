@@ -8,10 +8,10 @@ import sys
 import weakref
 
 import qdarktheme
-from PyQt5 import QtCore
-from PyQt5.QtCore import QEvent, pyqtSlot
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import (
+from PyQt6 import QtCore
+from PyQt6.QtCore import QEvent, pyqtSlot
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import (
     QApplication,
     QDockWidget,
     QGraphicsBlurEffect,
@@ -60,13 +60,13 @@ class RootWindow(QMainWindow):
         )
         self.logger = logging.getLogger(__name__)
 
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.setAttribute(QtCore.Qt.WA_Hover, True)
+        self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_Hover, True)
         # self.mainWindow = QMainWindow(self)
         # self.mainWindow.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         self.setAutoFillBackground(True)
-        self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setWindowTitle("SmartWHEEL")
         self.setWindowIcon(QIcon("logo.png"))
         self.setGeometry(*conf.c["window"]["geometry"])
@@ -88,7 +88,7 @@ class RootWindow(QMainWindow):
         self.dock.setMaximumHeight(300)
         self.settingsButton = QPushButton("Settings")
         self.dock.setWidget(self.settingsButton)
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.dock)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.dock)
         self.dock.hide()
 
         self.settingsButton.clicked.connect(self.openSettings)
@@ -102,9 +102,9 @@ class RootWindow(QMainWindow):
         self.settings.show()
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.HoverEnter:
+        if event.type() == QEvent.Type.HoverEnter:
             self.dock.show()
-        elif event.type() == QEvent.HoverLeave:
+        elif event.type() == QEvent.Type.HoverLeave:
             self.dock.hide()
         return super(RootWindow, self).eventFilter(obj, event)
 
@@ -130,7 +130,7 @@ class RootWindow(QMainWindow):
 
     def paintEvent(self, event):
         self.qp = QPainter(self)
-        self.qp.setRenderHint(QPainter.Antialiasing)
+        self.qp.setRenderHint(QPainter.RenderHint.Antialiasing)
         # self.qp.begin(self)
         self.draw()
         self.qp.end()
@@ -203,7 +203,7 @@ class RootWindow(QMainWindow):
 
 def main():
     root = RootWindow()
-    sys.exit(root.app.exec_())
+    sys.exit(root.app.exec())
 
 
 if __name__ == "__main__":

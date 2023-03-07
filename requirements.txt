@@ -1,6 +1,6 @@
 pyserial
 pynput
-pyqt5
+pyqt6
 numpydoc
 pyqtdarktheme
 swcolorpicker

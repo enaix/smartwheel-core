@@ -4,8 +4,8 @@ import math
 import os
 import weakref
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 
 import config
 from tools import merge_dicts
@@ -54,7 +54,9 @@ class Section:
         self.pixmap.width = w
         self.pixmap.height = w
         self.pixmap = self.pixmap.scaled(
-            QSize(w, w), Qt.KeepAspectRatio, Qt.SmoothTransformation
+            QSize(w, w),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
         )
 
     def reload_module(self, module):
@@ -96,7 +98,9 @@ class Section:
         )
 
         brush = QBrush()
-        pen = QPen(QColor(self.parent().conf["selectionWheelFG"]), 1, Qt.SolidLine)
+        pen = QPen(
+            QColor(self.parent().conf["selectionWheelFG"]), 1, Qt.PenStyle.SolidLine
+        )
         qp.setBrush(brush)
         qp.setPen(pen)
         qp.drawLine(QPointF(x1, y1), QPointF(x2, y2))
@@ -154,7 +158,7 @@ class UIElem(BaseUIElem):
         width = self.conf["width"]
         height = self.conf["height"]
 
-        pen = QPen(QColor(self.conf["selectionWheelFG"]), 1, Qt.SolidLine)
+        pen = QPen(QColor(self.conf["selectionWheelFG"]), 1, Qt.PenStyle.SolidLine)
         brush = QBrush(QColor(self.conf["selectionWheelBG"]))
         self.qp.setBrush(brush)
         self.qp.setPen(pen)
@@ -276,7 +280,7 @@ class UIElem(BaseUIElem):
         self.anim_end = self.anim_angle + self.delta
         self.anim = QPropertyAnimation(self, b"prop_angle")
         self.anim.setDuration(self.conf["scrollAnimationDuration"])
-        self.anim.setEasingCurve(QEasingCurve.InOutQuad)
+        self.anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
 
     def startAnimation(self, up, a=None):
         self.is_scroll_anim_running = True
@@ -310,7 +314,8 @@ class UIElem(BaseUIElem):
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
         brush = QBrush(
-            QColor("#" + opac + self.conf["wheelTextureColor"][1:]), Qt.BDiagPattern
+            QColor("#" + opac + self.conf["wheelTextureColor"][1:]),
+            Qt.BrushStyle.BDiagPattern,
         )
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
@@ -378,7 +383,7 @@ class UIElem(BaseUIElem):
     def drawSections(self, w, cw):
         for s in self.sections:
             s.draw(self.qp, w, cw)
-        pen = QPen(QColor(self.conf["pointerColor"]), 3, Qt.SolidLine)
+        pen = QPen(QColor(self.conf["pointerColor"]), 3, Qt.PenStyle.SolidLine)
         self.qp.setPen(pen)
         # draw pointer
         self.qp.drawArc(
@@ -401,7 +406,7 @@ class UIElem(BaseUIElem):
         color = self.conf["bgWheelColor"]
         if self.conf["drawWheelCircle"]:
             color = self.conf["wheelTextureColor"]
-        pen = QPen(QColor(color), 1, Qt.SolidLine)
+        pen = QPen(QColor(color), 1, Qt.PenStyle.SolidLine)
         self.qp.setPen(pen)
         brush = QBrush(QColor(self.conf["bgWheelColor"]))
         self.qp.setBrush(brush)
@@ -410,7 +415,9 @@ class UIElem(BaseUIElem):
             circleWidth // 2,
             circleHeight // 2,
         )
-        brush = QBrush(QColor(self.conf["wheelTextureColor"]), Qt.BDiagPattern)
+        brush = QBrush(
+            QColor(self.conf["wheelTextureColor"]), Qt.BrushStyle.BDiagPattern
+        )
         self.qp.setBrush(brush)
         self.qp.drawEllipse(
             QPoint(self.conf["cx"], self.conf["cy"]),
@@ -453,7 +460,7 @@ class UIElem(BaseUIElem):
                 QPen(
                     QColor(self.conf["overlayRectsColor"]),
                     self.conf["overlayRectsWidth"],
-                    Qt.SolidLine,
+                    Qt.PenStyle.SolidLine,
                 )
             )
             self.qp.setOpacity(self.conf["overlayRectsOpacity"] * opacity)

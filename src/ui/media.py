@@ -2,8 +2,8 @@ import os
 import subprocess
 import time
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 
 import config
 from tools import merge_dicts
@@ -32,8 +32,8 @@ class UIElem(BaseUIElem):
         )
         self.pixmap = self.pixmap.scaled(
             QSize(self.pix_width, self.pix_height),
-            Qt.KeepAspectRatio,
-            Qt.SmoothTransformation,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
         )
 
     def updateVars(self, offset=0):
@@ -97,7 +97,7 @@ class UIElem(BaseUIElem):
                 self.text_width,
                 self.text_height * pos,
             ),
-            Qt.AlignCenter,
+            Qt.AlignmentFlag.AlignCenter,
             text,
         )
 

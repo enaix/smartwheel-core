@@ -1,12 +1,12 @@
-# from PyQt5.QtGui import *
+# from PyQt6.QtGui import *
 import importlib
 import json
 import logging
 import os
 import weakref
 
-from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt, pyqtSlot
+from PyQt6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -348,12 +348,12 @@ class SettingsWindow(QWidget):
             self.preset_tabs[index] = {}
 
         scroll = QScrollArea()
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setWidgetResizable(True)
         layout = QVBoxLayout()
         wrapper = QWidget()
-        wrapper.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        wrapper.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         for elem_group in tab["conf"]["items"]:
             form = QFormLayout()
@@ -402,9 +402,14 @@ class SettingsWindow(QWidget):
 
                     if label is not None:
                         wid.setMinimumWidth(self.conf["fieldWidth"])
-                        wid.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+                        wid.setSizePolicy(
+                            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum
+                        )
                         spacer = QSpacerItem(
-                            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
+                            40,
+                            20,
+                            QSizePolicy.Policy.Expanding,
+                            QSizePolicy.Policy.Minimum,
                         )
                         widWrapper.addSpacerItem(spacer)
 
@@ -447,7 +452,9 @@ class SettingsWindow(QWidget):
 
         cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(self.close)
-        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacer = QSpacerItem(
+            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
         bottomPanel.addSpacerItem(spacer)
         bottomPanel.addWidget(cancelButton)
         bottomPanel.addWidget(applyButton)

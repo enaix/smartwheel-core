@@ -1,7 +1,7 @@
 import logging
 
 import serial
-from PyQt5.QtCore import *
+from PyQt6.QtCore import *
 
 import config
 from serialpipe.base import ConnPipe

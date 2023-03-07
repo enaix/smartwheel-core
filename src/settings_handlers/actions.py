@@ -1,8 +1,8 @@
 import logging
 
-from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QGridLayout,
@@ -36,7 +36,9 @@ class ActionPicker(BaseHandler):
         """
         wrapper = QWidget()
         wid = QHBoxLayout()
-        sp = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        sp = QSpacerItem(
+            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
         label = QLabel(elem["name"])
         editButton = QPushButton("...")
         deleteButton = QPushButton("x")
@@ -96,7 +98,7 @@ class ActionList(BaseHandler):
         #    self.logger.error("Could not load action editor: no parent object found")
         #    return None
         wrapper = QWidget()
-        wrapper.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        wrapper.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         layout = QVBoxLayout()
 
         wheel_l = QGridLayout()
@@ -149,16 +151,16 @@ class ActionList(BaseHandler):
             any_label.setFont(font)
 
             if group == "wheel":
-                wheel_l.addWidget(enabled_label, 0, 0, Qt.AlignLeft)
-                wheel_l.addWidget(title_label, 0, 1, Qt.AlignLeft)
-                wheel_l.addWidget(desc_label, 0, 2, Qt.AlignLeft)
-                wheel_l.addWidget(any_label, 0, 3, Qt.AlignLeft)
+                wheel_l.addWidget(enabled_label, 0, 0, Qt.AlignmentFlag.AlignLeft)
+                wheel_l.addWidget(title_label, 0, 1, Qt.AlignmentFlag.AlignLeft)
+                wheel_l.addWidget(desc_label, 0, 2, Qt.AlignmentFlag.AlignLeft)
+                wheel_l.addWidget(any_label, 0, 3, Qt.AlignmentFlag.AlignLeft)
 
             if group == "module":
-                module_l.addWidget(enabled_label, 0, 0, Qt.AlignLeft)
-                module_l.addWidget(title_label, 0, 1, Qt.AlignLeft)
-                module_l.addWidget(desc_label, 0, 2, Qt.AlignLeft)
-                module_l.addWidget(any_label, 0, 3, Qt.AlignLeft)
+                module_l.addWidget(enabled_label, 0, 0, Qt.AlignmentFlag.AlignLeft)
+                module_l.addWidget(title_label, 0, 1, Qt.AlignmentFlag.AlignLeft)
+                module_l.addWidget(desc_label, 0, 2, Qt.AlignmentFlag.AlignLeft)
+                module_l.addWidget(any_label, 0, 3, Qt.AlignmentFlag.AlignLeft)
 
         for i, a in enumerate(actions):
             enabled = QCheckBox()
@@ -207,10 +209,10 @@ class ActionList(BaseHandler):
                     state.setCurrentIndex(2)
 
             if a["type"] == "wheel":
-                wheel_l.addWidget(enabled, i + 1, 0, Qt.AlignLeft)
-                wheel_l.addWidget(title, i + 1, 1, Qt.AlignLeft)
-                wheel_l.addWidget(desc, i + 1, 2, Qt.AlignLeft)
-                wheel_l.addWidget(state, i + 1, 3, Qt.AlignRight)
+                wheel_l.addWidget(enabled, i + 1, 0, Qt.AlignmentFlag.AlignLeft)
+                wheel_l.addWidget(title, i + 1, 1, Qt.AlignmentFlag.AlignLeft)
+                wheel_l.addWidget(desc, i + 1, 2, Qt.AlignmentFlag.AlignLeft)
+                wheel_l.addWidget(state, i + 1, 3, Qt.AlignmentFlag.AlignRight)
 
                 for j in range(1, 4):
                     if wheel_l.itemAtPosition(i + 1, j) is not None:
@@ -220,10 +222,10 @@ class ActionList(BaseHandler):
                         if not enabled.isChecked():
                             wheel_l.itemAtPosition(i + 1, j).widget().setDisabled(True)
             else:
-                module_l.addWidget(enabled, i + 1, 0, Qt.AlignLeft)
-                module_l.addWidget(title, i + 1, 1, Qt.AlignLeft)
-                module_l.addWidget(desc, i + 1, 2, Qt.AlignLeft)
-                module_l.addWidget(state, i + 1, 3, Qt.AlignRight)
+                module_l.addWidget(enabled, i + 1, 0, Qt.AlignmentFlag.AlignLeft)
+                module_l.addWidget(title, i + 1, 1, Qt.AlignmentFlag.AlignLeft)
+                module_l.addWidget(desc, i + 1, 2, Qt.AlignmentFlag.AlignLeft)
+                module_l.addWidget(state, i + 1, 3, Qt.AlignmentFlag.AlignRight)
 
                 for j in range(1, 4):
                     enabled.clicked.connect(
@@ -244,7 +246,9 @@ class ActionList(BaseHandler):
         onShown.shown.connect(self.resizeCells)
         panel.addWidget(onShown)
 
-        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacer = QSpacerItem(
+            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
         panel.addSpacerItem(spacer)
         panel.addWidget(cancelButton)
         panel.addWidget(okButton)

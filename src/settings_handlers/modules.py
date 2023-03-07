@@ -1,8 +1,8 @@
 import logging
 
-from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt, pyqtSlot
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (
     QCheckBox,
     QGridLayout,
     QHBoxLayout,
@@ -44,7 +44,7 @@ class ModulesLoader(BaseHandler):
 
         for i in range(len(labels)):
             labels[i].setFont(font)
-            layout.addWidget(labels[i], 0, i, Qt.AlignLeft)
+            layout.addWidget(labels[i], 0, i, Qt.AlignmentFlag.AlignLeft)
 
         # layout.setColumnStretch(10, 0)
 
@@ -60,10 +60,10 @@ class ModulesLoader(BaseHandler):
             for j, s in enumerate(["title", "description"]):
                 label = QLabel(mod[s])
 
-                layout.addWidget(label, i + 1, j + 1, Qt.AlignLeft)
+                layout.addWidget(label, i + 1, j + 1, Qt.AlignmentFlag.AlignLeft)
 
-            layout.addWidget(check, i + 1, 0, Qt.AlignLeft)
-            layout.addWidget(options, i + 1, 3, Qt.AlignLeft)
+            layout.addWidget(check, i + 1, 0, Qt.AlignmentFlag.AlignLeft)
+            layout.addWidget(options, i + 1, 3, Qt.AlignmentFlag.AlignLeft)
 
             for j in range(1, 4):
                 if layout.itemAtPosition(i + 1, j) is not None:
@@ -76,11 +76,13 @@ class ModulesLoader(BaseHandler):
         vbox = QVBoxLayout()
         vbox.addLayout(layout)
 
-        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacer = QSpacerItem(
+            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
         vbox.addSpacerItem(spacer)
 
         wrapper = QWidget()
-        wrapper.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        wrapper.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         wrapper.setLayout(vbox)
 
         return wrapper

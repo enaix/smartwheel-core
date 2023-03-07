@@ -5,7 +5,7 @@ import queue
 import socket
 import time
 
-from PyQt5.QtCore import *
+from PyQt6.QtCore import *
 
 from ui.internal.baseinternal import BaseInternal
 

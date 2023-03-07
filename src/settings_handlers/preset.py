@@ -3,8 +3,8 @@ import logging
 import os
 import weakref
 
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
     QInputDialog,
