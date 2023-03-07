@@ -244,6 +244,7 @@ class UIElem(BaseUIElem):
         self.sections[0].is_selected = True
         self.cur_section = 0
 
+        self.is_sections_hidden = False
         self.sections_timer.stop()
 
         self.is_scroll_anim_running = False
