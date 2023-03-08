@@ -1,7 +1,7 @@
 {
     "window": {
         "geometry": [
-            150,
+            120,
             150,
             420,
             420
@@ -53,29 +53,29 @@
             {
                 "name": "serialpipe.serial",
                 "config": "serial.json",
-		"title": "Serial",
-		"description": "Serial keyboard/encoder"
+                "title": "Serial",
+                "description": "Serial keyboard/encoder"
             },
             {
                 "name": "serialpipe.keyboard",
                 "config": "keyboard.json",
-		"title": "Simple keyboard",
-		"description": "Basic keyboard input from window"
+                "title": "Simple keyboard",
+                "description": "Basic keyboard input from window"
             },
             {
                 "name": "serialpipe.bgkeyboard",
                 "config": "bgkeyboard.json",
-		"title": "Background keyboard",
-		"description": "System-wide keyboard listener"
+                "title": "Background keyboard",
+                "description": "System-wide keyboard listener"
             }
         ],
         "modulesLoad": [
             0
         ],
-	"internalModulesLoad": [
-		0,
-		1
-	],
+        "internalModulesLoad": [
+            0,
+            1
+        ],
         "serialModulesLoad": [
             0,
             2
@@ -87,9 +87,10 @@
         "fpsFramesSmooth": 10,
         "logFPS": false,
         "logging": "INFO",
-  	"brushes_dir": "backgrounds"
+        "brushes_dir": "backgrounds",
+        "cacheDir": "cache"
     },
     "presets": {
-    	"appearance": "Custom"
+        "appearance": "Custom"
     }
 }

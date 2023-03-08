@@ -309,24 +309,24 @@ class UIElem(BaseUIElem):
             return
         pen = QPen(QColor(self.conf["wheelTextureColor"]))
         self.qp.setPen(pen)
-        opac = str(
-            hex(self._opacity).split("x")[-1].zfill(2)
-        )  # TODO reformat this code
-        brush = QBrush(QColor("#" + opac + self.conf["bgWheelColor"][1:]))
+        opac = self._opacity / 255 # [0.0, 1.0]
+
+        self.qp.setOpacity(opac)
+        brush = QBrush(QColor(self.conf["bgWheelColor"]))
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
 
         brush = self.parent().brushes.get(self.conf["backgroundStyle"])
         if brush is None:
             brush = QBrush(
-                QColor("#" + opac + self.conf["wheelTextureColor"][1:]),
+                QColor(self.conf["wheelTextureColor"]),
                 Qt.BrushStyle.BDiagPattern,
             )
-        else:
-            brush.setColor(QColor("#" + opac + self.conf["wheelTextureColor"][1:]))
 
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
+
+        self.qp.setOpacity(1.0)
 
     def initShadowAnimation(self):
         self.is_shadow_anim_running = False
@@ -429,8 +429,6 @@ class UIElem(BaseUIElem):
             brush = QBrush(
                 QColor(self.conf["wheelTextureColor"]), Qt.BrushStyle.BDiagPattern
             )
-        else:
-            brush.setColor(QColor(self.conf["wheelTextureColor"]))
 
         
         self.qp.setBrush(brush)

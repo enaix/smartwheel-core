@@ -1,4 +1,10 @@
 {
-  "brushes_modules": ["basic"]
+  "brushes_modules": ["basic", "contour"],
+  "brushes_config": {
+    "diagonal": "diagonal.json",
+    "grid": "grid.json",
+    "contour": "contour.json"
+  },
+  "brushes_config_dir": "config"
 }
 

@@ -15,3 +15,4 @@ Modules navigation
    settings
    settings_handlers
    tools
+   backgrounds

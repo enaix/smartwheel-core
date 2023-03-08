@@ -12,6 +12,7 @@ from PyQt6.QtGui import *
 import config
 from actionengine import ActionEngine
 from tools import merge_dicts
+import common
 
 
 class MList(list):
@@ -38,6 +39,7 @@ class RootCanvas:
         self.loadCommonConf()
         self.processCommonConfig()
         # TODO add try catch everywhere
+        self.initCacheDir()
         self.loadInternalModules()
         self.loadBrushes()
         self.startInternalModules()
@@ -127,6 +129,9 @@ class RootCanvas:
             mods.append(mod_class)
         return mods
 
+    def initCacheDir(self):
+        common.cache_manager.initManager(self.conf)
+
     def loadBrushes(self):
         b_config = os.path.join(self.conf["brushes_dir"], "config.json")
         if not os.path.exists(b_config):
@@ -148,7 +153,13 @@ class RootCanvas:
                     self.logger.warning(
                         "Brush " + k + " is defined twice. Overriding"
                     )
+
+                brush_conf = config.Config(os.path.join(self.conf["brushes_dir"], self.brushes_conf["brushes_config_dir"], self.brushes_conf["brushes_config"][k]))
+                brush_conf.loadConfig()
+
                 self.brushes[k] = b_dict[k](
+                    self.conf,
+                    brush_conf,
                     weakref.ref(self)
                 )
 
