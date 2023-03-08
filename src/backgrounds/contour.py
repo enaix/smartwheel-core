@@ -106,7 +106,6 @@ class ContourBackground(Background):
         img_buf.seek(0)
 
         if self.conf["useCache"]:
-            print(self.conf, type(self.conf))
             filepath = common.cache_manager.save(
                 "background_contour", "contour1.png", self.conf
             )

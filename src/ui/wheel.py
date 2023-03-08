@@ -130,6 +130,7 @@ class UIElem(BaseUIElem):
         self._opacity = 0
         self._sections_pos = 0
         self.global_shadow = False
+        self.wheelUp = True
 
     def _set_angle(self, a):
         self._angle = a
@@ -179,13 +180,16 @@ class UIElem(BaseUIElem):
         self.sections[old_selection].is_selected = False
 
     def processKey(self, up):
-        self.scrollModule(up)
+        # self.scrollModule(up)
 
+        self.wheelUp = up
         if self.is_scroll_anim_running:
             self.updateAnimation(up)
         else:
             self.startAnimation(up)
+
         self.startShadowAnimation()
+
         if self.sections_timer.isActive():
             self.sections_timer.start(self.conf["sectionsHideTimeout"])
         else:
@@ -206,7 +210,8 @@ class UIElem(BaseUIElem):
         self.hideSections()
 
     def quickSwitch(self, up):
-        self.scrollModule(up)
+        # self.scrollModule(up)
+        self.wheelUp = up
 
         if self.is_scroll_anim_running:
             self.updateAnimation(up)
@@ -330,25 +335,39 @@ class UIElem(BaseUIElem):
 
     def initShadowAnimation(self):
         self.is_shadow_anim_running = False
-        self.shadow_anim_start = 255
-        self.shadow_anim_end = 0
         self.shadow_anim = QPropertyAnimation(self, b"prop_opacity")
         self.shadow_anim.setDuration(self.conf["shadowAnimationDuration"])
+        self.resetShadowAnimation()
 
-    def startShadowAnimation(self):
+    def resetShadowAnimation(self, up=True):
+        if up:
+            self.shadow_anim_start = 0
+            self.shadow_anim_end = 255
+        else:
+            self.shadow_anim_start = 255
+            self.shadow_anim_end = 0
+
+    @pyqtSlot()
+    def shadowAnimationMiddle(self):
+        self.scrollModule(self.wheelUp)
+
+        self.resetShadowAnimation(False)
+        self.shadow_anim.finished.disconnect()
+        self.startShadowAnimation(False)
+
+    def startShadowAnimation(self, up=True):
         dur = self.conf["shadowAnimationDuration"]
-        mid_key = 0.5
         if self.is_shadow_anim_running == True:
             self.shadow_anim.stop()
-            mid_key = 0.7
-            dur *= 1.5
-        self.shadow_anim.setKeyValueAt(0, self.shadow_anim_start)
-        self.shadow_anim.setKeyValueAt(mid_key, self.shadow_anim_start)
-        self.shadow_anim.setKeyValueAt(1, self.shadow_anim_end)
+        self.shadow_anim.setStartValue(self.shadow_anim_start)
+        self.shadow_anim.setEndValue(self.shadow_anim_end)
         # self.shadow_anim.setEndValue(self.shadow_anim_end)
-        self.shadow_anim.setDuration(int(dur))
+        self.shadow_anim.setDuration(int(dur) // 2)
+        if up:
+            self.shadow_anim.finished.connect(self.shadowAnimationMiddle)
         self.shadow_anim.start()
         self.is_shadow_anim_running = True
+        self.resetShadowAnimation()
 
     def initSectionsAnimation(self):
         self.is_sections_anim_running = False
