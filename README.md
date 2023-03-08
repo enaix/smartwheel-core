@@ -70,11 +70,18 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [ ] Better overlays editor
   - [ ] Actions editor
   - [ ] Modules import (.zip)
+- [ ] Wheel hiding
+  - [ ] Hide after timeout
+  - [ ] Hide after losing window focus
+- [ ] Packaging
+  - [ ] Configure setup.py
+  - [ ] Add auto update feature
+  - [ ] Hire core doctor!
 - [ ] Windows support
   - [ ] (Platform) Replace AF_UNIX socket with network socket
   - [ ] (Platform) Replace pynput with winapi
 - [ ] Add fancy blur (?)
-- [ ] Mac support {?)
+- [ ] Mac support (?)
 
 Theme presets
 Better overlays editor
