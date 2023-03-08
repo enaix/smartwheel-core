@@ -162,6 +162,8 @@ class RootCanvas:
                     brush_conf,
                     weakref.ref(self)
                 )
+        
+        self.conf["brushesTypes"] = self.brushes.keys()
 
     def processCommonConfig(self):
         """

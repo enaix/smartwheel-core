@@ -28,6 +28,9 @@
       {"name": "Foreground sections color", "type": "color", "module": "common", "prop": "selectionWheelFG", "preset": true},
       {"name": "Pointer color", "type": "color", "module": "ui.wheel", "prop": "pointerColor", "preset": true}
     ]},
+    {"name": "Background", "options": [
+      {"name": "Background style", "type": "combo", "options": {"module": "canvas", "prop": "brushesTypes"}, "module": "ui.wheel", "prop": "backgroundStyle"}
+    ]},
     {"name": "Animations", "options": [
       {"name": "Scroll animation duration", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "scrollAnimationDuration"},
       {"name": "Shadow animation duration", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "shadowAnimationDuration"},

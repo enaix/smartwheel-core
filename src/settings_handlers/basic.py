@@ -220,7 +220,15 @@ class ComboHandler(BaseHandler):
     def initElem(self, elem):
         wid = QComboBox()
 
-        wid.insertItems(0, elem["options"])
+        if type(elem["options"]) == list:
+            wid.insertItems(0, elem["options"])
+        else:
+            # Need to get options programatically
+            ok, ops = self.value_getter(module=elem["options"]["module"], prop=elem["options"]["prop"], index=elem["options"].get("index"))
+            if not ok:
+                self.logger.error("Could not get combo items from " + elem["options"]["module"] + "." + elem["options"]["prop"])
+                return None
+            wid.insertItems(0, ops)
 
         ok, value = self.value_getter(elem["module"], elem["prop"])
         if ok:
