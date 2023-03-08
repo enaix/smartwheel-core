@@ -75,7 +75,7 @@ class Config(QObject):
                 return self.links[i][key]
         return self.c[key]
 
-    def update(self, other):
+    def update(self, other, include_only=None):
         """
         Call dict update method while saving the linked dict
 
@@ -83,8 +83,15 @@ class Config(QObject):
         ==========
         other
             Other dict to merge
+        include_only
+            (Optional) Exclude other keys except whitelisted
         """
-        self.c.update(other)
+        if include_only is None:
+            self.c.update(other)
+        else:
+            for key in include_only:
+                if other.get(key) is not None:
+                    self.c[key] = other[key]
 
         self.links.append(other)
 

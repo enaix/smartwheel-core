@@ -1,18 +1,18 @@
 import importlib
+import json
 import logging
 import os
 import queue
 import time
 import weakref
-import json
 
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
+import common
 import config
 from actionengine import ActionEngine
 from tools import merge_dicts
-import common
 
 
 class MList(list):
@@ -87,7 +87,7 @@ class RootCanvas:
             self.conf,
             self.wheel_modules,
             self.update_func,
-            weakref.ref(self)
+            weakref.ref(self),
         )
         return ui
 
@@ -140,29 +140,29 @@ class RootCanvas:
 
         with open(b_config, "r") as f:
             self.brushes_conf = json.load(f)
-        
+
         self.brushes = {}
 
         for mod_name in self.brushes_conf["brushes_modules"]:
-            brush = importlib.import_module(
-                self.conf["brushes_dir"] + "." + mod_name
-            )
+            brush = importlib.import_module(self.conf["brushes_dir"] + "." + mod_name)
             b_dict = brush.brushes
             for k in b_dict:
                 if self.brushes.get(k) is not None:
-                    self.logger.warning(
-                        "Brush " + k + " is defined twice. Overriding"
-                    )
+                    self.logger.warning("Brush " + k + " is defined twice. Overriding")
 
-                brush_conf = config.Config(os.path.join(self.conf["brushes_dir"], self.brushes_conf["brushes_config_dir"], self.brushes_conf["brushes_config"][k]))
+                brush_conf = config.Config(
+                    os.path.join(
+                        self.conf["brushes_dir"],
+                        self.brushes_conf["brushes_config_dir"],
+                        self.brushes_conf["brushes_config"][k],
+                    )
+                )
                 brush_conf.loadConfig()
 
                 self.brushes[k] = b_dict[k](
-                    self.conf,
-                    brush_conf,
-                    weakref.ref(self)
+                    weakref.ref(self.conf), brush_conf, weakref.ref(self)
                 )
-        
+
         self.conf["brushesTypes"] = self.brushes.keys()
 
     def processCommonConfig(self):

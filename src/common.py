@@ -1,6 +1,7 @@
-from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
-import os
 import json
+import os
+
+from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
 
 class ConfigManager(QObject):
@@ -33,9 +34,10 @@ class CacheManager(QObject):
     """
     Global class that manages cache access. Not inteded to be called from other threads
     """
+
     def __init__(self):
         super(CacheManager, self).__init__()
-    
+
     def __new__(cls):
         """
         Singleton implementation
@@ -49,7 +51,7 @@ class CacheManager(QObject):
 
         if not os.path.exists(self.conf["cacheDir"]):
             os.mkdir(self.conf["cacheDir"])
-    
+
     def load(self, app_name, filename):
         """
         Load cache file path and config (optional) from cache. Returns (True, filepath, conf) if found
@@ -70,16 +72,16 @@ class CacheManager(QObject):
             os.mkdir(appdir)
 
         cachepath = os.path.join(appdir, filename)
-        confpath = os.path.join(appdir, filename.split('.')[0] + '.json')
+        confpath = os.path.join(appdir, filename.split(".")[0] + ".json")
         cacheconf = None
 
         if not os.path.exists(cachepath):
             return False, None, None
-        
+
         if os.path.exists(confpath):
-            with open(confpath, 'r') as f:
+            with open(confpath, "r") as f:
                 cacheconf = json.load(f)
-        
+
         return True, cachepath, cacheconf
 
     def save(self, app_name, filename, conf=None):
@@ -99,21 +101,20 @@ class CacheManager(QObject):
             print("Cache manager is not initialized")
             return None
 
-
         appdir = os.path.join(self.conf["cacheDir"], app_name)
         if not os.path.exists(appdir):
             os.mkdir(appdir)
 
         cachepath = os.path.join(appdir, filename)
-        confpath = os.path.join(appdir, filename.split('.')[0] + '.json')
+        confpath = os.path.join(appdir, filename.split(".")[0] + ".json")
 
         if conf is not None:
-            with open(confpath, 'w') as f:
+            with open(confpath, "w") as f:
                 if type(conf) == dict:
                     json.dump(conf, f)
                 else:
                     json.dump(conf.c, f)
-        
+
         return cachepath
 
 

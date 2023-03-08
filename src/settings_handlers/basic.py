@@ -224,9 +224,18 @@ class ComboHandler(BaseHandler):
             wid.insertItems(0, elem["options"])
         else:
             # Need to get options programatically
-            ok, ops = self.value_getter(module=elem["options"]["module"], prop=elem["options"]["prop"], index=elem["options"].get("index"))
+            ok, ops = self.value_getter(
+                module=elem["options"]["module"],
+                prop=elem["options"]["prop"],
+                index=elem["options"].get("index"),
+            )
             if not ok:
-                self.logger.error("Could not get combo items from " + elem["options"]["module"] + "." + elem["options"]["prop"])
+                self.logger.error(
+                    "Could not get combo items from "
+                    + elem["options"]["module"]
+                    + "."
+                    + elem["options"]["prop"]
+                )
                 return None
             wid.insertItems(0, ops)
 

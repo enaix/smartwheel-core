@@ -309,7 +309,7 @@ class UIElem(BaseUIElem):
             return
         pen = QPen(QColor(self.conf["wheelTextureColor"]))
         self.qp.setPen(pen)
-        opac = self._opacity / 255 # [0.0, 1.0]
+        opac = self._opacity / 255  # [0.0, 1.0]
 
         self.qp.setOpacity(opac)
         brush = QBrush(QColor(self.conf["bgWheelColor"]))
@@ -430,7 +430,6 @@ class UIElem(BaseUIElem):
                 QColor(self.conf["wheelTextureColor"]), Qt.BrushStyle.BDiagPattern
             )
 
-        
         self.qp.setBrush(brush)
         self.qp.drawEllipse(
             QPoint(self.conf["cx"], self.conf["cy"]),
