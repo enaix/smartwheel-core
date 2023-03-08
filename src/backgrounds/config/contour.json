@@ -1,4 +1,6 @@
 {
     "useCache": true,
-    "backgroundColor": "#000000"
+    "backgroundColor": "#ffffff",
+    "seed": "robots!",
+    "randomSeed": true
 }
