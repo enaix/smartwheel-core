@@ -1,11 +1,12 @@
 {
     "initAnimation": true,
-    "scrollAnimationDuration": 300,
-    "shadowAnimationDuration": 300,
+    "scrollAnimationDuration": 400,
+    "shadowAnimationDuration": 400,
     "sectionsAnimationDuration": 300,
     "sectionsHideTimeout": 5000,
     "pointerMargin": 3,
     "pointerColor": "#ffffff",
+    "wheelShadowColor": "#313131",
     "pixmapScale": 30,
     "drawOverlayCircles": true,
     "overlayCirclesColor": "#404040",
@@ -15,5 +16,5 @@
     "overlayRectsColor": "#404040",
     "overlayRectsOpacity": 0.3,
     "overlayRectsWidth": 20,
-    "backgroundStyle": "diagonal"
+    "backgroundStyle": "contour"
 }

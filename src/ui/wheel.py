@@ -42,9 +42,11 @@ class Section:
                 )
             )
 
-    def draw_module(self, qp):
+    def draw_module(self, qp, opacity):
         if self.module is not None:
+            qp.setOpacity(opacity)
             self.module["class"].draw(qp, self.parent()._sections_pos)
+            qp.setOpacity(1.0)
 
     def update_vars(self):
         self.delta = self.parent()._angle - self.init_angle
@@ -131,6 +133,7 @@ class UIElem(BaseUIElem):
         self._sections_pos = 0
         self.global_shadow = False
         self.wheelUp = True
+        self.noWheelScroll = False
 
     def _set_angle(self, a):
         self._angle = a
@@ -264,8 +267,11 @@ class UIElem(BaseUIElem):
         self.anim_angle = self._angle
         self._sections_pos = 0
         self._opacity = 0
+        self.wheelUp = True
 
         self.global_shadow = True
+        self.resetShadowAnimation()
+        self.noWheelScroll = True
         self.startShadowAnimation()
 
     def reloadModules(self, modules):
@@ -316,22 +322,24 @@ class UIElem(BaseUIElem):
         self.qp.setPen(pen)
         opac = self._opacity / 255  # [0.0, 1.0]
 
+        #self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_Destination)
+
         self.qp.setOpacity(opac)
         brush = QBrush(QColor(self.conf["bgWheelColor"]))
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
 
-        brush = self.parent().brushes.get(self.conf["backgroundStyle"])
-        if brush is None:
-            brush = QBrush(
-                QColor(self.conf["wheelTextureColor"]),
-                Qt.BrushStyle.BDiagPattern,
-            )
+        #brush = self.parent().brushes.get(self.conf["backgroundStyle"])
+        #if brush is None:
+        brush = QBrush(
+            QColor(self.conf["wheelShadowColor"]),
+        )
 
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
 
         self.qp.setOpacity(1.0)
+        #self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
     def initShadowAnimation(self):
         self.is_shadow_anim_running = False
@@ -349,7 +357,8 @@ class UIElem(BaseUIElem):
 
     @pyqtSlot()
     def shadowAnimationMiddle(self):
-        self.scrollModule(self.wheelUp)
+        if not self.noWheelScroll:
+            self.scrollModule(self.wheelUp)
 
         self.resetShadowAnimation(False)
         self.shadow_anim.finished.disconnect()
@@ -368,6 +377,8 @@ class UIElem(BaseUIElem):
         self.shadow_anim.start()
         self.is_shadow_anim_running = True
         self.resetShadowAnimation()
+        if up == False:
+            self.noWheelScroll = False
 
     def initSectionsAnimation(self):
         self.is_sections_anim_running = False
@@ -437,12 +448,14 @@ class UIElem(BaseUIElem):
         self.qp.setPen(pen)
         brush = QBrush(QColor(self.conf["bgWheelColor"]))
         self.qp.setBrush(brush)
+        
         self.qp.drawEllipse(
             QPoint(self.conf["cx"], self.conf["cy"]),
             circleWidth // 2,
             circleHeight // 2,
         )
 
+        #self.qp.setOpacity(1.0 - self._opacity / 255)
         brush = self.parent().brushes.get(self.conf["backgroundStyle"])
         if brush is None:
             brush = QBrush(
@@ -455,6 +468,7 @@ class UIElem(BaseUIElem):
             circleWidth // 2,
             circleHeight // 2,
         )
+        #self.qp.setOpacity(1.0)
         self.drawOverlays(1 - self._opacity / 255, circleWidth)
 
     def drawOverlays(self, opacity, circleWidth):
@@ -509,7 +523,7 @@ class UIElem(BaseUIElem):
                     ),
                 )
 
-        self.qp.setOpacity(1)
+        self.qp.setOpacity(1.0)
 
     def draw(self, qp, offset=None):
         if self.anim.state() == QAbstractAnimation.State.Stopped:
@@ -541,11 +555,11 @@ class UIElem(BaseUIElem):
 
         self.drawMainWheel(circleWidth, circleHeight)
 
-        self.sections[self.cur_section].draw_module(self.qp)
+        self.sections[self.cur_section].draw_module(self.qp, 1.0 - self._opacity / 255)
 
         if self.global_shadow:
             self.drawShadow(self.conf["width"])
-        else:
-            self.drawShadow(circleWidth)
+        #else:
+        #    self.drawShadow(circleWidth)
 
         self.drawOverlays(self._opacity / 255, circleWidth)

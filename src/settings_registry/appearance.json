@@ -26,10 +26,11 @@
       {"name": "Wheel texture color", "type": "color", "module": "common", "prop": "wheelTextureColor", "preset": true},
       {"name": "Background sections color", "type": "color", "module": "common", "prop": "selectionWheelBG", "preset": true},
       {"name": "Foreground sections color", "type": "color", "module": "common", "prop": "selectionWheelFG", "preset": true},
-      {"name": "Pointer color", "type": "color", "module": "ui.wheel", "prop": "pointerColor", "preset": true}
+      {"name": "Pointer color", "type": "color", "module": "ui.wheel", "prop": "pointerColor", "preset": true},
+      {"name": "Wheel folder switch color", "type": "color", "module": "ui.wheel", "prop": "wheelShadowColor", "preset": true}
     ]},
     {"name": "Background", "options": [
-      {"name": "Background style", "type": "combo", "options": {"module": "canvas", "prop": "brushesTypes"}, "module": "ui.wheel", "prop": "backgroundStyle"}
+      {"name": "Background style", "type": "combo", "options": {"module": "canvas", "prop": "brushesTypes"}, "module": "ui.wheel", "prop": "backgroundStyle", "preset": true}
     ]},
     {"name": "Animations", "options": [
       {"name": "Scroll animation duration", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "scrollAnimationDuration"},
