@@ -145,6 +145,7 @@ class RootCanvas:
             self.brushes_conf = json.load(f)
 
         self.brushes = {}
+        self.conf["brush_configs"] = {}
 
         for mod_name in self.brushes_conf["brushes_modules"]:
             brush = importlib.import_module(self.conf["brushes_dir"] + "." + mod_name)
@@ -153,20 +154,20 @@ class RootCanvas:
                 if self.brushes.get(k) is not None:
                     self.logger.warning("Brush " + k + " is defined twice. Overriding")
 
-                brush_conf = config.Config(
+                self.conf["brush_configs"][k] = config.Config(
                     os.path.join(
                         self.conf["brushes_dir"],
                         self.brushes_conf["brushes_config_dir"],
                         self.brushes_conf["brushes_config"][k],
                     )
                 )
-                brush_conf.loadConfig()
+                self.conf["brush_configs"][k].loadConfig()
 
                 self.brushes[k] = b_dict[k](
-                    weakref.ref(self.conf), brush_conf, weakref.ref(self)
+                    weakref.ref(self.conf), self.conf["brush_configs"][k], weakref.ref(self)
                 )
 
-        self.conf["brushesTypes"] = self.brushes.keys()
+        self.conf["brushesTypes"] = list(self.brushes.keys())
 
     def processCommonConfig(self):
         """

@@ -65,6 +65,23 @@ class BaseHandler(QObject):
             Value to set
         """
         return False
+    
+    def linkElem(self, elem, registriesName):
+        """
+        (External settings registries) Link element to settings group "registriesName"
+
+        Widget signal must be linked to settings.showLinkedWidgets(str), where str is the selected element name
+
+        Function must return True if supported
+
+        Parameters
+        ==========
+        elem
+            Widget to link
+        registriesName
+            Widget property to set
+        """
+        return False
 
 
 handlers = {}

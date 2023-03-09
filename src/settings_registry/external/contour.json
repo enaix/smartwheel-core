@@ -1,0 +1,6 @@
+{
+  "name": "contour",
+  "items": [
+    {"name": "Use cache", "type": "bool", "module": "canvas", "prop": "brush_configs.contour.useCache"}
+  ]
+}

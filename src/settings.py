@@ -44,12 +44,14 @@ class SettingsWindow(QWidget):
         self.handlers_conf = None
         self.handlers = None
         self.settings = {}
+        self.external_reg = {}
         self.logger = logging.getLogger(__name__)
         self.loadConfig(config_file)
         self.setConfigHook(main_class, conf_class)
         self.loadSettingsHandlers(self.conf["settings_handlers_dir"])
         self.preset_tabs = {}
         self.conf["presets"] = {}
+        self.linked_widgets = {}
 
         self.initLayout()
 
@@ -72,6 +74,14 @@ class SettingsWindow(QWidget):
                     "r",
                 ) as f:
                     self.conf["tabs"][i]["conf"] = json.load(f)
+            
+            for key, value in self.conf["external"].items():
+                with open(
+                    os.path.join("settings_registry", "external", key + ".json"),
+                    "r",
+                ) as f:
+                    self.external_reg[key] = json.load(f)
+                self.external_reg[key]["extra"] = self.conf["external"][key]
 
     def setConfigHook(self, main_class, conf):
         """
@@ -333,6 +343,102 @@ class SettingsWindow(QWidget):
                     + preset["title"]
                 )
 
+    @pyqtSlot(str)
+    def showLinkedWidgets(self, text):
+        """
+        Show/hide linked widgets of the external registry selector. Intended to work with QComboBox
+
+        Parameters
+        ==========
+        index
+            Index of selected element
+        """
+        caller = self.sender()
+
+        linked_to = caller.property("registriesName")
+
+        if linked_to is None:
+            self.logger.warning("External registries widget does not have registries name")
+
+        for key, pair in self.linked_widgets[linked_to].items():
+            if key == text:
+                pair[0]().setRowVisible(pair[1], True)
+            else:
+                pair[0]().setRowVisible(pair[1], False)
+
+    def processItem(self, elem, index, form, tab, registriesName=None):
+        if elem.get("name") is not None:
+                label = QLabel(elem["name"])
+        else:
+            label = None
+
+        wid = None
+        
+        elem["tab_index"] = index  # storing the index of the current tab
+
+        if self.handlers.get(elem["type"]) is None:
+            self.logger.error(
+                "Could not find the handler for type " + elem["type"] + " (" + elem["module"] + "." + elem["prop"] + ")"
+            )
+        else:
+            wid = self.handlers[elem["type"]].initElem(elem)
+
+        if wid is not None:
+            prop_preset = ""
+
+            if elem.get("module") is not None:
+                wid.setProperty("widmodule", elem["module"])
+                prop_preset += elem["module"]
+
+            if elem.get("prop") is not None:
+                wid.setProperty("prop", elem["prop"])
+                prop_preset += "." + elem["prop"]
+
+            if elem.get("index") is not None:
+                wid.setProperty("index", elem["index"])
+                prop_preset += "." + str(elem["index"])
+
+            if (
+                tab["conf"].get("enable_presets", False)
+                and elem.get("preset", False)
+                and not prop_preset == ""
+            ):
+                wid.setProperty("preset_property", prop_preset)
+
+                self.preset_tabs[index][prop_preset] = (
+                    weakref.ref(wid),
+                    self.handlers[elem["type"]],
+                )
+            
+            if registriesName is not None:
+                ok = self.handlers[elem["type"]].linkElem(wid, registriesName)
+                if not ok:
+                    self.logger.warning("Element type " + elem["type"] + " does not support linking extra registries" + " (" + elem["module"] + "." + elem["prop"] + ")")
+
+            widWrapper = QHBoxLayout()
+
+            if label is not None:
+                wid.setMinimumWidth(self.conf["fieldWidth"])
+                wid.setSizePolicy(
+                    QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum
+                )
+                spacer = QSpacerItem(
+                    40,
+                    20,
+                    QSizePolicy.Policy.Expanding,
+                    QSizePolicy.Policy.Minimum,
+                )
+                widWrapper.addSpacerItem(spacer)
+
+            widWrapper.addWidget(wid)
+
+            if label is not None:
+                form.addRow(label, widWrapper)
+            else:
+                form.addRow(widWrapper)
+            
+        return form.rowCount() - 1
+
     def initTab(self, index):
         """
         Parse registry and generate elements
@@ -358,67 +464,52 @@ class SettingsWindow(QWidget):
         for elem_group in tab["conf"]["items"]:
             form = QFormLayout()
             group = QGroupBox(elem_group["name"])
-            for elem in elem_group["options"]:
-                if elem.get("name") is not None:
-                    label = QLabel(elem["name"])
-                else:
-                    label = None
 
-                wid = None
+            items = elem_group["options"]
 
-                elem["tab_index"] = index  # storing the index of the current tab
+            for i, elem in enumerate(items):
+                if elem.get("external") is not None:
+                    if type(elem["external"]) == dict:
+                        ok, ex_registries = self.getValue(module=elem["external"]["module"], prop=elem["external"]["prop"], index=elem["external"].get("index"))
 
-                if self.handlers.get(elem["type"]) is None:
-                    self.logger.error(
-                        "Could not find the handler for type " + elem["type"]
-                    )
-                else:
-                    wid = self.handlers[elem["type"]].initElem(elem)
+                        if not ok:
+                            self.logger.error("Could not find external registries in " + elem["name"])
+                            continue
 
-                if wid is not None:
-                    prop_preset = ""
-                    if elem.get("module") is not None:
-                        wid.setProperty("widmodule", elem["module"])
-                        prop_preset += elem["module"]
-                    if elem.get("prop") is not None:
-                        wid.setProperty("prop", elem["prop"])
-                        prop_preset += "." + elem["prop"]
-                    if elem.get("index") is not None:
-                        wid.setProperty("index", elem["index"])
-                        prop_preset += "." + str(elem["index"])
-
-                    if (
-                        tab["conf"].get("enable_presets", False)
-                        and elem.get("preset", False)
-                        and not prop_preset == ""
-                    ):
-                        wid.setProperty("preset_property", prop_preset)
-                        self.preset_tabs[index][prop_preset] = (
-                            weakref.ref(wid),
-                            self.handlers[elem["type"]],
-                        )
-
-                    widWrapper = QHBoxLayout()
-
-                    if label is not None:
-                        wid.setMinimumWidth(self.conf["fieldWidth"])
-                        wid.setSizePolicy(
-                            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum
-                        )
-                        spacer = QSpacerItem(
-                            40,
-                            20,
-                            QSizePolicy.Policy.Expanding,
-                            QSizePolicy.Policy.Minimum,
-                        )
-                        widWrapper.addSpacerItem(spacer)
-
-                    widWrapper.addWidget(wid)
-
-                    if label is not None:
-                        form.addRow(label, widWrapper)
+                        if not type(ex_registries) == list:
+                            ex_registries = [ex_registries]
                     else:
-                        form.addRow(widWrapper)
+                        ex_registries = elem["external"]
+                    
+                    if elem["external"].get("registry") is None:
+                        self.logger.error("No registry specified for element " + elem["name"])
+                    registries_name = elem["external"]["pickerName"]
+                    
+                    self.processItem(elem, index, form, tab, registriesName=registries_name)
+
+                    self.linked_widgets[registries_name] = {}
+
+                    for reg_name in ex_registries:
+                        if self.external_reg.get(reg_name) is None:
+                            self.logger.error("No such external registry: " + reg_name)
+                            continue
+
+                        exr = self.external_reg[reg_name]
+
+                        if exr.get("items") is None:
+                            self.logger.error("External registry " + reg_name + " does not have items")
+                            continue
+
+                        if not type(exr["items"]) == list:
+                            self.logger.warning("External registry " + reg_name + " is not a list")
+                            continue
+
+                        for j, reg in enumerate(exr["items"]):
+                            form_row = self.processItem(reg, index, form, tab)
+                            self.linked_widgets[registries_name][exr["extra"]["linkedCombo"]] = (weakref.ref(form), form_row)
+
+                else:
+                    self.processItem(elem, index, form, tab)
 
             group.setLayout(form)
             layout.addWidget(group)

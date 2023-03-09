@@ -4,6 +4,8 @@
     {"name": "Appearance", "config": "appearance.json"},
     {"name": "Input", "config": "serial.json"}
   ],
+  "external":
+  {"contour": {"linkedCombo": "contour"}},
   "groupMinimalHeight": 100,
   "fieldWidth": 200,
   "settings_handlers_dir": "settings_handlers"

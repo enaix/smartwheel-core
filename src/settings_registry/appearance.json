@@ -32,7 +32,7 @@
       {"name": "Sections icon color", "type": "color", "module": "common", "prop": "sectionsIconColor"}
     ]},
     {"name": "Background", "options": [
-      {"name": "Background style", "type": "combo", "options": {"module": "canvas", "prop": "brushesTypes"}, "module": "ui.wheel", "prop": "backgroundStyle", "preset": true}
+      {"name": "Background style", "type": "combo", "options": {"module": "canvas", "prop": "brushesTypes"}, "module": "ui.wheel", "prop": "backgroundStyle", "external": {"module": "canvas", "prop": "brushesTypes", "pickerName": "background_styles"}, "preset": true}
     ]},
     {"name": "Animations", "options": [
       {"name": "Scroll animation duration", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "scrollAnimationDuration"},

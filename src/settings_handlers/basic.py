@@ -261,6 +261,11 @@ class ComboHandler(BaseHandler):
         wid.setCurrentText(value)
         return True
 
+    def linkElem(self, elem, registriesName):
+        elem.setProperty("registriesName", registriesName)
+        elem.currentTextChanged.connect(self.parent_obj().showLinkedWidgets)
+        return True
+
 
 handlers = {
     "int": IntHandler,
