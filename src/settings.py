@@ -361,10 +361,11 @@ class SettingsWindow(QWidget):
             self.logger.warning("External registries widget does not have registries name")
 
         for key, pair in self.linked_widgets[linked_to].items():
-            if key == text:
-                pair[0]().setRowVisible(pair[1], True)
-            else:
-                pair[0]().setRowVisible(pair[1], False)
+            for p in pair:
+                if key == text:
+                    p[0]().setRowVisible(p[1], True)
+                else:
+                    p[0]().setRowVisible(p[1], False)
 
     def processItem(self, elem, index, form, tab, registriesName=None):
         if elem.get("name") is not None:
@@ -481,8 +482,10 @@ class SettingsWindow(QWidget):
                     else:
                         ex_registries = elem["external"]
                     
-                    if elem["external"].get("registry") is None:
+                    if elem["external"].get("pickerName") is None:
                         self.logger.error("No registry specified for element " + elem["name"])
+                        continue
+
                     registries_name = elem["external"]["pickerName"]
                     
                     self.processItem(elem, index, form, tab, registriesName=registries_name)
@@ -491,7 +494,7 @@ class SettingsWindow(QWidget):
 
                     for reg_name in ex_registries:
                         if self.external_reg.get(reg_name) is None:
-                            self.logger.error("No such external registry: " + reg_name)
+                            self.logger.warning("No such external registry: " + reg_name)
                             continue
 
                         exr = self.external_reg[reg_name]
@@ -504,9 +507,11 @@ class SettingsWindow(QWidget):
                             self.logger.warning("External registry " + reg_name + " is not a list")
                             continue
 
-                        for j, reg in enumerate(exr["items"]):
+                        self.linked_widgets[registries_name][exr["extra"]["linkedCombo"]] = []
+
+                        for reg in exr["items"]:
                             form_row = self.processItem(reg, index, form, tab)
-                            self.linked_widgets[registries_name][exr["extra"]["linkedCombo"]] = (weakref.ref(form), form_row)
+                            self.linked_widgets[registries_name][exr["extra"]["linkedCombo"]].append((weakref.ref(form), form_row))
 
                 else:
                     self.processItem(elem, index, form, tab)

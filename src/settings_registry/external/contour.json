@@ -1,6 +1,9 @@
 {
   "name": "contour",
   "items": [
-    {"name": "Use cache", "type": "bool", "module": "canvas", "prop": "brush_configs.contour.useCache"}
+    {"name": "Use cache", "type": "bool", "module": "canvas", "prop": "brush_configs.contour.useCache"},
+    {"name": "Background color", "type": "color", "module": "canvas", "prop": "brush_configs.contour.backgroundColor"},
+    {"name": "Seed", "type": "int", "module": "canvas", "prop": "brush_configs.contour.seed"},
+    {"name": "Random seed", "type": "int", "module": "canvas", "prop": "brush_configs.contour.randomSeed"}
   ]
 }
