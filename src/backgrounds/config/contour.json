@@ -1,6 +1,7 @@
 {
     "useCache": true,
     "backgroundColor": "#ffffff",
-    "seed": 42,
-    "randomSeed": true
+    "seed": 70899,
+    "randomSeed": true,
+    "generator": "Trigonometric"
 }

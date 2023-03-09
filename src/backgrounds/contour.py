@@ -81,15 +81,21 @@ class ContourBackground(Background):
             if a == 2:
                 return sign() * y + random.randint(-20, 20)
 
-        def function(x, y):
+        def sine_family(x, y):
+            return sign()*np.sin(getXY(x, y)) + sign()*np.cos(getXY(x, y))
+        
+        def perlin_gen(x, y):
             return perlin(x, y, seed=self.conf["seed"])
-            # return sign()*np.sin(getXY(x, y)) + sign()*np.cos(getXY(x, y))
 
         # Generating data
         x = np.linspace(0, 5, 50)
         y = np.linspace(0, 5, 50)
         x, y = np.meshgrid(x, y)
-        z = function(x, y)
+
+        if self.conf["generator"] == "Perlin":
+            z = perlin_gen(x, y)
+        else:
+            z = sine_family(x, y)
 
         # Plotting the contour plot
         plt.contour(x, y, z, colors=self.conf["wheelTextureColor"])
