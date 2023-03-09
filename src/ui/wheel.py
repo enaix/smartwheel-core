@@ -3,6 +3,7 @@ import math
 # import importlib
 import os
 import weakref
+from queue import LifoQueue
 
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
@@ -139,8 +140,7 @@ class UIElem(BaseUIElem):
         self._opacity = 0
         self._sections_pos = 0
         self.global_shadow = False
-        self.wheelUp = True
-        self.noWheelScroll = False
+        self.wheelUp = LifoQueue()
 
     def _set_angle(self, a):
         self._angle = a
@@ -192,7 +192,7 @@ class UIElem(BaseUIElem):
     def processKey(self, up):
         # self.scrollModule(up)
 
-        self.wheelUp = up
+        self.wheelUp.put(up)
         if self.is_scroll_anim_running:
             self.updateAnimation(up)
         else:
@@ -221,7 +221,7 @@ class UIElem(BaseUIElem):
 
     def quickSwitch(self, up):
         # self.scrollModule(up)
-        self.wheelUp = up
+        self.wheelUp.put(up)
 
         if self.is_scroll_anim_running:
             self.updateAnimation(up)
@@ -274,11 +274,10 @@ class UIElem(BaseUIElem):
         self.anim_angle = self._angle
         self._sections_pos = 0
         self._opacity = 0
-        self.wheelUp = True
+        self.wheelUp = LifoQueue()
 
         self.global_shadow = True
         self.resetShadowAnimation()
-        self.noWheelScroll = True
         self.startShadowAnimation()
 
     def reloadModules(self, modules):
@@ -364,8 +363,8 @@ class UIElem(BaseUIElem):
 
     @pyqtSlot()
     def shadowAnimationMiddle(self):
-        if not self.noWheelScroll:
-            self.scrollModule(self.wheelUp)
+        if not self.wheelUp.empty():
+            self.scrollModule(self.wheelUp.get())
 
         self.resetShadowAnimation(False)
         self.shadow_anim.finished.disconnect()
@@ -384,8 +383,6 @@ class UIElem(BaseUIElem):
         self.shadow_anim.start()
         self.is_shadow_anim_running = True
         self.resetShadowAnimation()
-        if up == False:
-            self.noWheelScroll = False
 
     def initSectionsAnimation(self):
         self.is_sections_anim_running = False

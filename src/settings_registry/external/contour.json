@@ -3,8 +3,8 @@
   "items": [
     {"name": "Use cache", "type": "bool", "module": "canvas", "prop": "brush_configs.contour.useCache"},
     {"name": "Random seed", "type": "bool", "module": "canvas", "prop": "brush_configs.contour.randomSeed"},
-    {"name": "Background color", "type": "color", "module": "canvas", "prop": "brush_configs.contour.backgroundColor"},
-    {"name": "Seed", "type": "int", "module": "canvas", "prop": "brush_configs.contour.seed"},
-    {"name": "Terrain generator", "type": "combo", "options": ["Trigonometric", "Perlin"], "module": "canvas", "prop": "brush_configs.contour.generator"}
+    {"name": "Background color", "type": "color", "module": "canvas", "prop": "brush_configs.contour.backgroundColor", "preset": true},
+    {"name": "Seed", "type": "int", "module": "canvas", "prop": "brush_configs.contour.seed", "preset": true},
+    {"name": "Terrain generator", "type": "combo", "options": ["Trigonometric", "Perlin"], "module": "canvas", "prop": "brush_configs.contour.generator", "preset": true}
   ]
 }

@@ -125,7 +125,7 @@ class PresetHandler(BaseHandler):
                 self.sender(),
                 "New preset",
                 "Preset name:",
-                QLineEdit.Normal,
+                QLineEdit.EchoMode.Normal,
                 "Preset" + str(caller().currentIndex() + 1),
             )
 

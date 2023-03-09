@@ -14,6 +14,13 @@
         "common.wheelTextureColor": "#404040",
         "common.selectionWheelBG": "#171717",
         "common.selectionWheelFG": "#cccccc",
-        "ui.wheel.pointerColor": "#ffffff"
+        "ui.wheel.pointerColor": "#ffffff",
+        "ui.wheel.wheelShadowColor": "#313131",
+        "common.wheelIconColor": "#ffffff",
+        "common.sectionsIconColor": "#ffffff",
+        "ui.wheel.backgroundStyle": "diagonal",
+        "canvas.brush_configs.contour.backgroundColor": "#ffffff",
+        "canvas.brush_configs.contour.seed": 42,
+        "canvas.brush_configs.contour.generator": "Trigonometric"
     }
 }
