@@ -27,7 +27,9 @@
       {"name": "Background sections color", "type": "color", "module": "common", "prop": "selectionWheelBG", "preset": true},
       {"name": "Foreground sections color", "type": "color", "module": "common", "prop": "selectionWheelFG", "preset": true},
       {"name": "Pointer color", "type": "color", "module": "ui.wheel", "prop": "pointerColor", "preset": true},
-      {"name": "Wheel folder switch color", "type": "color", "module": "ui.wheel", "prop": "wheelShadowColor", "preset": true}
+      {"name": "Wheel folder switch color", "type": "color", "module": "ui.wheel", "prop": "wheelShadowColor", "preset": true},
+      {"name": "Wheel icons color", "type": "color", "module": "common", "prop": "wheelIconColor"},
+      {"name": "Sections icon color", "type": "color", "module": "common", "prop": "sectionsIconColor"}
     ]},
     {"name": "Background", "options": [
       {"name": "Background style", "type": "combo", "options": {"module": "canvas", "prop": "brushesTypes"}, "module": "ui.wheel", "prop": "backgroundStyle", "preset": true}

@@ -6,6 +6,7 @@ from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
 import config
+import gui_tools
 from tools import merge_dicts
 from ui.base import BaseUIElem
 
@@ -27,7 +28,7 @@ class UIElem(BaseUIElem):
 
     def initGUI(self):
         self.updateVars()
-        self.pixmap = QImage(
+        self.pixmap = QPixmap(
             os.path.join(self.conf["iconsFolder"], self.conf["icons"][0])
         )
         self.pixmap = self.pixmap.scaled(
@@ -35,6 +36,7 @@ class UIElem(BaseUIElem):
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation,
         )
+        gui_tools.icon_managers["wheel"].colorPixmap(self.pixmap)
 
     def updateVars(self, offset=0):
         self.width = ((self.conf["width"] + offset) * 3) // 4
@@ -133,7 +135,7 @@ class UIElem(BaseUIElem):
 
     def draw(self, qp, offset):
         self.updateVars(offset)
-        qp.drawImage(
+        qp.drawPixmap(
             QPointF(
                 self.conf["cx"] - self.pix_width // 2,
                 self.conf["cy"] - self.pix_height * 1.5,

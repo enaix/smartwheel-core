@@ -11,6 +11,7 @@ from PyQt6.QtGui import *
 
 import common
 import config
+import gui_tools
 from actionengine import ActionEngine
 from tools import merge_dicts
 
@@ -62,6 +63,8 @@ class RootCanvas:
         if not self.common_config.loadConfig():
             self.logger.error("Could not find common config file. Exiting..")
             os.exit(1)
+
+        self.updateIconCache()
 
     def loadModules(self):
         """
@@ -239,6 +242,20 @@ class RootCanvas:
         self.ae.canvas = weakref.ref(self)
         self.ae.wheel = weakref.ref(self.conf["modules"][0]["class"])
 
+    def updateIconCache(self):
+        """
+        Will only be called if icon color has been changed
+        """
+        res1 = gui_tools.icon_managers["wheel"].setIconColor(
+            self.common_config["wheelIconColor"]
+        )
+        return (
+            gui_tools.icon_managers["sections"].setIconColor(
+                self.common_config["sectionsIconColor"]
+            )
+            or res1
+        )
+
     def calculateSmoothFPS(self, new_time):
         """
         Calculate the average render time out of n frames
@@ -282,10 +299,14 @@ class RootCanvas:
         #    self.conf["modules"][i]["class"].draw(qp)
         self.conf["modules"][0]["class"].draw(qp)  # render wheel
         m = self.getWheelModule()
-        if self.conf["modules"][0]["class"].is_anim_running or (
-            m is not None
-            and hasattr(m["class"], "is_anim_running")
-            and m["class"].is_anim_running
+        if (
+            self.conf["modules"][0]["class"].is_anim_running
+            or (
+                m is not None
+                and hasattr(m["class"], "is_anim_running")
+                and m["class"].is_anim_running
+            )
+            or self.updateIconCache()
         ):
             if self.conf["stabilizeFPS"]:
                 sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)

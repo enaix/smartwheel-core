@@ -15,4 +15,5 @@ Modules navigation
    settings
    settings_handlers
    tools
+   gui_tools
    backgrounds

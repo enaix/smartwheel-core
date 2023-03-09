@@ -8,6 +8,7 @@ from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
 import config
+import gui_tools
 from tools import merge_dicts
 from ui.base import BaseUIElem
 
@@ -27,6 +28,7 @@ class Section:
             self.load_module()
         if self.pixmap is not None:
             self.scale_pixmap()
+            self.color_pixmap()
 
     def load_module(self):
         # mod = importlib.import_module(self.module["name"])
@@ -35,8 +37,7 @@ class Section:
         if self.module["class"].icon_path is None:
             self.pixmap = None  # QImage(os.path.join(self.parent().conf["iconsFolder"], "folder.png"))
         else:
-            # TODO replace with bitmap/pixmap
-            self.pixmap = QImage(
+            self.pixmap = QPixmap(
                 os.path.join(
                     self.parent().conf["iconsFolder"], self.module["class"].icon_path
                 )
@@ -61,6 +62,9 @@ class Section:
             Qt.TransformationMode.SmoothTransformation,
         )
 
+    def color_pixmap(self):
+        gui_tools.icon_managers["sections"].colorPixmap(self.pixmap)
+
     def reload_module(self, module):
         self.module = module
         self.pixmap = None
@@ -69,9 +73,9 @@ class Section:
         if self.pixmap is not None:
             self.scale_pixmap()
 
-    def draw_icon(self, cx, cy):
+    def draw_icon(self, coords):
         if self.pixmap is not None:
-            self.parent().qp.drawImage(QPointF(cx, cy), self.pixmap)
+            self.parent().qp.drawPixmap(QPointF(*coords), self.pixmap)
 
     def calculate_coords(self, a, start, end):
         x1 = self.parent().getX(a, start)
@@ -106,11 +110,14 @@ class Section:
         qp.setBrush(brush)
         qp.setPen(pen)
         qp.drawLine(QPointF(x1, y1), QPointF(x2, y2))
+
         self.draw_icon(
-            ((xa1 + xa2) // 2 + (xb1 + xb2) // 2) // 2
-            - self.parent().conf["pixmapScale"] // 2,
-            ((ya1 + ya2) // 2 + (yb1 + yb2) // 2) // 2
-            - self.parent().conf["pixmapScale"] // 2,
+            (
+                ((xa1 + xa2) // 2 + (xb1 + xb2) // 2) // 2
+                - self.parent().conf["pixmapScale"] // 2,
+                ((ya1 + ya2) // 2 + (yb1 + yb2) // 2) // 2
+                - self.parent().conf["pixmapScale"] // 2,
+            )
         )
 
 
@@ -322,15 +329,15 @@ class UIElem(BaseUIElem):
         self.qp.setPen(pen)
         opac = self._opacity / 255  # [0.0, 1.0]
 
-        #self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_Destination)
+        # self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_Destination)
 
         self.qp.setOpacity(opac)
         brush = QBrush(QColor(self.conf["bgWheelColor"]))
         self.qp.setBrush(brush)
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
 
-        #brush = self.parent().brushes.get(self.conf["backgroundStyle"])
-        #if brush is None:
+        # brush = self.parent().brushes.get(self.conf["backgroundStyle"])
+        # if brush is None:
         brush = QBrush(
             QColor(self.conf["wheelShadowColor"]),
         )
@@ -339,7 +346,7 @@ class UIElem(BaseUIElem):
         self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
 
         self.qp.setOpacity(1.0)
-        #self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
+        # self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
     def initShadowAnimation(self):
         self.is_shadow_anim_running = False
@@ -421,6 +428,17 @@ class UIElem(BaseUIElem):
     def drawSections(self, w, cw):
         for s in self.sections:
             s.draw(self.qp, w, cw)
+
+        """
+        self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        color = QColor(self.conf["iconColor"])
+        self.qp.setBrush(color)
+        self.qp.setPen(color)
+        self.qp.drawRect(self.conf["corner_x"], self.conf["corner_y"], self.conf["width"], self.conf["height"])
+        for s in self.sections:
+            s.draw_icon()
+        """
+
         pen = QPen(QColor(self.conf["pointerColor"]), 3, Qt.PenStyle.SolidLine)
         self.qp.setPen(pen)
         # draw pointer
@@ -448,14 +466,14 @@ class UIElem(BaseUIElem):
         self.qp.setPen(pen)
         brush = QBrush(QColor(self.conf["bgWheelColor"]))
         self.qp.setBrush(brush)
-        
+
         self.qp.drawEllipse(
             QPoint(self.conf["cx"], self.conf["cy"]),
             circleWidth // 2,
             circleHeight // 2,
         )
 
-        #self.qp.setOpacity(1.0 - self._opacity / 255)
+        # self.qp.setOpacity(1.0 - self._opacity / 255)
         brush = self.parent().brushes.get(self.conf["backgroundStyle"])
         if brush is None:
             brush = QBrush(
@@ -468,7 +486,7 @@ class UIElem(BaseUIElem):
             circleWidth // 2,
             circleHeight // 2,
         )
-        #self.qp.setOpacity(1.0)
+        # self.qp.setOpacity(1.0)
         self.drawOverlays(1 - self._opacity / 255, circleWidth)
 
     def drawOverlays(self, opacity, circleWidth):
@@ -559,7 +577,7 @@ class UIElem(BaseUIElem):
 
         if self.global_shadow:
             self.drawShadow(self.conf["width"])
-        #else:
+        # else:
         #    self.drawShadow(circleWidth)
 
         self.drawOverlays(self._opacity / 255, circleWidth)
