@@ -363,7 +363,7 @@ class UIElem(BaseUIElem):
 
     @pyqtSlot()
     def shadowAnimationMiddle(self):
-        if not self.wheelUp.empty():
+        while not self.wheelUp.empty():
             self.scrollModule(self.wheelUp.get())
 
         self.resetShadowAnimation(False)
@@ -373,9 +373,12 @@ class UIElem(BaseUIElem):
     def startShadowAnimation(self, up=True):
         dur = self.conf["shadowAnimationDuration"]
         if self.is_shadow_anim_running == True:
-            if not self.wheelUp.empty():
-                self.scrollModule(self.wheelUp.get())
+            #if not self.wheelUp.empty():
+            #    self.scrollModule(self.wheelUp.get())
             self.shadow_anim.stop()
+            self.shadow_anim_start = self._opacity
+            dur = dur * (1 - abs(self.shadow_anim_start - self._opacity) / 255)
+
         self.shadow_anim.setStartValue(self.shadow_anim_start)
         self.shadow_anim.setEndValue(self.shadow_anim_end)
         # self.shadow_anim.setEndValue(self.shadow_anim_end)
