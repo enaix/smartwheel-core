@@ -1,6 +1,9 @@
 {
   "enable_presets": true,
   "items": [
+    {"name": "Theming", "options": [
+      {"name": "Application theme", "type": "preset", "folder": "appearance", "module": "main", "prop": "presets.appearance"}
+    ]},
     {"name": "Wheel rendering", "options": [
       {"name": "Set fixed wheel size", "type": "bool", "module": "common", "prop": "isWheelWidthFixed"},
       {"name": "Fixed wheel width", "type": "int", "min": 0, "max": 10000, "module": "common", "prop": "fixedWheelWidth"},
@@ -36,9 +39,6 @@
       {"name": "Shadow animation duration", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "shadowAnimationDuration"},
       {"name": "Sections animation duration", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "sectionsAnimationDuration"},
       {"name": "Sections hide timeout", "type": "int", "min": 0, "max": 10000, "module": "ui.wheel", "prop": "sectionsHideTimeout"}
-    ]},
-    {"name": "Theming", "options": [
-      {"name": "Application theme", "type": "preset", "folder": "appearance", "module": "main", "prop": "presets.appearance"}
     ]}
   ]
 }

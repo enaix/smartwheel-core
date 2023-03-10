@@ -134,7 +134,7 @@ class ContourBackground(Background):
                 return False
         return True
 
-    def updatePixmap(self, key):
+    def updatePixmap(self):
         pix = self.genContour()
         self.setTexture(pix)
 

@@ -12,6 +12,7 @@ class ConfigManager(QObject):
 
     save = pyqtSignal()
     updated = pyqtSignal(str)
+    batchUpdate = pyqtSignal(list)
 
     def __init__(self):
         super(ConfigManager, self).__init__()

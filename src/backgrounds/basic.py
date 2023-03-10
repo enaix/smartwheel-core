@@ -21,7 +21,7 @@ class PatternBackground(Background):
         
         self.draw()
     
-    def draw(self, *args, **kwargs):
+    def draw(self):
         self.setColor(QColor(self.conf["wheelTextureColor"]))
 
         if self.pattern_map.get(self.conf["patternType"]) is not None:

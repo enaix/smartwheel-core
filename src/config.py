@@ -15,12 +15,12 @@ class Config(QObject):
 
     It acts like collections.ChainMap: all source dicts are stored while merging (update method), which is used in updating settings on-the-fly.
 
-    If any property is updated, Config emits `updated(key)` signal.
+    If any property is updated, Config emits `updated()` signal.
 
     Note: assertion does not work directly! Config = some_other_dict cannot be overloaded, use Config.c = some_other_dict instead.
     """
 
-    updated = pyqtSignal(str)
+    updated = pyqtSignal()
 
     def __init__(
         self,
@@ -66,6 +66,7 @@ class Config(QObject):
 
         common.config_manager.save.connect(self.saveConfig)
         common.config_manager.updated.connect(self.__updated)
+        common.config_manager.batchUpdate.connect(self.__batchUpdate)
 
     def __fetchkey(self, key):
         """
@@ -140,8 +141,25 @@ class Config(QObject):
         """
         if self.get(key) is not None:
             if self.updateFunc is not None:
-                self.updateFunc(key)
-            self.updated.emit(key)
+                self.updateFunc()
+            self.updated.emit()
+    
+    @pyqtSlot(list)
+    def __batchUpdate(self, keys):
+        """
+        Call the update signal if multiple properties may be updated
+
+        Parameters
+        ==========
+        keys
+            Updated keys
+        """
+        for key in keys:
+            if self.get(key) is not None:
+                if self.updateFunc is not None:
+                    self.updateFunc()
+                self.updated.emit()
+                break
 
     def __len__(self):
         return len(self.c)

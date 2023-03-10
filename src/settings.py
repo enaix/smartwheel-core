@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import weakref
+from queue import LifoQueue
 
 from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtWidgets import (
@@ -52,6 +53,9 @@ class SettingsWindow(QWidget):
         self.preset_tabs = {}
         self.conf["presets"] = {}
         self.linked_widgets = {}
+        self.presets_queue = LifoQueue()
+        self.presets_update_queue = []
+        self.isLoaded = False
 
         self.initLayout()
 
@@ -274,7 +278,10 @@ class SettingsWindow(QWidget):
         props = prop.split(".")
 
         self.dictWalk(self.settings[module], props, value, index)
-        common.config_manager.updated.emit(props[-1:][0])
+        if self.isLoaded:
+            common.config_manager.updated.emit(props[-1:][0])
+        else:
+            self.presets_update_queue.append(props[-1:][0])
 
         self.main_class().update()
 
@@ -328,9 +335,12 @@ class SettingsWindow(QWidget):
         for key, value in preset["props"].items():
             p_elem = self.preset_tabs[index].get(key)
             if p_elem is None:
-                self.logger.warning(
-                    "Could not find " + key + " widget from preset " + preset["title"]
-                )
+                if not self.isLoaded:
+                    self.presets_queue.put((index, name))
+                else:
+                    self.logger.warning(
+                        "Could not find " + key + " widget from preset " + preset["title"]
+                    )
                 continue
 
             elem, handler = p_elem
@@ -565,3 +575,12 @@ class SettingsWindow(QWidget):
         baseLayout.addLayout(bottomPanel)
 
         self.setLayout(baseLayout)
+
+        while not self.presets_queue.empty():
+            self.loadPreset(*self.presets_queue.get())
+        
+        self.isLoaded = True
+
+        # updating properties
+        if self.presets_update_queue:
+            common.config_manager.batchUpdate.emit(self.presets_update_queue)
