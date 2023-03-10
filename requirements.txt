@@ -4,3 +4,4 @@ pyqt6
 numpydoc
 pyqtdarktheme
 swcolorpicker
+matplotlib
