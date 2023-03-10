@@ -274,6 +274,7 @@ class SettingsWindow(QWidget):
         props = prop.split(".")
 
         self.dictWalk(self.settings[module], props, value, index)
+        common.config_manager.updated.emit(props[-1:][0])
 
         self.main_class().update()
 

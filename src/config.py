@@ -2,7 +2,7 @@ import json
 import os
 import weakref
 
-from PyQt6.QtCore import QObject, pyqtSlot
+from PyQt6.QtCore import QObject, pyqtSlot, pyqtSignal
 
 import common
 
@@ -15,8 +15,12 @@ class Config(QObject):
 
     It acts like collections.ChainMap: all source dicts are stored while merging (update method), which is used in updating settings on-the-fly.
 
+    If any property is updated, Config emits `updated(key)` signal.
+
     Note: assertion does not work directly! Config = some_other_dict cannot be overloaded, use Config.c = some_other_dict instead.
     """
+
+    updated = pyqtSignal(str)
 
     def __init__(
         self,
@@ -26,6 +30,7 @@ class Config(QObject):
         ignoreNewVars=True,
         varsWhitelist=[],
         varsBlacklist=[],
+        updateFunc=None
     ):
         """
         Initialize Config object
@@ -45,6 +50,8 @@ class Config(QObject):
             (Optional) List of keys that override ignoreNewVars option (all new children variables of any depth will be saved)
         varsBlacklist
             (Optional) List of keys that contain runtime variables, new children variables of any depth are ignored
+        updateFunc
+            (Optional) Update function to call when settings are updated. Use only if signals are not supported
         """
         super(Config, self).__init__()
         self.config_file = config_file
@@ -54,9 +61,11 @@ class Config(QObject):
         self.ignoreNew = ignoreNewVars
         self.whitelist = varsWhitelist
         self.blacklist = varsBlacklist
+        self.updateFunc = updateFunc
         self.links = []  # Storing source dicts to allow updating the variables
 
         common.config_manager.save.connect(self.saveConfig)
+        common.config_manager.updated.connect(self.__updated)
 
     def __fetchkey(self, key):
         """
@@ -118,6 +127,21 @@ class Config(QObject):
             Right-hand side value
         """
         self.c[key] = newvalue
+
+    @pyqtSlot(str)
+    def __updated(self, key):
+        """
+        Call the update signal if the property is updated
+
+        Parameters
+        ==========
+        key
+            Updated key
+        """
+        if self.get(key) is not None:
+            if self.updateFunc is not None:
+                self.updateFunc(key)
+            self.updated.emit(key)
 
     def __len__(self):
         return len(self.c)

@@ -1,5 +1,6 @@
 import json
 import os
+import config
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
@@ -10,6 +11,7 @@ class ConfigManager(QObject):
     """
 
     save = pyqtSignal()
+    updated = pyqtSignal(str)
 
     def __init__(self):
         super(ConfigManager, self).__init__()

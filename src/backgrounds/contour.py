@@ -5,8 +5,7 @@ import string
 
 import matplotlib.pyplot as plt
 import numpy as np
-from PyQt6.QtCore import QByteArray, QDataStream, Qt
-from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtGui import QPixmap
 
 import common
 import tools
@@ -21,6 +20,9 @@ class ContourBackground(Background):
             self.conf, self.common_config(), include_only=["wheelTextureColor"]
         )
         self.setTexture(self.loadPixmap())
+        
+        self.conf.updateFunc = self.updatePixmap
+        #self.conf.updated.connect(self.updatePixmap)
 
     def genContour(self):
         if self.conf["randomSeed"]:
@@ -111,6 +113,8 @@ class ContourBackground(Background):
         plt.savefig(img_buf, format="png")
         img_buf.seek(0)
 
+        plt.close()
+
         if self.conf["useCache"]:
             filepath = common.cache_manager.save(
                 "background_contour", "contour1.png", self.conf
@@ -129,6 +133,10 @@ class ContourBackground(Background):
             if not self.conf.get(p) == conf.get(p):
                 return False
         return True
+
+    def updatePixmap(self, key):
+        pix = self.genContour()
+        self.setTexture(pix)
 
     def loadPixmap(self):
         if self.conf["useCache"] and not self.conf["randomSeed"]:
