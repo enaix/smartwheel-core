@@ -204,6 +204,8 @@ class SettingsWindow(QWidget):
         """
         Recursively walk in nested dicts and apply value
 
+        Returns True if new value is different
+
         Parameters
         ==========
         d
@@ -231,13 +233,17 @@ class SettingsWindow(QWidget):
 
         if len(props) == 1:
             if index is None:
+                new = not w[key].get(props[0]) == value
                 w[key][props[0]] = value
             elif type(index) == list:
+                new = False
                 for i in index:
+                    new = new or (not w[key][props[0]][i] == value)
                     w[key][props[0]][i] = value
             else:
+                new = not w[key][props[0]][index] == value
                 w[key][props[0]][index] = value
-            return
+            return new
 
         # Python reference hack, we use a mutable type as a wrapper
         wrapper = {"_" + str(_i): w[key][props[0]]}
@@ -277,13 +283,13 @@ class SettingsWindow(QWidget):
 
         props = prop.split(".")
 
-        self.dictWalk(self.settings[module], props, value, index)
-        if self.isLoaded:
-            common.config_manager.updated.emit(props[-1:][0])
-        else:
-            self.presets_update_queue.append(props[-1:][0])
+        if self.dictWalk(self.settings[module], props, value, index):
+            if self.isLoaded:
+                common.config_manager.updated.emit(props[-1:][0])
+            else:
+                self.presets_update_queue.append(props[-1:][0])
 
-        self.main_class().update()
+            self.main_class().update()
 
     def savePreset(self, index, name, title, filepath):
         """

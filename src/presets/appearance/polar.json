@@ -4,10 +4,10 @@
     "props": {
         "ui.wheel.drawOverlayCircles": true,
         "ui.wheel.drawOverlayRects": true,
-        "ui.wheel.overlayCirclesOpacity": 0.20000000000000004,
+        "ui.wheel.overlayCirclesOpacity": 0.2,
         "ui.wheel.overlayCirclesWidth": 10,
         "ui.wheel.overlayCirclesColor": "#3a3a3a",
-        "ui.wheel.overlayRectsOpacity": 0.20000000000000004,
+        "ui.wheel.overlayRectsOpacity": 0.2,
         "ui.wheel.overlayRectsWidth": 20,
         "ui.wheel.overlayRectsColor": "#3a3a3a",
         "common.bgWheelColor": "#171717",
@@ -18,7 +18,10 @@
         "ui.wheel.wheelShadowColor": "#313131",
         "common.wheelIconColor": "#262626",
         "common.sectionsIconColor": "#262626",
+        "common.majorTextColor": "#000000",
         "ui.wheel.backgroundStyle": "contour",
+        "canvas.brush_configs.pattern.patternType": "Diagonal (right)",
+        "canvas.brush_configs.pattern.patternScale": 1.0,
         "canvas.brush_configs.contour.backgroundColor": "#ffffff",
         "canvas.brush_configs.contour.seed": 42,
         "canvas.brush_configs.contour.generator": "Trigonometric"

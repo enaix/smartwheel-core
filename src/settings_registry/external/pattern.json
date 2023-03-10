@@ -3,6 +3,7 @@
   "items": [
     {"name": "Pattern type", "type": "combo",
     "options": ["Diagonal (right)", "Grid", "Diagonal (left)", "Cross", "Vertical", "Horizontal", "Dots 1", "Dots 2", "None"],
-    "module": "canvas", "prop": "brush_configs.pattern.patternType"}
+    "module": "canvas", "prop": "brush_configs.pattern.patternType", "preset": true},
+    {"name": "Scale", "type": "float", "min": 0.01, "max": 100.0, "module": "canvas", "prop": "brush_configs.pattern.patternScale", "preset": true}
   ]
 }

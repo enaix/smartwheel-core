@@ -106,7 +106,7 @@ class UIElem(BaseUIElem):
     def drawHeaderText(self, qp, t):
         self.drawText(
             qp,
-            self.conf["style"]["textHeaderColor"],
+            self.conf["majorTextColor"],
             self.conf["style"]["textHeaderFont"],
             self.conf["style"]["textHeaderSize"],
             1,
@@ -116,7 +116,7 @@ class UIElem(BaseUIElem):
     def drawBottomText(self, qp, t):
         self.drawText(
             qp,
-            self.conf["style"]["bottomTextColor"],
+            self.conf["majorTextColor"],
             self.conf["style"]["bottomTextFont"],
             self.conf["style"]["bottomTextSize"],
             2,
@@ -126,7 +126,7 @@ class UIElem(BaseUIElem):
     def drawTrackSeek(self, qp, t1, t2):
         self.drawText(
             qp,
-            self.conf["style"]["seekTextColor"],
+            self.conf["majorTextColor"],
             self.conf["style"]["seekTextFont"],
             self.conf["style"]["seekTextSize"],
             3,

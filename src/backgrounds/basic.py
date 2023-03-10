@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QTransform
 
 from .base import Background
 import tools
@@ -28,6 +28,10 @@ class PatternBackground(Background):
             self.setStyle(self.pattern_map[self.conf["patternType"]])
         else:
             return
+
+        tf = QTransform()
+        tf.scale(self.conf["patternScale"], self.conf["patternScale"])
+        self.setTransform(tf)
 
 
 brushes = {"pattern": PatternBackground}
