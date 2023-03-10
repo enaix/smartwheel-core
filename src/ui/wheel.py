@@ -373,6 +373,8 @@ class UIElem(BaseUIElem):
     def startShadowAnimation(self, up=True):
         dur = self.conf["shadowAnimationDuration"]
         if self.is_shadow_anim_running == True:
+            if not self.wheelUp.empty():
+                self.scrollModule(self.wheelUp.get())
             self.shadow_anim.stop()
         self.shadow_anim.setStartValue(self.shadow_anim_start)
         self.shadow_anim.setEndValue(self.shadow_anim_end)
