@@ -5,7 +5,7 @@
     {"name": "Input", "config": "serial.json"}
   ],
   "external":
-  {"contour": {"linkedCombo": "contour"}},
+  {"contour": {"linkedCombo": "contour"}, "pattern": {"linkedCombo": "pattern"}},
   "groupMinimalHeight": 100,
   "fieldWidth": 200,
   "settings_handlers_dir": "settings_handlers"

@@ -2,20 +2,32 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 
 from .base import Background
+import tools
 
 
-class DiagBackground(Background):
+class PatternBackground(Background):
     def __init__(self, common_config, conf, canvas):
-        super(DiagBackground, self).__init__(common_config, conf, canvas)
-        self.setStyle(Qt.BrushStyle.BDiagPattern)
-        self.setColor(QColor(self.common_config()["wheelTextureColor"]))
+        super(PatternBackground, self).__init__(common_config, conf, canvas)
+        tools.merge_dicts(
+            self.conf, self.common_config(), include_only=["wheelTextureColor"]
+        )
+        
+        self.conf.updateFunc = self.draw
+
+        self.pattern_map = {"Diagonal (right)": Qt.BrushStyle.BDiagPattern, "Grid": Qt.BrushStyle.CrossPattern, "Diagonal (left)": Qt.BrushStyle.FDiagPattern,
+                            "Cross": Qt.BrushStyle.DiagCrossPattern, "Vertical": Qt.BrushStyle.VerPattern, "Horizontal": Qt.BrushStyle.HorPattern,
+                            "Dots 1": Qt.BrushStyle.Dense7Pattern, "Dots 2": Qt.BrushStyle.Dense6Pattern,
+                            "None": Qt.BrushStyle.NoBrush}
+        
+        self.draw()
+    
+    def draw(self, *args, **kwargs):
+        self.setColor(QColor(self.conf["wheelTextureColor"]))
+
+        if self.pattern_map.get(self.conf["patternType"]) is not None:
+            self.setStyle(self.pattern_map[self.conf["patternType"]])
+        else:
+            return
 
 
-class GridBackground(Background):
-    def __init__(self, common_config, conf, canvas):
-        super(GridBackground, self).__init__(common_config, conf, canvas)
-        self.setStyle(Qt.BrushStyle.CrossPattern)
-        self.setColor(QColor(self.common_config()["wheelTextureColor"]))
-
-
-brushes = {"diagonal": DiagBackground, "grid": GridBackground}
+brushes = {"pattern": PatternBackground}

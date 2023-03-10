@@ -1,0 +1,8 @@
+{
+  "name": "pattern",
+  "items": [
+    {"name": "Pattern type", "type": "combo",
+    "options": ["Diagonal (right)", "Grid", "Diagonal (left)", "Cross", "Vertical", "Horizontal", "Dots 1", "Dots 2", "None"],
+    "module": "canvas", "prop": "brush_configs.pattern.patternType"}
+  ]
+}

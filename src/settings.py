@@ -361,6 +361,9 @@ class SettingsWindow(QWidget):
         if linked_to is None:
             self.logger.warning("External registries widget does not have registries name")
 
+        self._showWidgets(linked_to, text)
+    
+    def _showWidgets(self, linked_to, text):
         for key, pair in self.linked_widgets[linked_to].items():
             for p in pair:
                 if key == text:
@@ -439,7 +442,7 @@ class SettingsWindow(QWidget):
             else:
                 form.addRow(widWrapper)
             
-        return form.rowCount() - 1
+        return form.rowCount() - 1, wid
 
     def initTab(self, index):
         """
@@ -489,7 +492,7 @@ class SettingsWindow(QWidget):
 
                     registries_name = elem["external"]["pickerName"]
                     
-                    self.processItem(elem, index, form, tab, registriesName=registries_name)
+                    _, controller = self.processItem(elem, index, form, tab, registriesName=registries_name)
 
                     self.linked_widgets[registries_name] = {}
 
@@ -511,8 +514,10 @@ class SettingsWindow(QWidget):
                         self.linked_widgets[registries_name][exr["extra"]["linkedCombo"]] = []
 
                         for reg in exr["items"]:
-                            form_row = self.processItem(reg, index, form, tab)
+                            form_row, _ = self.processItem(reg, index, form, tab)
                             self.linked_widgets[registries_name][exr["extra"]["linkedCombo"]].append((weakref.ref(form), form_row))
+                        
+                        self._showWidgets(registries_name, controller.currentText())
 
                 else:
                     self.processItem(elem, index, form, tab)
