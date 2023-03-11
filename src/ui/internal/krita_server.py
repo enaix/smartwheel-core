@@ -51,6 +51,8 @@ class Internal(BaseInternal):
                 self.sendData(self.data.get())
 
     def open_socket(self):
+        if not os.name == "posix":
+            return
         if os.path.exists("/tmp/krita_socket"):
             os.remove("/tmp/krita_socket")
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
