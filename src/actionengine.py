@@ -6,6 +6,7 @@ import weakref
 from PyQt6.QtCore import *
 
 import config
+import tools
 
 
 class ActionEngine(QObject):
@@ -13,7 +14,7 @@ class ActionEngine(QObject):
 
     callAction = pyqtSignal(tuple, name="action_call")
 
-    def __init__(self, modules, config_file):
+    def __init__(self, modules, config_file, WConfig):
         """
         Initialize ActionEngine
 
@@ -23,10 +24,13 @@ class ActionEngine(QObject):
             Wheel modules
         config_file
             Configuration file (actionengine.json)
+        WConfig
+            Canvas config
         """
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.importConfig(config_file)
+        tools.merge_dicts(self.conf, WConfig)
         self.current_module = 0
         self.current_module_getter = None
         self.current_module_list_getter = None
@@ -57,11 +61,10 @@ class ActionEngine(QObject):
         """
         Import actions from `actions` folder
         """
-        for mod in os.listdir("actions"):
-            if mod == "__init__.py" or mod[-3:] != ".py" or mod == "baseaction.py":
-                continue
-            self.actions[mod[:-3]] = importlib.import_module(
-                "actions." + mod[:-3]
+        for mod in self.conf["actionModulesLoad"]:
+            name = self.conf["actionModules"][mod]["name"]
+            self.actions[name.split('.')[-1:][0]] = importlib.import_module(
+                name
             ).Action()
 
     def importWheelActions(self):
@@ -69,11 +72,9 @@ class ActionEngine(QObject):
         Import actions from `actions/wheel` folder
         """
         self.wheel_actions = {}
-        for mod in os.listdir(os.path.join("actions", "wheel")):
-            if mod == "__init__.py" or mod[-3:] != ".py" or mod == "base.py":
-                continue
+        for mod in self.conf["wheelActionModulesLoad"]:
             mod_class = importlib.import_module(
-                "actions.wheel." + mod[:-3]
+                self.conf["wheelActionModules"][mod]["name"]
             ).WheelAction()
             self.wheel_actions[mod_class.type] = mod_class
 

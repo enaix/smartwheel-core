@@ -237,6 +237,7 @@ class RootCanvas:
         self.ae = ActionEngine(
             self.wheel_modules,
             os.path.join(self.config_dir, self.conf["actionEngineConfig"]),
+            self.conf
         )
         self.ae.current_module_list_getter = self.getCurModList
         self.ae.current_module_getter = self.conf["modules"][0]["class"].getCurModule
