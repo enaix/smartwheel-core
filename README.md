@@ -106,6 +106,7 @@ Modules import (.zip)
   - [ ] Files (Initial)
   - [ ] Rotate
   - [ ] Timeline
+  - [ ] MIDI device (with multiple encoders)
   - [ ] Other ...
 - [x] Krita integration (Partial)
   - [x] Color
