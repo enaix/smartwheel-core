@@ -69,6 +69,22 @@
                 "description": "System-wide keyboard listener"
             }
         ],
+        "actionModules": [
+            {
+                "name": "actions.custom"
+            },
+            {
+                "name": "actions.keypress"
+            }
+        ],
+        "wheelActionModules": [
+            {
+                "name": "actions.wheel.module"
+            },
+            {
+                "name": "actions.wheel.wheel"
+            }
+        ],
         "modulesLoad": [
             0
         ],
@@ -79,6 +95,14 @@
         "serialModulesLoad": [
             0,
             2
+        ],
+        "actionModulesLoad": [
+            0,
+            1
+        ],
+        "wheelActionModulesLoad": [
+            0,
+            1
         ],
         "commonConfig": "common.json",
         "actionEngineConfig": "actionengine.json",
@@ -91,6 +115,6 @@
         "cacheDir": "cache"
     },
     "presets": {
-        "appearance": "Custom"
+        "appearance": "Polar"
     }
 }

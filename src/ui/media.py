@@ -58,7 +58,7 @@ class UIElem(BaseUIElem):
 
     def fetchMedia(self):
         if not os.name == "posix":
-            print("Warning: non-POSIX OS detected. Here be dragons!")
+            return "--", "--", "--", "--"
         raw = subprocess.run(["playerctl", "metadata"], capture_output=True).stdout
         pos = subprocess.run(["playerctl", "position"], capture_output=True).stdout
         if raw == "No players found":
