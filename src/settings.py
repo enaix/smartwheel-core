@@ -248,7 +248,7 @@ class SettingsWindow(QWidget):
         # Python reference hack, we use a mutable type as a wrapper
         wrapper = {"_" + str(_i): w[key][props[0]]}
 
-        self.dictWalk(wrapper, props[1:], value, index, _i + 1)
+        return self.dictWalk(wrapper, props[1:], value, index, _i + 1)
 
     def setValue(self, obj=None, value=None, module=None, prop=None, index=None):
         """
