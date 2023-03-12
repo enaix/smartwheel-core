@@ -58,9 +58,10 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 - [x] Initial encoders support (Linux)
 - [ ] Refactor api
   - [X] Move to PyQt6
+  - [X] Add colorable icons
+  - [ ] Add keybindings
   - [ ] Add modules asyncio background processes
   - [ ] Finish folders support
-  - [ ] Add colorable icons
 - [ ] Settings menu (in progress)
   - [X] Basic stuff
   - [X] Custom handlers support (Almost)
