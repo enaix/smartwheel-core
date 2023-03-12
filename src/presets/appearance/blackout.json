@@ -1,0 +1,29 @@
+{
+    "name": "blackout",
+    "title": "Blackout",
+    "props": {
+        "ui.wheel.drawOverlayCircles": true,
+        "ui.wheel.drawOverlayRects": false,
+        "ui.wheel.overlayCirclesOpacity": 0.2,
+        "ui.wheel.overlayCirclesWidth": 10,
+        "ui.wheel.overlayCirclesColor": "#2a2a2a",
+        "ui.wheel.overlayRectsOpacity": 0.2,
+        "ui.wheel.overlayRectsWidth": 20,
+        "ui.wheel.overlayRectsColor": "#262626",
+        "common.bgWheelColor": "#000000",
+        "common.wheelTextureColor": "#000000",
+        "common.selectionWheelBG": "#000000",
+        "common.selectionWheelFG": "#000000",
+        "ui.wheel.pointerColor": "#1eff00",
+        "ui.wheel.wheelShadowColor": "#000000",
+        "common.wheelIconColor": "#ffffff",
+        "common.sectionsIconColor": "#ffffff",
+        "common.majorTextColor": "#ffffff",
+        "ui.wheel.backgroundStyle": "pattern",
+        "canvas.brush_configs.pattern.patternType": "None",
+        "canvas.brush_configs.pattern.patternScale": 1.0,
+        "canvas.brush_configs.contour.backgroundColor": "#ffffff",
+        "canvas.brush_configs.contour.seed": 42,
+        "canvas.brush_configs.contour.generator": "Trigonometric"
+    }
+}
