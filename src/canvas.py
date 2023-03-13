@@ -28,10 +28,11 @@ class MDict(dict):
     pass
 
 
-class RootCanvas:
+class RootCanvas(QObject):
     """Main canvas class, manages wheel modules"""
 
     def __init__(self, WConfig, config_dir, update_func):
+        super(RootCanvas, self).__init__()
         self.common_config = None
         self.config_dir = config_dir
         self.conf = WConfig
@@ -44,6 +45,8 @@ class RootCanvas:
         self.loadInternalModules()
         self.loadBrushes()
         self.startInternalModules()
+        self.pool = QThreadPool.globalInstance()
+        self.threads = []
         self.wheel_modules = self.loadSections(self.conf["wheelModules"])
         self.cur_wheel_modules = self.wheel_modules
         if self.wheel_modules == 1:
@@ -55,6 +58,8 @@ class RootCanvas:
         self.exec_time = 0.01
         self.exec_window = 0
         self.exec_times = queue.Queue()
+
+        self.startThreads()
 
     def loadCommonConf(self):
         self.common_config = config.Config(
@@ -188,11 +193,36 @@ class RootCanvas:
         mod = importlib.import_module(module["name"])
         if module.get("config", None) is not None:
             ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)
+
+            if hasattr(ui, "updateSignal"):
+                ui.updateSignal.connect(self.updateCanvas)
+
+            if hasattr(ui, "thread"):
+                self.threads.append(ui.thread)
         else:
             ui = mod.UIElem("", module)
         module["class"] = ui
         # self.pixmap = QImage(self.module["class"].icon_path)
         return module
+
+    @pyqtSlot()
+    def updateCanvas(self):
+        """
+        Call update event to refresh canvas
+        """
+        self.update_func()
+
+    def startThreads(self):
+        for thread in self.threads:
+            self.pool.start(thread)
+
+    @pyqtSlot()
+    def killThreads(self):
+        for thread in self.threads:
+            if hasattr(thread, "shutdown"):
+                thread.shutdown = True
+
+        self.pool.waitForDone(100)
 
     def reloadWheelModules(self, is_up, caller=None):
         if is_up:

@@ -198,6 +198,8 @@ class RootWindow(QMainWindow):
             conf.c_canvas, conf.launch_config["config_dir"], self.update
         )
 
+        QGuiApplication.instance().aboutToQuit.connect(self.rc.killThreads)
+
     def draw(self):
         self.rc.draw(self.qp)
 

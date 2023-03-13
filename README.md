@@ -59,8 +59,8 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 - [ ] Refactor api
   - [X] Move to PyQt6
   - [X] Add colorable icons
-  - [ ] Add keybindings
-  - [ ] Add modules asyncio background processes
+  - [X] Add modules background processes
+  - [ ] Add key combos
   - [ ] Finish folders support
 - [ ] Settings menu (in progress)
   - [X] Basic stuff
