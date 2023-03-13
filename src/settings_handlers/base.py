@@ -65,7 +65,7 @@ class BaseHandler(QObject):
             Value to set
         """
         return False
-    
+
     def linkElem(self, elem, registriesName):
         """
         (External settings registries) Link element to settings group "registriesName"

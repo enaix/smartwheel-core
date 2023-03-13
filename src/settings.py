@@ -78,7 +78,7 @@ class SettingsWindow(QWidget):
                     "r",
                 ) as f:
                     self.conf["tabs"][i]["conf"] = json.load(f)
-            
+
             for key, value in self.conf["external"].items():
                 with open(
                     os.path.join("settings_registry", "external", key + ".json"),
@@ -345,7 +345,10 @@ class SettingsWindow(QWidget):
                     self.presets_queue.put((index, name))
                 else:
                     self.logger.warning(
-                        "Could not find " + key + " widget from preset " + preset["title"]
+                        "Could not find "
+                        + key
+                        + " widget from preset "
+                        + preset["title"]
                     )
                 continue
 
@@ -375,10 +378,12 @@ class SettingsWindow(QWidget):
         linked_to = caller.property("registriesName")
 
         if linked_to is None:
-            self.logger.warning("External registries widget does not have registries name")
+            self.logger.warning(
+                "External registries widget does not have registries name"
+            )
 
         self._showWidgets(linked_to, text)
-    
+
     def _showWidgets(self, linked_to, text):
         for key, pair in self.linked_widgets[linked_to].items():
             for p in pair:
@@ -389,17 +394,23 @@ class SettingsWindow(QWidget):
 
     def processItem(self, elem, index, form, tab, registriesName=None):
         if elem.get("name") is not None:
-                label = QLabel(elem["name"])
+            label = QLabel(elem["name"])
         else:
             label = None
 
         wid = None
-        
+
         elem["tab_index"] = index  # storing the index of the current tab
 
         if self.handlers.get(elem["type"]) is None:
             self.logger.error(
-                "Could not find the handler for type " + elem["type"] + " (" + elem["module"] + "." + elem["prop"] + ")"
+                "Could not find the handler for type "
+                + elem["type"]
+                + " ("
+                + elem["module"]
+                + "."
+                + elem["prop"]
+                + ")"
             )
         else:
             wid = self.handlers[elem["type"]].initElem(elem)
@@ -430,19 +441,26 @@ class SettingsWindow(QWidget):
                     weakref.ref(wid),
                     self.handlers[elem["type"]],
                 )
-            
+
             if registriesName is not None:
                 ok = self.handlers[elem["type"]].linkElem(wid, registriesName)
                 if not ok:
-                    self.logger.warning("Element type " + elem["type"] + " does not support linking extra registries" + " (" + elem["module"] + "." + elem["prop"] + ")")
+                    self.logger.warning(
+                        "Element type "
+                        + elem["type"]
+                        + " does not support linking extra registries"
+                        + " ("
+                        + elem["module"]
+                        + "."
+                        + elem["prop"]
+                        + ")"
+                    )
 
             widWrapper = QHBoxLayout()
 
             if label is not None:
                 wid.setMinimumWidth(self.conf["fieldWidth"])
-                wid.setSizePolicy(
-                    QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum
-                )
+                wid.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
                 spacer = QSpacerItem(
                     40,
                     20,
@@ -457,7 +475,7 @@ class SettingsWindow(QWidget):
                 form.addRow(label, widWrapper)
             else:
                 form.addRow(widWrapper)
-            
+
         return form.rowCount() - 1, wid
 
     def initTab(self, index):
@@ -491,48 +509,68 @@ class SettingsWindow(QWidget):
             for i, elem in enumerate(items):
                 if elem.get("external") is not None:
                     if type(elem["external"]) == dict:
-                        ok, ex_registries = self.getValue(module=elem["external"]["module"], prop=elem["external"]["prop"], index=elem["external"].get("index"))
+                        ok, ex_registries = self.getValue(
+                            module=elem["external"]["module"],
+                            prop=elem["external"]["prop"],
+                            index=elem["external"].get("index"),
+                        )
 
                         if not ok:
-                            self.logger.error("Could not find external registries in " + elem["name"])
+                            self.logger.error(
+                                "Could not find external registries in " + elem["name"]
+                            )
                             continue
 
                         if not type(ex_registries) == list:
                             ex_registries = [ex_registries]
                     else:
                         ex_registries = elem["external"]
-                    
+
                     if elem["external"].get("pickerName") is None:
-                        self.logger.error("No registry specified for element " + elem["name"])
+                        self.logger.error(
+                            "No registry specified for element " + elem["name"]
+                        )
                         continue
 
                     registries_name = elem["external"]["pickerName"]
-                    
-                    _, controller = self.processItem(elem, index, form, tab, registriesName=registries_name)
+
+                    _, controller = self.processItem(
+                        elem, index, form, tab, registriesName=registries_name
+                    )
 
                     self.linked_widgets[registries_name] = {}
 
                     for reg_name in ex_registries:
                         if self.external_reg.get(reg_name) is None:
-                            self.logger.warning("No such external registry: " + reg_name)
+                            self.logger.warning(
+                                "No such external registry: " + reg_name
+                            )
                             continue
 
                         exr = self.external_reg[reg_name]
 
                         if exr.get("items") is None:
-                            self.logger.error("External registry " + reg_name + " does not have items")
+                            self.logger.error(
+                                "External registry " + reg_name + " does not have items"
+                            )
                             continue
 
                         if not type(exr["items"]) == list:
-                            self.logger.warning("External registry " + reg_name + " is not a list")
+                            self.logger.warning(
+                                "External registry " + reg_name + " is not a list"
+                            )
                             continue
 
-                        self.linked_widgets[registries_name][exr["extra"]["linkedCombo"]] = []
+                        self.linked_widgets[registries_name][
+                            exr["extra"]["linkedCombo"]
+                        ] = []
 
                         for reg in exr["items"]:
                             form_row, _ = self.processItem(reg, index, form, tab)
-                            self.linked_widgets[registries_name][exr["extra"]["linkedCombo"]].append((weakref.ref(form), form_row))
-                        
+                            self.linked_widgets[registries_name][
+                                exr["extra"]["linkedCombo"]
+                            ].append((weakref.ref(form), form_row))
+
                         self._showWidgets(registries_name, controller.currentText())
 
                 else:
@@ -584,7 +622,7 @@ class SettingsWindow(QWidget):
 
         while not self.presets_queue.empty():
             self.loadPreset(*self.presets_queue.get())
-        
+
         self.isLoaded = True
 
         # updating properties

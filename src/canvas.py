@@ -164,7 +164,9 @@ class RootCanvas:
                 self.conf["brush_configs"][k].loadConfig()
 
                 self.brushes[k] = b_dict[k](
-                    weakref.ref(self.conf), self.conf["brush_configs"][k], weakref.ref(self)
+                    weakref.ref(self.conf),
+                    self.conf["brush_configs"][k],
+                    weakref.ref(self),
                 )
 
         self.conf["brushesTypes"] = list(self.brushes.keys())
@@ -237,7 +239,7 @@ class RootCanvas:
         self.ae = ActionEngine(
             self.wheel_modules,
             os.path.join(self.config_dir, self.conf["actionEngineConfig"]),
-            self.conf
+            self.conf,
         )
         self.ae.current_module_list_getter = self.getCurModList
         self.ae.current_module_getter = self.conf["modules"][0]["class"].getCurModule

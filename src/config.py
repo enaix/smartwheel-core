@@ -2,7 +2,7 @@ import json
 import os
 import weakref
 
-from PyQt6.QtCore import QObject, pyqtSlot, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
 import common
 
@@ -30,7 +30,7 @@ class Config(QObject):
         ignoreNewVars=True,
         varsWhitelist=[],
         varsBlacklist=[],
-        updateFunc=None
+        updateFunc=None,
     ):
         """
         Initialize Config object
@@ -143,7 +143,7 @@ class Config(QObject):
             if self.updateFunc is not None:
                 self.updateFunc()
             self.updated.emit()
-    
+
     @pyqtSlot(list)
     def __batchUpdate(self, keys):
         """

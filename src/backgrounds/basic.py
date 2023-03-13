@@ -1,8 +1,9 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QTransform
 
-from .base import Background
 import tools
+
+from .base import Background
 
 
 class PatternBackground(Background):
@@ -11,16 +12,23 @@ class PatternBackground(Background):
         tools.merge_dicts(
             self.conf, self.common_config(), include_only=["wheelTextureColor"]
         )
-        
+
         self.conf.updateFunc = self.draw
 
-        self.pattern_map = {"Diagonal (right)": Qt.BrushStyle.BDiagPattern, "Grid": Qt.BrushStyle.CrossPattern, "Diagonal (left)": Qt.BrushStyle.FDiagPattern,
-                            "Cross": Qt.BrushStyle.DiagCrossPattern, "Vertical": Qt.BrushStyle.VerPattern, "Horizontal": Qt.BrushStyle.HorPattern,
-                            "Dots 1": Qt.BrushStyle.Dense7Pattern, "Dots 2": Qt.BrushStyle.Dense6Pattern,
-                            "None": Qt.BrushStyle.NoBrush}
-        
+        self.pattern_map = {
+            "Diagonal (right)": Qt.BrushStyle.BDiagPattern,
+            "Grid": Qt.BrushStyle.CrossPattern,
+            "Diagonal (left)": Qt.BrushStyle.FDiagPattern,
+            "Cross": Qt.BrushStyle.DiagCrossPattern,
+            "Vertical": Qt.BrushStyle.VerPattern,
+            "Horizontal": Qt.BrushStyle.HorPattern,
+            "Dots 1": Qt.BrushStyle.Dense7Pattern,
+            "Dots 2": Qt.BrushStyle.Dense6Pattern,
+            "None": Qt.BrushStyle.NoBrush,
+        }
+
         self.draw()
-    
+
     def draw(self):
         self.setColor(QColor(self.conf["wheelTextureColor"]))
 

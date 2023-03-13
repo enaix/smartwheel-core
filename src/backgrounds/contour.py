@@ -20,9 +20,9 @@ class ContourBackground(Background):
             self.conf, self.common_config(), include_only=["wheelTextureColor"]
         )
         self.setTexture(self.loadPixmap())
-        
+
         self.conf.updateFunc = self.updatePixmap
-        #self.conf.updated.connect(self.updatePixmap)
+        # self.conf.updated.connect(self.updatePixmap)
 
     def genContour(self):
         if self.conf["randomSeed"]:
@@ -84,8 +84,8 @@ class ContourBackground(Background):
                 return sign() * y + random.randint(-20, 20)
 
         def sine_family(x, y):
-            return sign()*np.sin(getXY(x, y)) + sign()*np.cos(getXY(x, y))
-        
+            return sign() * np.sin(getXY(x, y)) + sign() * np.cos(getXY(x, y))
+
         def perlin_gen(x, y):
             return perlin(x, y, seed=self.conf["seed"])
 

@@ -1,8 +1,9 @@
 import json
 import os
-import config
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
+
+import config
 
 
 class ConfigManager(QObject):
