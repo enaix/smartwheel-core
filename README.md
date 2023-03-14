@@ -70,6 +70,7 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Move to PyQt6
   - [X] Add colorable icons
   - [X] Add modules background processes
+  - [ ] Add media fetching on Windows
   - [ ] Add key combos
   - [ ] Finish folders support
 - [ ] Settings menu (in progress)
@@ -85,7 +86,7 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [ ] Hide after timeout
   - [ ] Hide after losing window focus
 - [ ] Packaging
-  - [ ] Configure setup.py
+  - [X] Configure setup.py
   - [ ] Add auto update feature
   - [ ] Hire core doctor!
 - [ ] Windows support
