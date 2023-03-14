@@ -25,7 +25,7 @@ from smartwheel import common
 
 
 class SettingsWindow(QWidget):
-    def __init__(self, config_file, main_class, conf_class, parent=None):
+    def __init__(self, config_file, main_class, conf_class, basedir, parent=None):
         """
         Init SettingsWindow
 
@@ -49,7 +49,9 @@ class SettingsWindow(QWidget):
         self.logger = logging.getLogger(__name__)
         self.loadConfig(config_file)
         self.setConfigHook(main_class, conf_class)
-        self.loadSettingsHandlers(self.conf["settings_handlers_dir"])
+        self.loadSettingsHandlers(
+            os.path.join(self.basedir, self.conf["settings_handlers_dir"])
+        )
         self.preset_tabs = {}
         self.conf["presets"] = {}
         self.linked_widgets = {}
@@ -74,14 +76,20 @@ class SettingsWindow(QWidget):
         if self.conf.get("tabs") is not None:
             for i in range(len(self.conf["tabs"])):
                 with open(
-                    os.path.join("settings_registry", self.conf["tabs"][i]["config"]),
+                    os.path.join(
+                        self.basedir,
+                        "settings_registry",
+                        self.conf["tabs"][i]["config"],
+                    ),
                     "r",
                 ) as f:
                     self.conf["tabs"][i]["conf"] = json.load(f)
 
             for key, value in self.conf["external"].items():
                 with open(
-                    os.path.join("settings_registry", "external", key + ".json"),
+                    os.path.join(
+                        self.basedir, "settings_registry", "external", key + ".json"
+                    ),
                     "r",
                 ) as f:
                     self.external_reg[key] = json.load(f)
@@ -152,7 +160,7 @@ class SettingsWindow(QWidget):
         self.handlers = {}
         for mod_name in self.handlers_conf["handlers_modules"]:
             handler = importlib.import_module(
-                self.conf["settings_handlers_dir"] + "." + mod_name
+                "serialpipe." + self.conf["settings_handlers_dir"] + "." + mod_name
             )
             h_dict = handler.handlers
             for k in h_dict:

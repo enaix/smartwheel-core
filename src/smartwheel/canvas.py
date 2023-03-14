@@ -65,7 +65,7 @@ class RootCanvas(QObject):
         )
         if not self.common_config.loadConfig():
             self.logger.error("Could not find common config file. Exiting..")
-            os.exit(1)
+            os._exit(1)
 
         self.updateIconCache()
 
@@ -87,7 +87,7 @@ class RootCanvas(QObject):
         meta
             Configuration of the module
         """
-        mod = importlib.import_module(meta["name"])
+        mod = importlib.import_module("serialpipe." + meta["name"])
         ui = mod.UIElem(
             os.path.join(self.config_dir, meta["config"]),
             self.conf,
@@ -139,7 +139,9 @@ class RootCanvas(QObject):
         common.cache_manager.initManager(self.conf)
 
     def loadBrushes(self):
-        b_config = os.path.join(self.conf["brushes_dir"], "config.json")
+        b_config = os.path.join(
+            self.conf["basedir"], self.conf["brushes_dir"], "config.json"
+        )
         if not os.path.exists(b_config):
             self.logger.error("Missing " + b_config + " file")
             os._exit(1)
@@ -151,7 +153,9 @@ class RootCanvas(QObject):
         self.conf["brush_configs"] = {}
 
         for mod_name in self.brushes_conf["brushes_modules"]:
-            brush = importlib.import_module(self.conf["brushes_dir"] + "." + mod_name)
+            brush = importlib.import_module(
+                "serialpipe." + self.conf["brushes_dir"] + "." + mod_name
+            )
             b_dict = brush.brushes
             for k in b_dict:
                 if self.brushes.get(k) is not None:
@@ -159,6 +163,7 @@ class RootCanvas(QObject):
 
                 self.conf["brush_configs"][k] = config.Config(
                     os.path.join(
+                        self.conf["basedir"],
                         self.conf["brushes_dir"],
                         self.brushes_conf["brushes_config_dir"],
                         self.brushes_conf["brushes_config"][k],
@@ -188,7 +193,7 @@ class RootCanvas(QObject):
         merge_dicts(self.conf, self.common_config)
 
     def loadWheelModule(self, module):
-        mod = importlib.import_module(module["name"])
+        mod = importlib.import_module("serialpipe." + module["name"])
         if module.get("config", None) is not None:
             ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)
 
@@ -241,7 +246,9 @@ class RootCanvas(QObject):
                 cnf = os.path.join(self.config_dir, mod["config"])
             else:
                 cnf = None
-            mod_class = importlib.import_module(mod["name"]).Internal(self.conf, cnf)
+            mod_class = importlib.import_module("serialpipe." + mod["name"]).Internal(
+                self.conf, cnf
+            )
             self.conf["internal"][mod_class.name] = {
                 "class": mod_class,
                 "signals": mod_class.getSignals(),
