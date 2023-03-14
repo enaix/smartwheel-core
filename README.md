@@ -28,19 +28,29 @@ Smartwheel is fully customizable (you can even create any keybinds if you want)
 
 ## Installation
 
+You may install the prebuilt stable version from the releases.
+
+#### Development build
+
 Make sure that Python 3 is installed
 
 #### Stable version
 
 `pip3 install smartwheel-core`
 
-#### Development build
+#### From Github
 
 `git clone https://github.com/enaix/smartwheel-core.git`
 
 `cd smartwheel-core`
 
 `pip3 install .`
+
+#### Compilation
+
+Nuitka now supports only Python <= 3.10
+
+`./build.sh` or `.\build.bat`
 
 ## We need your help!
 
