@@ -1,5 +1,6 @@
 import config
-from ui.base import BaseUIElem
+
+from smartwheel.ui.base import BaseUIElem
 
 
 class UIElem(BaseUIElem):

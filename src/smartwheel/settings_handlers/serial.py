@@ -2,7 +2,7 @@ import logging
 
 from PyQt6.QtWidgets import QListView
 
-from .base import BaseHandler
+from smartwheel.settings_handlers.base import BaseHandler
 
 
 class SerialHandler(BaseHandler):

@@ -20,9 +20,9 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-import config
-from canvas import RootCanvas
-from settings import SettingsWindow
+from smartwheel import config
+from smartwheel.canvas import RootCanvas
+from smartwheel.settings import SettingsWindow
 
 
 class WConfig(config.Config):

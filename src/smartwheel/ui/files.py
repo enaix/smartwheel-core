@@ -7,7 +7,7 @@ import weakref
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
-from ui.base import BaseUIElem
+from smartwheel.ui.base import BaseUIElem
 
 
 class UIElem(BaseUIElem):

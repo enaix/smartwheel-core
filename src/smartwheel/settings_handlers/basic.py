@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
 )
 from swcolorpicker import getColor, rgb2hex, useAlpha
 
-from .base import BaseHandler
+from smartwheel.settings_handlers.base import BaseHandler
 
 
 class IntHandler(BaseHandler):

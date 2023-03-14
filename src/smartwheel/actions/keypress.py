@@ -3,7 +3,7 @@ import os
 
 from pynput.keyboard import Controller, Key, KeyCode
 
-from actions.baseaction import BaseAction
+from smartwheel.actions.baseaction import BaseAction
 
 
 class Action(BaseAction):

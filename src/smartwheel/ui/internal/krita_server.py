@@ -6,7 +6,6 @@ import socket
 import time
 
 from PyQt6.QtCore import *
-
 from ui.internal.baseinternal import BaseInternal
 
 

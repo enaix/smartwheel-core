@@ -1,10 +1,10 @@
 import logging
 
+import config
 from pynput import keyboard
 from PyQt6.QtCore import *
 
-import config
-from serialpipe.base import ClickButton, ConnPipe, PRButton, Rotary
+from smartwheel.serialpipe.base import ClickButton, ConnPipe, PRButton, Rotary
 
 
 class SConn(ConnPipe):

@@ -3,8 +3,8 @@ import logging
 import serial
 from PyQt6.QtCore import *
 
-import config
-from serialpipe.base import ConnPipe
+from smartwheel import config
+from smartwheel.serialpipe.base import ConnPipe
 
 
 class SConn(ConnPipe):

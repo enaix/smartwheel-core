@@ -1,4 +1,4 @@
-from actions.wheel.base import BaseWheelAction
+from smartwheel.actions.wheel.base import BaseWheelAction
 
 
 class WheelAction(BaseWheelAction):

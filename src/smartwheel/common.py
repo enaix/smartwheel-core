@@ -3,7 +3,7 @@ import os
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
-import config
+from smartwheel import config
 
 
 class ConfigManager(QObject):

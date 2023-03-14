@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-import common
+from smartwheel import common
 
 
 class SettingsWindow(QWidget):

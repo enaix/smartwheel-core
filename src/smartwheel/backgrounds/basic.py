@@ -1,9 +1,8 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QTransform
 
-import tools
-
-from .base import Background
+from smartwheel import tools
+from smartwheel.backgrounds.base import Background
 
 
 class PatternBackground(Background):

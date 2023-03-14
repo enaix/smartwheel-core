@@ -9,11 +9,9 @@ import weakref
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
-import common
-import config
-import gui_tools
-from actionengine import ActionEngine
-from tools import merge_dicts
+from smartwheel import common, config, gui_tools
+from smartwheel.actionengine import ActionEngine
+from smartwheel.tools import merge_dicts
 
 
 class MList(list):

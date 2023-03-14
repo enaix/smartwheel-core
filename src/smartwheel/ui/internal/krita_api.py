@@ -1,7 +1,6 @@
 import json
 
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
-
 from ui.internal.baseinternal import BaseInternal
 
 

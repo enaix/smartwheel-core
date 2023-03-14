@@ -5,8 +5,7 @@ import weakref
 
 from PyQt6.QtCore import *
 
-import config
-import tools
+from smartwheel import config, tools
 
 
 class ActionEngine(QObject):

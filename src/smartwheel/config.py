@@ -4,7 +4,7 @@ import weakref
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
-import common
+from smartwheel import common
 
 
 class Config(QObject):

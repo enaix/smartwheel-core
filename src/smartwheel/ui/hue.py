@@ -5,8 +5,8 @@ import os
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
-import config
-from ui.base import BaseUIElem
+from smartwheel import config
+from smartwheel.ui.base import BaseUIElem
 
 
 class UIElem(BaseUIElem):

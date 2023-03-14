@@ -5,10 +5,9 @@ import time
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
-import config
-import gui_tools
-from tools import merge_dicts
-from ui.base import BaseUIElem
+from smartwheel import config, gui_tools
+from smartwheel.tools import merge_dicts
+from smartwheel.ui.base import BaseUIElem
 
 
 class ThreadWrapper(QObject):

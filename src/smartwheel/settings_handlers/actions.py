@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from .base import BaseHandler
+from smartwheel.settings_handlers.base import BaseHandler
 
 
 class ActionPicker(BaseHandler):

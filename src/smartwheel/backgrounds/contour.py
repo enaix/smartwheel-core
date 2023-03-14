@@ -7,10 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PyQt6.QtGui import QPixmap
 
-import common
-import tools
-
-from .base import Background
+from smartwheel import common, tools
+from smartwheel.backgrounds.base import Background
 
 
 class ContourBackground(Background):
