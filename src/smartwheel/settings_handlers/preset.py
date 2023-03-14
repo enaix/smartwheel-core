@@ -24,10 +24,11 @@ class PresetHandler(BaseHandler):
     def initElem(self, elem):
         layout = QHBoxLayout()
         wid = QComboBox()
+        ok, self.basedir = self.value_getter(module="canvas", prop="basedir")
 
         wid.setProperty("presets_folder", elem["folder"])
 
-        p_path = os.path.join("presets", elem["folder"])
+        p_path = os.path.join(self.basedir, "presets", elem["folder"])
 
         if not os.path.exists(p_path):
             os.makedirs(p_path, exist_ok=True)
@@ -38,7 +39,9 @@ class PresetHandler(BaseHandler):
         preset_names = []
 
         for p in preset_files:
-            with open(os.path.join("presets", elem["folder"], p), "r") as f:
+            with open(
+                os.path.join(self.basedir, "presets", elem["folder"], p), "r"
+            ) as f:
                 pr = json.load(f)
                 presets[pr["name"]] = pr
 
@@ -146,7 +149,10 @@ class PresetHandler(BaseHandler):
         name = self.parsePresetName(title)
 
         self.parent_obj().savePreset(
-            ind, name, title, os.path.join("presets", folder, name + ".json")
+            ind,
+            name,
+            title,
+            os.path.join(self.basedir, "presets", folder, name + ".json"),
         )
 
     @pyqtSlot(int)

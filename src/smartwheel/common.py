@@ -52,6 +52,9 @@ class CacheManager(QObject):
 
     def initManager(self, conf):
         self.conf = conf
+        self.conf["cacheDir"] = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), self.conf["cacheDir"]
+        )
 
         if not os.path.exists(self.conf["cacheDir"]):
             os.mkdir(self.conf["cacheDir"])

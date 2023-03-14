@@ -63,7 +63,7 @@ class ActionEngine(QObject):
         for mod in self.conf["actionModulesLoad"]:
             name = self.conf["actionModules"][mod]["name"]
             self.actions[name.split(".")[-1:][0]] = importlib.import_module(
-                "serialpipe." + name
+                "smartwheel." + name
             ).Action()
 
     def importWheelActions(self):
@@ -73,7 +73,7 @@ class ActionEngine(QObject):
         self.wheel_actions = {}
         for mod in self.conf["wheelActionModulesLoad"]:
             mod_class = importlib.import_module(
-                "serialpipe." + self.conf["wheelActionModules"][mod]["name"]
+                "smartwheel." + self.conf["wheelActionModules"][mod]["name"]
             ).WheelAction()
             self.wheel_actions[mod_class.type] = mod_class
 

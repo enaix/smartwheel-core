@@ -46,7 +46,6 @@ class WConfig(config.Config):
         self.c_canvas["cy"] = c_geometry[3] // 2
         self.c_canvas["corner_x"] = self.c["window"]["padding"]
         self.c_canvas["corner_y"] = self.c["window"]["padding"]
-        self.c_canvas["basedir"] = self.c["basedir"]
 
 
 class RootWindow(QMainWindow):
@@ -181,15 +180,14 @@ class RootWindow(QMainWindow):
         self.serialModulesNames = []
 
         for i in self.conf.c["canvas"]["serialModulesLoad"]:
-            mod_name = "serialpipe." + self.conf.c["canvas"]["serialModules"][i]["name"]
-            mod = importlib.import_module(mod_name)
+            mod_name = self.conf.c["canvas"]["serialModules"][i]["name"]
+            mod = importlib.import_module("smartwheel." + mod_name)
 
             try:
                 cls = mod.SConn(
                     os.path.join(
-                        self.conf["basedir"],
-                        self.conf["config_dir"]
-                        + self.conf.c["canvas"]["serialModules"][i]["config"],
+                        self.conf["config_dir"],
+                        self.conf.c["canvas"]["serialModules"][i]["config"],
                     ),
                     self.rc.ae.callAction,
                 )
@@ -225,7 +223,9 @@ def main():
 
     main_conf_path = os.path.join(launch_config["config_dir"], "config.json")
     conf = WConfig(main_conf_path, launch_config)
+    conf["config_dir"] = launch_config["config_dir"]
     conf["basedir"] = dirpath
+    conf.c_canvas["basedir"] = conf["basedir"]
     root = RootWindow(conf)
     sys.exit(root.app.exec())
 

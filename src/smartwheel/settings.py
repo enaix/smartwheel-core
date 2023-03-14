@@ -44,6 +44,7 @@ class SettingsWindow(QWidget):
         self.conf = None
         self.handlers_conf = None
         self.handlers = None
+        self.basedir = basedir
         self.settings = {}
         self.external_reg = {}
         self.logger = logging.getLogger(__name__)
@@ -160,7 +161,7 @@ class SettingsWindow(QWidget):
         self.handlers = {}
         for mod_name in self.handlers_conf["handlers_modules"]:
             handler = importlib.import_module(
-                "serialpipe." + self.conf["settings_handlers_dir"] + "." + mod_name
+                "smartwheel." + self.conf["settings_handlers_dir"] + "." + mod_name
             )
             h_dict = handler.handlers
             for k in h_dict:

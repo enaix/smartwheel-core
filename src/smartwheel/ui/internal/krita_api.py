@@ -1,7 +1,8 @@
 import json
 
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
-from ui.internal.baseinternal import BaseInternal
+
+from smartwheel.ui.internal.baseinternal import BaseInternal
 
 
 class Internal(BaseInternal):

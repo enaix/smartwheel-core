@@ -1,5 +1,4 @@
-import config
-
+from smartwheel import config
 from smartwheel.ui.base import BaseUIElem
 
 
