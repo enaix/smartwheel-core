@@ -22,7 +22,7 @@ dependencies = [
     "pyqtdarktheme",
     "swcolorpicker",
     "matplotlib",
-    "winrt; platform_system=='Windows'",
+    "winsdk; platform_system=='Windows'",
 ]
 
 [project.optional-dependencies]

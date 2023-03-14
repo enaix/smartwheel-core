@@ -28,13 +28,17 @@ Smartwheel is fully customizable (you can even create any keybinds if you want)
 
 ## Installation
 
+Make sure that Python 3 is installed
+
+#### Stable version
+
+`pip3 install smartwheel-core`
+
 #### Development build
 
 `git clone https://github.com/enaix/smartwheel-core.git`
 
 `cd smartwheel-core`
-
-Make sure that Python 3 is installed
 
 `pip3 install .`
 
