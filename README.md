@@ -36,11 +36,7 @@ Smartwheel is fully customizable (you can even create any keybinds if you want)
 
 Make sure that Python 3 is installed
 
-`pip3 install -r requirements.txt`
-
-`chmod +x ./launch.sh`
-
-`./launch.sh`
+`pip3 install .`
 
 ## We need your help!
 
@@ -50,7 +46,7 @@ I've started working on this project a while ago, but it turned out that it's to
 
 Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/latest/
 
-## Release 0.0.1
+## Release 0.1.0
 
 - [x] Stable version (Linux)
 - [x] Documentation (in progress)
@@ -84,10 +80,6 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 - [ ] Add fancy blur (?)
 - [ ] Mac support (?)
 
-Theme presets
-Better overlays editor
-Actions editor
-Modules import (.zip)
 ## Features progress
 
 - [x] Base structure (Plugins manager)
