@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd ./src
+cd ./src/smartwheel
 
-python3 main.py
+python3 __main__.py
 

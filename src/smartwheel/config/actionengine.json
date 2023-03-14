@@ -1,0 +1,452 @@
+{
+    "commandActions": [
+        {
+            "name": "wheelUp",
+            "title": "Scroll wheel up",
+            "description": "Scroll the wheel up",
+            "type": "wheel"
+        },
+        {
+            "name": "wheelDown",
+            "title": "Scroll wheel down",
+            "description": "Scroll the wheel down",
+            "type": "wheel"
+        },
+        {
+            "name": "wheelSelect",
+            "title": "Select",
+            "description": "Select the wheel module",
+            "type": "wheel"
+        },
+        {
+            "name": "wheelOpen",
+            "title": "Open wheel",
+            "description": "Open the wheel panel",
+            "type": "wheel",
+            "default": "module"
+        },
+        {
+            "name": "wheelQuickUp",
+            "title": "Instantly scroll wheel up",
+            "description": "Quickly scroll the wheel up",
+            "type": "wheel",
+            "default": "any"
+        },
+        {
+            "name": "wheelQuickDown",
+            "title": "Instantly scroll wheel down",
+            "description": "Quickly scroll the wheel down",
+            "type": "wheel",
+            "default": "any"
+        },
+        {
+            "name": "scrollUp",
+            "title": "Scroll up",
+            "description": "Main scroll up action",
+            "type": "module"
+        },
+        {
+            "name": "scrollDown",
+            "title": "Scroll down",
+            "description": "Main scroll down action",
+            "type": "module"
+        },
+        {
+            "name": "keyAction1",
+            "title": "Keypress 1",
+            "description": "Main keypress action",
+            "type": "module"
+        },
+        {
+            "name": "keyAction2",
+            "title": "Keypress 2",
+            "description": "Secondary keypress action",
+            "type": "module"
+        },
+        {
+            "name": "scrollUp2",
+            "title": "Scroll up 2",
+            "description": "Secondary scroll up action",
+            "type": "module"
+        },
+        {
+            "name": "scrollDown2",
+            "title": "Scroll down 2",
+            "description": "Secondary scroll down action",
+            "type": "module"
+        }
+    ],
+    "commandBind": {
+        "button1": [
+            {
+                "command": "sw_btn_click",
+                "actions": [
+                    {
+                        "action": "wheelSelect",
+                        "mode": "wheel",
+                        "repeat": 0,
+                        "checkState": true
+                    },
+                    {
+                        "action": "keyAction1",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "sw_btn_doubleclick",
+                "actions": [
+                    {
+                        "action": "wheelOpen",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            }
+        ],
+        "encoder1": [
+            {
+                "command": "enc1_scroll up",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollUp",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "enc1_scroll down",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollDown",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "enc1_hold_scroll up",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "wheelQuickUp",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "enc1_hold_scroll down",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "wheelQuickDown",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "enc1_doubleclick_scroll up",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollUp2",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "enc1_doubleclick_scroll down",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollUp2",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            }
+        ],
+        "keyboard1": [
+            {
+                "command": "w",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "wheelQuickUp",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "a",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "wheelQuickDown",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "up",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollUp",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "down",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollDown",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "return",
+                "actions": [
+                    {
+                        "action": "wheelSelect",
+                        "mode": "wheel",
+                        "repeat": 0,
+                        "checkState": true
+                    },
+                    {
+                        "action": "keyAction1",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "esc",
+                "actions": [
+                    {
+                        "action": "wheelOpen",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            }
+        ],
+        "bgkeyboard1": [
+            {
+                "command": "w",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "wheelQuickUp",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "a",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "wheelQuickDown",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            }
+        ],
+        "prbutton1": [
+            {
+                "command": "click",
+                "actions": [
+                    {
+                        "action": "wheelSelect",
+                        "mode": "wheel",
+                        "repeat": 0,
+                        "checkState": true
+                    },
+                    {
+                        "action": "keyAction1",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "doubleclick",
+                "actions": [
+                    {
+                        "action": "wheelOpen",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            }
+        ],
+        "rotary1": [
+            {
+                "command": "up",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollUp",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "down",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollDown",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "click up",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "wheelQuickUp",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "click down",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "wheelQuickDown",
+                        "mode": "wheel",
+                        "onState": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "double up",
+                "actions": [
+                    {
+                        "action": "wheelUp",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollUp2",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            },
+            {
+                "command": "double down",
+                "actions": [
+                    {
+                        "action": "wheelDown",
+                        "mode": "wheel",
+                        "checkState": true
+                    },
+                    {
+                        "action": "scrollUp2",
+                        "mode": "module",
+                        "checkState": true
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "device": "/dev/ttyACM0",
+    "baudRate": 9600,
+    "useTimeout": false,
+    "timeout": 1,
+    "encoding": "utf-8",
+    "doubleClickDelay": 300,
+    "binds": [
+        {
+            "name": "button1",
+            "type": "button",
+            "commands": [
+                {
+                    "string": "sw_btn_click"
+                },
+                {
+                    "string": "sw_btn_doubleclick"
+                }
+            ]
+        },
+        {
+            "name": "encoder1",
+            "type": "encoder",
+            "commands": [
+                {
+                    "string": "enc1_scroll up"
+                },
+                {
+                    "string": "enc1_scroll down"
+                },
+                {
+                    "string": "enc1_hold_scroll up"
+                },
+                {
+                    "string": "enc1_hold_scroll down"
+                },
+                {
+                    "string": "enc1_doubleclick_scroll up"
+                },
+                {
+                    "string": "enc1_doubleclick_scroll down"
+                }
+            ]
+        }
+    ]
+}

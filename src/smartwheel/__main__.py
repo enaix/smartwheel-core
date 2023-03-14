@@ -49,14 +49,15 @@ class WConfig(config.Config):
 
 
 class RootWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, conf):
         self.app = QApplication(sys.argv)
         self.app.setStyleSheet(qdarktheme.load_stylesheet())
         super(RootWindow, self).__init__()
+        self.conf = conf
         self.rc = None
         self.kb = None
         logging.basicConfig(
-            level=getattr(logging, conf.c["canvas"]["logging"].upper(), 2)
+            level=getattr(logging, self.conf.c["canvas"]["logging"].upper(), 2)
         )
         self.logger = logging.getLogger(__name__)
 
@@ -69,13 +70,13 @@ class RootWindow(QMainWindow):
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setWindowTitle("SmartWHEEL")
         self.setWindowIcon(QIcon("logo.png"))
-        self.setGeometry(*conf.c["window"]["geometry"])
+        self.setGeometry(*self.conf.c["window"]["geometry"])
         self.loadClasses()
         self.loadSerial()
         self.initUI()
 
         self.settings = SettingsWindow(
-            "settings_registry/config.json", weakref.ref(self), weakref.ref(conf)
+            "settings_registry/config.json", weakref.ref(self), weakref.ref(self.conf)
         )
         # self.settings.show()
 
@@ -111,12 +112,12 @@ class RootWindow(QMainWindow):
 
     def drawBlur(self):
         self.blur_widget = QWidget(self)
-        self.blur_widget.setGeometry(0, 0, *conf.c["window"]["geometry"][2:])
+        self.blur_widget.setGeometry(0, 0, *self.conf.c["window"]["geometry"][2:])
         self.blur_widget.setStyleSheet(
             "border-radius: {}px;\
                                        border: 0px solid white;\
                                        background-color: rgba(0, 0, 0, 0.5);".format(
-                conf.c["window"]["geometry"][2] / 6
+                self.conf.c["window"]["geometry"][2] / 6
             )
         )
         # self.blur_widget.
@@ -150,9 +151,9 @@ class RootWindow(QMainWindow):
         Old keypress event, dead code
         """
         if event.key() == QtCore.Qt.Key_W:
-            conf.c["canvas"]["modules"][0]["class"].processKey(True)
+            self.conf.c["canvas"]["modules"][0]["class"].processKey(True)
         elif event.key() == QtCore.Qt.Key_A:
-            conf.c["canvas"]["modules"][0]["class"].processKey(False)
+            self.conf.c["canvas"]["modules"][0]["class"].processKey(False)
         elif event.key() == QtCore.Qt.Key_Up:
             self.rc.ae.action("scrollUp")
         elif event.key() == QtCore.Qt.Key_Down:
@@ -175,15 +176,15 @@ class RootWindow(QMainWindow):
         self.serialModules = {}
         self.serialModulesNames = []
 
-        for i in conf.c["canvas"]["serialModulesLoad"]:
-            mod_name = conf.c["canvas"]["serialModules"][i]["name"]
+        for i in self.conf.c["canvas"]["serialModulesLoad"]:
+            mod_name = self.conf.c["canvas"]["serialModules"][i]["name"]
             mod = importlib.import_module(mod_name)
 
             try:
                 cls = mod.SConn(
                     os.path.join(
-                        conf.launch_config["config_dir"],
-                        conf.c["canvas"]["serialModules"][i]["config"],
+                        self.conf.launch_config["config_dir"],
+                        self.conf.c["canvas"]["serialModules"][i]["config"],
                     ),
                     self.rc.ae.callAction,
                 )
@@ -195,7 +196,7 @@ class RootWindow(QMainWindow):
 
     def loadClasses(self):
         self.rc = RootCanvas(
-            conf.c_canvas, conf.launch_config["config_dir"], self.update
+            self.conf.c_canvas, self.conf.launch_config["config_dir"], self.update
         )
 
         QGuiApplication.instance().aboutToQuit.connect(self.rc.killThreads)
@@ -205,15 +206,14 @@ class RootWindow(QMainWindow):
 
 
 def main():
-    root = RootWindow()
-    sys.exit(root.app.exec())
-
-
-if __name__ == "__main__":
     with open("launch.json", "r") as f:
         launch_config = json.load(f)
 
     main_conf_path = os.path.join(launch_config["config_dir"], "config.json")
     conf = WConfig(main_conf_path, launch_config)
+    root = RootWindow(conf)
+    sys.exit(root.app.exec())
 
+
+if __name__ == "__main__":
     main()

@@ -1,0 +1,12 @@
+{
+    "iconPath": "folder.png",
+    "actions": {
+        "keyAction1": [
+            {
+                "action": "custom",
+                "repeat": 0,
+                "comment": "Open folder"
+            }
+        ]
+    }
+}

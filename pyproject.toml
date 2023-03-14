@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smartwheel-core"
+version = "0.0.1"
+description = "Keyboard knob/dial controller with a ton of features"
+readme = 'README.md'
+authors = [{ name = "enaix", email = "enaix@protonmail.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+]
+keywords = ["gui", "keyboard", "knob"]
+dependencies = [
+    "pyserial",
+    "pynput",
+    "pyqt6",
+    "pyqtdarktheme",
+    "swcolorpicker",
+    "matplotlib",
+    "winrt; platform_system=='Windows'",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "numpydoc",
+]
+
+[project.urls]
+Homepage = "https://github.com/enaix/smartwheel-core"
+Documentation = "https://smartwheel-core.readthedocs.io/en/latest/"
+
+[project.gui-scripts]
+smartwheel-core = "smartwheel.__main__:main"
+

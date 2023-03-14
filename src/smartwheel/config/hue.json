@@ -1,0 +1,44 @@
+{
+    "icon_path": "hue.png",
+    "roundIconPath": "round.png",
+    "colorDotLightnessThreshold": 100,
+    "colorDotDarkStrokeColor": "#000000",
+    "colorDotLightStrokeColor": "#ffffff",
+    "colorDotStrokeWidth": 2,
+    "colorWidgetShape": "hybrid",
+    "colorWidgetPadding": 10,
+    "colorWidgetMaxWidth": 80,
+    "isHSLWidthFixed": false,
+    "HSLCircleWidth": 50,
+    "isHSLSelectionWidthFixed": false,
+    "HSLSelectedCircleWidth": 60,
+    "isHSLPaddingFixed": false,
+    "HSLPadding": 20,
+    "widthAnimDuration": 100,
+    "HueStartAngle": 0,
+    "SatStartAngle": 359,
+    "BriStartAngle": 179,
+    "actions": {
+        "scrollUp": [
+            {
+                "action": "custom",
+                "repeat": 0,
+                "comment": "Increment current HSL value"
+            }
+        ],
+        "scrollDown": [
+            {
+                "action": "custom",
+                "repeat": 0,
+                "comment": "Decrement current HSL value"
+            }
+        ],
+        "keyAction1": [
+            {
+                "action": "custom",
+                "repeat": 0,
+                "comment": "Switch current HSL value"
+            }
+        ]
+    }
+}

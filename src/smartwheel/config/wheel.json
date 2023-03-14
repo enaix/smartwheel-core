@@ -9,12 +9,12 @@
     "wheelShadowColor": "#313131",
     "pixmapScale": 30,
     "drawOverlayCircles": true,
-    "overlayCirclesColor": "#404040",
-    "overlayCirclesOpacity": 0.4,
+    "overlayCirclesColor": "#3a3a3a",
+    "overlayCirclesOpacity": 0.20000000000000004,
     "overlayCirclesWidth": 10,
     "drawOverlayRects": true,
-    "overlayRectsColor": "#404040",
-    "overlayRectsOpacity": 0.3,
+    "overlayRectsColor": "#3a3a3a",
+    "overlayRectsOpacity": 0.20000000000000004,
     "overlayRectsWidth": 20,
     "backgroundStyle": "contour"
 }
