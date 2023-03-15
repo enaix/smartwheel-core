@@ -36,6 +36,7 @@ jobs:
     - name: Parse artifacts
       run: |
         mv ${{ github.workspace }}/src/main.dist ${{ github.workspace }}/src/smartwheel-nightly
+    - name: Zip artifacts
     - uses: vimtor/action-zip@v1.1
       with:
         files: ${{ github.workspace }}/src/smartwheel-nightly
@@ -47,8 +48,3 @@ jobs:
         rm: true
         token: ${{ secrets.GITHUB_TOKEN }}
         files: ${{ github.workspace }}/smartwheel-linux-x86_64-nightly.zip
-    - uses: actions/upload-artifact@v3
-      with:
-        name: smartwheel-linux-nightly
-        path: ${{ github.workspace }}/src/smartwheel-nightly
-        
