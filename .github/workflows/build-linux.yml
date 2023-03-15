@@ -32,8 +32,11 @@ jobs:
       run: |
         chmod +x ./build.sh
         ./build.sh
+    - name: Move artifacts
+      run: |
+        mv ${{ github.workspace }}/src/main.dist ${{ github.workspace }}/src/smartwheel-nightly
     - uses: actions/upload-artifact@v3
       with:
-        name: smartwheel-linux-latest
-        path: main.dist
+        name: smartwheel-linux-nightly
+        path: ${{ github.workspace }}/src/smartwheel-nightly
         
