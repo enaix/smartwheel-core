@@ -37,12 +37,12 @@ jobs:
       run: |
         mv ${{ github.workspace }}/src/main.dist ${{ github.workspace }}/src/smartwheel-nightly
     - name: Zip artifacts
-    - uses: vimtor/action-zip@v1.1
+      uses: vimtor/action-zip@v1.1
       with:
         files: ${{ github.workspace }}/src/smartwheel-nightly
         dest: ${{ github.workspace }}/smartwheel-linux-x86_64-nightly.zip
     - name: Upload to nightly releases
-    - uses: pyTooling/Actions/releaser@r0
+      uses: pyTooling/Actions/releaser@r0
       with:
         tag: nightly
         rm: true
