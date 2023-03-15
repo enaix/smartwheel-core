@@ -33,18 +33,18 @@ jobs:
       run: |
         chmod +x ./build.sh
         ./build.sh
+        cd ${{ github.workspace }}
     - name: Parse artifacts
       run: |
-        mv ${{ github.workspace }}/src/main.dist ${{ github.workspace }}/src/smartwheel-nightly
+        mv src/main.dist smartwheel-nightly
     - name: Zip artifacts
-      uses: vimtor/action-zip@v1.1
+      uses: montudor/action-zip@v1
       with:
-        files: ${{ github.workspace }}/src/smartwheel-nightly
-        dest: ${{ github.workspace }}/smartwheel-linux-x86_64-nightly.zip
+        args: zip -r smartwheel-linux-x86_64-nightly.zip smartwheel-nightly
     - name: Upload to nightly releases
       uses: pyTooling/Actions/releaser@r0
       with:
         tag: nightly
         rm: true
         token: ${{ secrets.GITHUB_TOKEN }}
-        files: ${{ github.workspace }}/smartwheel-linux-x86_64-nightly.zip
+        files: smartwheel-linux-x86_64-nightly.zip
