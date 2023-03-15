@@ -25,6 +25,7 @@ jobs:
         python-version: "3.10"
     - name: Install dependencies
       run: |
+        sudo apt-get install libgl1-mesa-dev
         python -m pip install --upgrade pip
         python -m pip install nuitka
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
@@ -32,9 +33,20 @@ jobs:
       run: |
         chmod +x ./build.sh
         ./build.sh
-    - name: Move artifacts
+    - name: Parse artifacts
       run: |
         mv ${{ github.workspace }}/src/main.dist ${{ github.workspace }}/src/smartwheel-nightly
+    - uses: vimtor/action-zip@v1.1
+      with:
+        files: ${{ github.workspace }}/src/smartwheel-nightly
+        dest: ${{ github.workspace }}/smartwheel-linux-x86_64-nightly.zip
+    - name: Upload to nightly releases
+    - uses: pyTooling/Actions/releaser@r0
+      with:
+        tag: nightly
+        rm: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: ${{ github.workspace }}/smartwheel-linux-x86_64-nightly.zip
     - uses: actions/upload-artifact@v3
       with:
         name: smartwheel-linux-nightly
