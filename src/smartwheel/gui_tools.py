@@ -17,6 +17,7 @@ class IconManager(QObject):
         super(IconManager, self).__init__()
         self.color = None
         self.color_hex = None
+        self.source_pixmaps = []
         self.pixmaps = []
 
     def setIconColor(self, color):
@@ -49,7 +50,22 @@ class IconManager(QObject):
         if self.color == None:
             return
 
+        pixmap = self._applyColor(pixmap)
+
+        self.pixmaps.append(weakref.ref(pixmap))
+        self.source_pixmaps.append(pixmap.copy())
+
+    def _applyColor(self, pixmap):
+        """
+        Apply color to the pixmap and return it
+
+        Parameters
+        ==========
+        pixmap
+            QPixmap
+        """
         qp = QPainter(pixmap)
+        qp.setRenderHint(QPainter.RenderHint.Antialiasing)
         qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
 
         qp.setBrush(self.color)
@@ -57,14 +73,15 @@ class IconManager(QObject):
         qp.drawRect(pixmap.rect())
         qp.end()
 
-        self.pixmaps.append(weakref.ref(pixmap))
+        return pixmap
 
     def updatePixmaps(self):
         """
         Iterate over pixmaps and repaint color
         """
         for i in range(len(self.pixmaps)):
-            self.colorPixmap(self.pixmaps[i]())
+            self.pixmaps[i]().swap(self._applyColor(self.source_pixmaps[i]))
+            #self.colorPixmap(self.pixmaps[i]())
 
 
 icon_managers = {"wheel": IconManager(), "sections": IconManager()}
