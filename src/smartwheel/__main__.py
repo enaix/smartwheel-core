@@ -65,6 +65,7 @@ class RootWindow(QMainWindow):
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_Hover, True)
         # self.mainWindow = QMainWindow(self)
         # self.mainWindow.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.dragPos = QtCore.QPoint()
 
         self.setAutoFillBackground(True)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
@@ -139,6 +140,16 @@ class RootWindow(QMainWindow):
         # self.qp.begin(self)
         self.draw()
         self.qp.end()
+
+    def mousePressEvent(self, event):
+        self.dragPos = event.globalPosition()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
+            point = self.pos().toPointF() + event.globalPosition() - self.dragPos
+            self.move(point.toPoint())
+            self.dragPos = event.globalPosition()
+            event.accept()
 
     def keyPressEvent(self, event):
         """
