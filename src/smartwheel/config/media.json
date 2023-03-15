@@ -1,8 +1,8 @@
 {
-    "icon_path": "media.png",
+    "icon_path": "media.svg",
     "icons": [
-        "play.png",
-        "pause.png"
+        "play.svg",
+        "pause.svg"
     ],
     "actions": {
         "scrollUp": [

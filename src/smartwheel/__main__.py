@@ -9,7 +9,7 @@ import weakref
 
 import qdarktheme
 from PyQt6 import QtCore
-from PyQt6.QtCore import QEvent, pyqtSlot
+from PyQt6.QtCore import QEvent, pyqtSlot, QPoint
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import (
     QApplication,
@@ -21,6 +21,7 @@ from PyQt6.QtWidgets import (
 )
 
 from smartwheel import config
+from smartwheel import gui_tools
 from smartwheel.canvas import RootCanvas
 from smartwheel.settings import SettingsWindow
 
@@ -84,18 +85,29 @@ class RootWindow(QMainWindow):
         )
         # self.settings.show()
 
+        self.postStart()
+
         self.show()
         # self.qp = QPainter(self)
 
     def initUI(self):
-        self.dock = QDockWidget()
-        self.dock.setMaximumWidth(300)
-        self.dock.setMaximumHeight(300)
-        self.settingsButton = QPushButton("Settings", default=False, autoDefault=False)
+        #self.dock = QDockWidget()
+        #self.dock.setMaximumWidth(300)
+        #self.dock.setMaximumHeight(300)
+        self.settingsButton = QPushButton("", default=False, autoDefault=False, parent=self)
+        
         self.settingsButton.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
-        self.dock.setWidget(self.settingsButton)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.dock)
-        self.dock.hide()
+        #self.dock.setWidget(self.settingsButton)
+        #self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.dock)
+        
+        self.setCentralWidget(self.settingsButton)
+        
+        self.settingsButton.setMaximumWidth(100)
+        self.settingsButton.setMaximumHeight(100)
+        s_pos = self.conf["window"]["geometry"][2] - 100
+        self.settingsButton.pos = QPoint(s_pos, s_pos)
+
+        self.settingsButton.hide()
 
         self.settingsButton.clicked.connect(self.openSettings)
 
@@ -103,15 +115,23 @@ class RootWindow(QMainWindow):
 
         # self.drawBlur()
 
+    def postStart(self):
+        """
+        Initialize the UI after the root canvas has been loaded
+        """
+        self.settings_pixmap = QPixmap(os.path.join(self.rc.conf["iconsFolder"], self.rc.conf["settingsIcon"]))
+        gui_tools.icon_managers["sections"].colorPixmap(self.settings_pixmap)
+        self.settingsButton.setIcon(QIcon(self.settings_pixmap))
+
     @pyqtSlot()
     def openSettings(self):
         self.settings.show()
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.HoverEnter:
-            self.dock.show()
+            self.settingsButton.show()
         elif event.type() == QEvent.Type.HoverLeave:
-            self.dock.hide()
+            self.settingsButton.hide()
         return super(RootWindow, self).eventFilter(obj, event)
 
     def drawBlur(self):

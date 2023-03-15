@@ -112,7 +112,8 @@
         "logFPS": false,
         "logging": "INFO",
         "brushes_dir": "backgrounds",
-        "cacheDir": "cache"
+        "cacheDir": "cache",
+	"settingsIcon": "settings.svg"
     },
     "presets": {
         "appearance": "Polar"

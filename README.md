@@ -134,3 +134,7 @@ Upd: going to properly remodel it in F360 in the future
 Short video (sorry for the poor quality): ![smartwheel.mp4](https://github.com/enaix/smartwheel-core/raw/master/extra/smartwheel.mp4)
 
 Update: added UI overlays ![smartwheel2.mp4](https://github.com/enaix/smartwheel-core/raw/master/extra/simplescreenrecorder-2022-10-10_12.54.42.mp4)
+
+## Resources
+
+Ionicons icon set https://github.com/ionic-team/ionicons
