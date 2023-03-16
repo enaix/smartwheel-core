@@ -3,14 +3,14 @@
 import importlib
 import json
 import logging
+import math
 import os
 import sys
 import weakref
-import math
 
 import qdarktheme
 from PyQt6 import QtCore
-from PyQt6.QtCore import QEvent, pyqtSlot, QPoint
+from PyQt6.QtCore import QEvent, QPoint, QSize, pyqtSlot
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import (
     QApplication,
@@ -18,12 +18,11 @@ from PyQt6.QtWidgets import (
     QGraphicsBlurEffect,
     QMainWindow,
     QPushButton,
-    QWidget,
     QVBoxLayout,
+    QWidget,
 )
 
-from smartwheel import config
-from smartwheel import gui_tools
+from smartwheel import config, gui_tools
 from smartwheel.canvas import RootCanvas
 from smartwheel.settings import SettingsWindow
 
@@ -93,49 +92,108 @@ class RootWindow(QMainWindow):
         # self.qp = QPainter(self)
 
     def initUI(self):
-        #self.dock = QDockWidget()
-        #self.dock.setMaximumWidth(300)
-        #self.dock.setMaximumHeight(300)
+        # self.dock = QDockWidget()
+        # self.dock.setMaximumWidth(300)
+        # self.dock.setMaximumHeight(300)
         self.twrapper = QWidget(parent=self)
-        self.twrapper.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.twrapper.setAttribute(
+            QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True
+        )
         self.toolbar = QWidget(parent=self.twrapper)
-        self.toolbar.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.toolbar.setAttribute(
+            QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True
+        )
+        self.toolbar.setStyleSheet(
+            "background-color: " + self.rc.common_config["bgWheelColor"] + ";"
+        )
         self.tools_layout = QVBoxLayout()
+
         self.settingsButton = QPushButton("", default=False, autoDefault=False)
-        
+        self.settingsButton.setStyleSheet("border-style: none;")
+        self.exitButton = QPushButton("", default=False, autoDefault=False)
+        self.exitButton.setStyleSheet("border-style: none;")
+
         self.settingsButton.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
-        #self.dock.setWidget(self.settingsButton)
-        #self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.dock)
-        
+        # self.dock.setWidget(self.settingsButton)
+        # self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.dock)
+
+        self.tools_layout.addWidget(self.exitButton)
         self.tools_layout.addWidget(self.settingsButton)
         self.toolbar.setLayout(self.tools_layout)
-        
-        self.toolbar.setMaximumWidth(100)
-        self.toolbar.setMaximumHeight(100)
 
-        self.settingsButton.setMaximumWidth(100)
-        self.settingsButton.setMaximumHeight(100)
-        s_pos = self.conf["window"]["geometry"][2] - 100 - int(math.sqrt(2)/2 * self.conf["window"]["geometry"][2]/4)
-        self.toolbar.setGeometry(s_pos, s_pos, 100, 100)
-        #self.twrapper.addWidget(self.toolbar)
+        # self.toolbar.setMaximumWidth(100)
+        # self.toolbar.setMaximumHeight(200)
+
+        self.btn_size = self.conf["window"]["geometry"][2] // 6
+        self.settingsButton.setMaximumWidth(self.btn_size)
+        self.settingsButton.setMaximumHeight(self.btn_size)
+        self.exitButton.setMaximumWidth(self.btn_size)
+        self.exitButton.setMaximumHeight(self.btn_size)
+        s_pos = (
+            self.conf["window"]["geometry"][2] - self.btn_size
+        )  # - int(math.sqrt(2)/2 * self.conf["window"]["geometry"][2]/4)
+        self.toolbar.setGeometry(
+            s_pos, s_pos - self.btn_size, self.btn_size, self.btn_size * 2
+        )
+        # self.twrapper.addWidget(self.toolbar)
 
         self.setCentralWidget(self.twrapper)
 
         self.toolbar.hide()
 
         self.settingsButton.clicked.connect(self.openSettings)
+        self.exitButton.clicked.connect(self.close)
 
         self.installEventFilter(self)
 
         # self.drawBlur()
 
+    @pyqtSlot()
+    def updateUi(self):
+        """
+        Update UI colors on settings update
+        """
+        self.toolbar.setStyleSheet(
+            "background-color: " + self.rc.common_config["bgWheelColor"] + ";"
+        )
+
+    @pyqtSlot()
+    def updateIcons(self):
+        self.settingsButton.setIcon(self.settings_icon)
+        self.exitButton.setIcon(self.quit_icon)
+
     def postStart(self):
         """
         Initialize the UI after the root canvas has been loaded
         """
-        self.settings_pixmap = QPixmap(os.path.join(self.rc.conf["iconsFolder"], self.rc.conf["settingsIcon"]))
-        gui_tools.icon_managers["sections"].colorPixmap(self.settings_pixmap)
-        self.settingsButton.setIcon(QIcon(self.settings_pixmap))
+        self.settings_pixmap = QPixmap(
+            os.path.join(self.rc.conf["iconsFolder"], self.rc.conf["settingsIcon"])
+        )
+        self.quit_pixmap = QPixmap(
+            os.path.join(self.rc.conf["iconsFolder"], self.rc.conf["closeIcon"])
+        )
+        self.settings_icon = QIcon()
+        self.quit_icon = QIcon()
+        # self.settings_pixmap.width = 100
+        # self.settings_pixmap.height = 100
+        # self.settings_pixmap = self.settings_pixmap.scaled(QSize(100, 100), QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+        gui_tools.icon_managers["sections"].colorPixmap(
+            self.settings_pixmap, self.settings_icon
+        )
+        gui_tools.icon_managers["sections"].colorPixmap(
+            self.quit_pixmap, self.quit_icon
+        )
+        self.settingsButton.setIcon(self.settings_icon)
+        self.settingsButton.setIconSize(
+            QSize(int(self.btn_size // 1.5), int(self.btn_size // 1.5))
+        )
+        self.exitButton.setIcon(self.quit_icon)
+        self.exitButton.setIconSize(
+            QSize(int(self.btn_size // 1.5), int(self.btn_size // 1.5))
+        )
+
+        self.rc.common_config.updated.connect(self.updateUi)
+        gui_tools.icon_managers["sections"].updated.connect(self.updateIcons)
 
     @pyqtSlot()
     def openSettings(self):

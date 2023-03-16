@@ -1,7 +1,7 @@
 import weakref
 
-from PyQt6.QtCore import QObject
-from PyQt6.QtGui import QColor, QPainter, QPixmap
+from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtGui import QColor, QIcon, QPainter, QPixmap
 
 
 class IconManager(QObject):
@@ -13,12 +13,15 @@ class IconManager(QObject):
     `gui_tools.icon_managers["sections"]` has separate instance for sections icons
     """
 
+    updated = pyqtSignal()
+
     def __init__(self):
         super(IconManager, self).__init__()
         self.color = None
         self.color_hex = None
         self.source_pixmaps = []
         self.pixmaps = []
+        self.linked_icons = []
 
     def setIconColor(self, color):
         """
@@ -38,7 +41,7 @@ class IconManager(QObject):
         self.updatePixmaps()
         return True
 
-    def colorPixmap(self, pixmap):
+    def colorPixmap(self, pixmap, icon=None):
         """
         Color the pixmap and store it in the instance
 
@@ -46,11 +49,20 @@ class IconManager(QObject):
         ==========
         pixmap
             QPixmap to update
+        icon
+            (Optional) Linked QIcon to update
         """
         if self.color == None:
             return
 
         pixmap = self._applyColor(pixmap)
+
+        if icon:
+            new_icon = QIcon(pixmap)
+            self.linked_icons.append(weakref.ref(icon))
+            icon.swap(new_icon)
+        else:
+            self.linked_icons.append(None)
 
         self.pixmaps.append(weakref.ref(pixmap))
         self.source_pixmaps.append(pixmap.copy())
@@ -81,7 +93,9 @@ class IconManager(QObject):
         """
         for i in range(len(self.pixmaps)):
             self.pixmaps[i]().swap(self._applyColor(self.source_pixmaps[i]))
-            #self.colorPixmap(self.pixmaps[i]())
+            if self.linked_icons[i] is not None and self.linked_icons[i]() is not None:
+                self.linked_icons[i]().swap(QIcon(self.pixmaps[i]()))
+            # self.colorPixmap(self.pixmaps[i]())
 
 
 icon_managers = {"wheel": IconManager(), "sections": IconManager()}
