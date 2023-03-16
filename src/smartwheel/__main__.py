@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import weakref
+import math
 
 import qdarktheme
 from PyQt6 import QtCore
@@ -18,6 +19,7 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QPushButton,
     QWidget,
+    QVBoxLayout,
 )
 
 from smartwheel import config
@@ -94,20 +96,32 @@ class RootWindow(QMainWindow):
         #self.dock = QDockWidget()
         #self.dock.setMaximumWidth(300)
         #self.dock.setMaximumHeight(300)
-        self.settingsButton = QPushButton("", default=False, autoDefault=False, parent=self)
+        self.twrapper = QWidget(parent=self)
+        self.twrapper.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.toolbar = QWidget(parent=self.twrapper)
+        self.toolbar.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.tools_layout = QVBoxLayout()
+        self.settingsButton = QPushButton("", default=False, autoDefault=False)
         
         self.settingsButton.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         #self.dock.setWidget(self.settingsButton)
         #self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.dock)
         
-        self.setCentralWidget(self.settingsButton)
+        self.tools_layout.addWidget(self.settingsButton)
+        self.toolbar.setLayout(self.tools_layout)
         
+        self.toolbar.setMaximumWidth(100)
+        self.toolbar.setMaximumHeight(100)
+
         self.settingsButton.setMaximumWidth(100)
         self.settingsButton.setMaximumHeight(100)
-        s_pos = self.conf["window"]["geometry"][2] - 100
-        self.settingsButton.pos = QPoint(s_pos, s_pos)
+        s_pos = self.conf["window"]["geometry"][2] - 100 - int(math.sqrt(2)/2 * self.conf["window"]["geometry"][2]/4)
+        self.toolbar.setGeometry(s_pos, s_pos, 100, 100)
+        #self.twrapper.addWidget(self.toolbar)
 
-        self.settingsButton.hide()
+        self.setCentralWidget(self.twrapper)
+
+        self.toolbar.hide()
 
         self.settingsButton.clicked.connect(self.openSettings)
 
@@ -129,9 +143,9 @@ class RootWindow(QMainWindow):
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.HoverEnter:
-            self.settingsButton.show()
+            self.toolbar.show()
         elif event.type() == QEvent.Type.HoverLeave:
-            self.settingsButton.hide()
+            self.toolbar.hide()
         return super(RootWindow, self).eventFilter(obj, event)
 
     def drawBlur(self):
