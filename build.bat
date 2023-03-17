@@ -1,6 +1,6 @@
 pip install nuitka
 
-copy entrypoint.py src/main.py
+copy entrypoint.py src\main.py
 
 cd src
 
