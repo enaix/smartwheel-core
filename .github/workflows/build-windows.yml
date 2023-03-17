@@ -1,0 +1,45 @@
+name: Build windows version
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install nuitka
+        python -m pip install -r requirements.txt
+    - name: Execute build
+      run: |
+        .\build.bat
+        cd ${{ github.workspace }}
+    - name: Parse artifacts
+      run: |
+        mv src\main.dist smartwheel-nightly
+    - name: Zip artifacts
+      uses: montudor/action-zip@v1
+      with:
+        args: zip -r smartwheel-linux-x86_64-nightly.zip smartwheel-nightly
+    - name: Upload to nightly releases
+      uses: pyTooling/Actions/releaser@r0
+      with:
+        tag: nightly
+        rm: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: smartwheel-linux-x86_64-nightly.zip
