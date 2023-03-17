@@ -31,15 +31,18 @@ jobs:
         cd ${{ github.workspace }}
     - name: Parse artifacts
       run: |
-        mv src\main.dist smartwheel-nightly
+        mkdir artifacts
+        move src\main.dist artifacts\smartwheel-nightly
     - name: Zip artifacts
-      uses: montudor/action-zip@v1
+      uses: TheDoctor0/zip-release@0.7.1
       with:
-        args: zip -r smartwheel-linux-x86_64-nightly.zip smartwheel-nightly
+        type: zip
+        filename: smartwheel-windows-x86_64-nightly.zip
+        path: artifacts
     - name: Upload to nightly releases
       uses: pyTooling/Actions/releaser@r0
       with:
         tag: nightly
         rm: true
         token: ${{ secrets.GITHUB_TOKEN }}
-        files: smartwheel-linux-x86_64-nightly.zip
+        files: smartwheel-windows-x86_64-nightly.zip
