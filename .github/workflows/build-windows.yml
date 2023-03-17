@@ -40,7 +40,7 @@ jobs:
         filename: smartwheel-windows-x86_64-nightly.zip
         path: artifacts
     - name: Upload to nightly releases
-      uses: pyTooling/Actions/releaser@0.4.6
+      uses: pyTooling/Actions/releaser@dev
       with:
         tag: nightly
         rm: true

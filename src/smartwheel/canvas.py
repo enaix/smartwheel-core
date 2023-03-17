@@ -341,6 +341,7 @@ class RootCanvas(QObject):
         #    self.conf["modules"][i]["class"].draw(qp)
         self.conf["modules"][0]["class"].draw(qp)  # render wheel
         m = self.getWheelModule()
+        cache = self.updateIconCache()
         if (
             self.conf["modules"][0]["class"].is_anim_running
             or (
@@ -348,7 +349,7 @@ class RootCanvas(QObject):
                 and hasattr(m["class"], "is_anim_running")
                 and m["class"].is_anim_running
             )
-            or self.updateIconCache()
+            or cache
         ):
             if self.conf["stabilizeFPS"]:
                 sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)

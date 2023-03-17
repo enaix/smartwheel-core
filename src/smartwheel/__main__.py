@@ -78,6 +78,8 @@ class RootWindow(QMainWindow):
         self.loadSerial()
         self.initUI()
 
+        self.postStart()
+
         self.settings = SettingsWindow(
             os.path.join(self.conf["basedir"], "settings_registry", "config.json"),
             weakref.ref(self),
@@ -85,8 +87,6 @@ class RootWindow(QMainWindow):
             self.conf["basedir"],
         )
         # self.settings.show()
-
-        self.postStart()
 
         self.show()
         # self.qp = QPainter(self)
@@ -114,6 +114,7 @@ class RootWindow(QMainWindow):
         self.exitButton.setStyleSheet("border-style: none;")
 
         self.settingsButton.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        self.exitButton.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         # self.dock.setWidget(self.settingsButton)
         # self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.dock)
 
@@ -156,6 +157,9 @@ class RootWindow(QMainWindow):
         self.toolbar.setStyleSheet(
             "background-color: " + self.rc.common_config["bgWheelColor"] + ";"
         )
+        self.toolbar.style().unpolish(self.toolbar)
+        self.toolbar.style().polish(self.toolbar)
+        self.toolbar.update()
 
     @pyqtSlot()
     def updateIcons(self):
@@ -177,6 +181,8 @@ class RootWindow(QMainWindow):
         # self.settings_pixmap.width = 100
         # self.settings_pixmap.height = 100
         # self.settings_pixmap = self.settings_pixmap.scaled(QSize(100, 100), QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+        gui_tools.icon_managers["sections"].updated.connect(self.updateIcons)
+
         gui_tools.icon_managers["sections"].colorPixmap(
             self.settings_pixmap, self.settings_icon
         )
@@ -193,7 +199,6 @@ class RootWindow(QMainWindow):
         )
 
         self.rc.common_config.updated.connect(self.updateUi)
-        gui_tools.icon_managers["sections"].updated.connect(self.updateIcons)
 
     @pyqtSlot()
     def openSettings(self):

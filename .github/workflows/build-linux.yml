@@ -27,7 +27,7 @@ jobs:
       run: |
         sudo apt-get install libgl1-mesa-dev
         python -m pip install --upgrade pip
-        python -m pip install nuitka
+        python -m pip install nuitka ordered-set
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Execute build
       run: |

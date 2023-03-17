@@ -10,6 +10,8 @@ class IconManager(QObject):
 
     Call `gui_tools.icon_managers["wheel"].colorPixmap(pixmap)` to set icon color during setup, it is going to be stored and updated automatically.
 
+    Updated signal emits when the icons have been updated.
+
     `gui_tools.icon_managers["sections"]` has separate instance for sections icons
     """
 
@@ -96,6 +98,8 @@ class IconManager(QObject):
             if self.linked_icons[i] is not None and self.linked_icons[i]() is not None:
                 self.linked_icons[i]().swap(QIcon(self.pixmaps[i]()))
             # self.colorPixmap(self.pixmaps[i]())
+
+        self.updated.emit()
 
 
 icon_managers = {"wheel": IconManager(), "sections": IconManager()}

@@ -635,5 +635,5 @@ class SettingsWindow(QWidget):
         self.isLoaded = True
 
         # updating properties
-        if self.presets_update_queue:
+        if not self.presets_update_queue == []:
             common.config_manager.batchUpdate.emit(self.presets_update_queue)

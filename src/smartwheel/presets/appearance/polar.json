@@ -10,7 +10,7 @@
         "ui.wheel.overlayRectsOpacity": 0.2,
         "ui.wheel.overlayRectsWidth": 20,
         "ui.wheel.overlayRectsColor": "#3a3a3a",
-        "common.bgWheelColor": "#171717",
+        "common.bgWheelColor": "#ffffff",
         "common.wheelTextureColor": "#e2e2e2",
         "common.selectionWheelBG": "#f0f0f0",
         "common.selectionWheelFG": "#000000",
