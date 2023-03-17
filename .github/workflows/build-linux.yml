@@ -42,12 +42,6 @@ jobs:
       with:
         args: zip -r smartwheel-linux-x86_64-nightly.zip smartwheel-nightly
     - name: Upload to nightly releases
-      uses: pyTooling/Actions/releaser@r0
-      with:
-        tag: nightly
-        rm: true
-        token: ${{ secrets.GITHUB_TOKEN }}
-        files: smartwheel-linux-x86_64-nightly.zip
       uses: ncipollo/release-action@v1.12.0
       with:
         tag: nightly
