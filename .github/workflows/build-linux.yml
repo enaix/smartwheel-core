@@ -51,4 +51,4 @@ jobs:
         body: CI build from the latest commit, may contain bugs
         generateReleaseNotes: true
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: smartwheel-windows-x86_64-nightly.zip
+        artifacts: smartwheel-linux-x86_64-nightly.zip
