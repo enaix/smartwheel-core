@@ -40,9 +40,13 @@ jobs:
         filename: smartwheel-windows-x86_64-nightly.zip
         path: artifacts
     - name: Upload to nightly releases
-      uses: pyTooling/Actions/releaser@dev
+      uses: ncipollo/release-action@v1.12.0
       with:
         tag: nightly
-        rm: true
+        prerelease: true
+        replacesArtifacts: true
+        allowUpdates: true
+        body: CI build from the latest commit, may contain bugs
+        generateReleaseNotes: true
         token: ${{ secrets.GITHUB_TOKEN }}
-        files: smartwheel-windows-x86_64-nightly.zip
+        artifacts: smartwheel-windows-x86_64-nightly.zip

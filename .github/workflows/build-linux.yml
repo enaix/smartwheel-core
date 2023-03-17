@@ -48,3 +48,13 @@ jobs:
         rm: true
         token: ${{ secrets.GITHUB_TOKEN }}
         files: smartwheel-linux-x86_64-nightly.zip
+      uses: ncipollo/release-action@v1.12.0
+      with:
+        tag: nightly
+        prerelease: true
+        replacesArtifacts: true
+        allowUpdates: true
+        body: CI build from the latest commit, may contain bugs
+        generateReleaseNotes: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: smartwheel-windows-x86_64-nightly.zip
