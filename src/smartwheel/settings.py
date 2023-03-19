@@ -295,10 +295,9 @@ class SettingsWindow(QWidget):
         if self.dictWalk(self.settings[module], props, value, index):
             if self.isLoaded:
                 common.config_manager.updated.emit(props[-1:][0])
+                self.main_class().update()
             else:
                 self.presets_update_queue.append(props[-1:][0])
-
-            self.main_class().update()
 
     def savePreset(self, index, name, title, filepath):
         """
@@ -345,20 +344,18 @@ class SettingsWindow(QWidget):
         name
             Preset internal name
         """
+        if not self.isLoaded:
+            self.presets_queue.put((index, name))
+            return
+
         preset = self.conf["presets"][str(index)][name]
 
         for key, value in preset["props"].items():
             p_elem = self.preset_tabs[index].get(key)
             if p_elem is None:
-                if not self.isLoaded:
-                    self.presets_queue.put((index, name))
-                else:
-                    self.logger.warning(
-                        "Could not find "
-                        + key
-                        + " widget from preset "
-                        + preset["title"]
-                    )
+                self.logger.warning(
+                    "Could not find " + key + " widget from preset " + preset["title"]
+                )
                 continue
 
             elem, handler = p_elem
@@ -629,11 +626,12 @@ class SettingsWindow(QWidget):
 
         self.setLayout(baseLayout)
 
+        self.isLoaded = True
+
         while not self.presets_queue.empty():
             self.loadPreset(*self.presets_queue.get())
-
-        self.isLoaded = True
 
         # updating properties
         if not self.presets_update_queue == []:
             common.config_manager.batchUpdate.emit(self.presets_update_queue)
+            self.main_class().update()

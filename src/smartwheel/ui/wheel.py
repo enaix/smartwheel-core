@@ -518,6 +518,7 @@ class UIElem(BaseUIElem):
                     self.conf["overlayCirclesWidth"],
                     self.conf["overlayCirclesWidth"],
                 )
+
         if self.conf["drawOverlayRects"]:
             self.qp.setPen(
                 QPen(

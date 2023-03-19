@@ -31,14 +31,15 @@ class PatternBackground(Background):
     def draw(self):
         self.setColor(QColor(self.conf["wheelTextureColor"]))
 
+        tf = QTransform().fromScale(
+            self.conf["patternScale"], self.conf["patternScale"]
+        )
+        self.setTransform(tf)
+
         if self.pattern_map.get(self.conf["patternType"]) is not None:
             self.setStyle(self.pattern_map[self.conf["patternType"]])
         else:
             return
-
-        tf = QTransform()
-        tf.scale(self.conf["patternScale"], self.conf["patternScale"])
-        self.setTransform(tf)
 
 
 brushes = {"pattern": PatternBackground}

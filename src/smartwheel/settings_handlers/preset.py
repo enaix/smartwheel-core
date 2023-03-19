@@ -65,7 +65,10 @@ class PresetHandler(BaseHandler):
         if not ok:
             value = "Custom"
 
+        wid.blockSignals(True)
         wid.setCurrentText(value)
+        wid.blockSignals(False)
+        wid.currentIndexChanged.emit(wid.currentIndex())
 
         save = QPushButton("Save")
         save.setProperty("combo", weakref.ref(wid))

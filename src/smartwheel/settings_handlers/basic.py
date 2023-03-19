@@ -195,7 +195,7 @@ class BoolHandler(BaseHandler):
         else:
             self.logger.warning("Could not get value for " + elem["name"])
 
-        wid.clicked.connect(self.setBool)
+        wid.toggled.connect(self.setBool)
 
         return wid
 
