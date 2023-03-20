@@ -496,7 +496,9 @@ class SettingsWindow(QWidget):
             scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             scroll.setWidgetResizable(True)
             wrapper = QWidget()
-            wrapper.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+            wrapper.setSizePolicy(
+                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+            )
             form = QFormLayout()
 
             for elem in value["items"]:

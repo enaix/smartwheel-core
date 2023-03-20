@@ -6,6 +6,7 @@
      {"name": "Enable timeout", "type": "bool", "module": "serial", "prop": "serial.useTimeout"},
      {"name": "Timeout", "type": "int", "min": 1, "max": 100000, "module": "serial", "prop": "serial.timeout"},
      {"name": "Encoding", "type": "string", "module": "serial", "prop": "serial.encoding"},
-     {"name": "Doubleclick delay", "type": "int", "min": 1, "max": 100000, "module": "serial", "prop": "serial.doubleClickDelay"}
+     {"name": "Doubleclick delay", "type": "int", "min": 1, "max": 100000, "module": "serial", "prop": "serial.doubleClickDelay"},
+     {"type": "serialmodule", "module": "serial", "prop": "serial.binds"}
   ]
 }

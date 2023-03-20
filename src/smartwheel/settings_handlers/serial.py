@@ -11,5 +11,13 @@ class SerialHandler(BaseHandler):
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
-        lwid = self.parent_obj().handlers["listmanager"].initElem(elem)
+        ok, binds = self.value_getter(module=elem["module"], prop=elem["prop"])
+        if not ok:
+            self.logger.warning("Could not get serial handler binds")
+            return None
+
+        lwid = self.parent_obj().handlers["listmanager"].initElem({"binds": binds})
         return lwid
+
+
+handlers = {"serialmodule": SerialHandler}
