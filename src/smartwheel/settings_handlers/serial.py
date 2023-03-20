@@ -11,4 +11,5 @@ class SerialHandler(BaseHandler):
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
-        l_view = QListView()
+        lwid = self.parent_obj().handlers["listmanager"].initElem(elem)
+        return lwid

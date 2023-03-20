@@ -59,6 +59,7 @@ class SettingsWindow(QWidget):
         self.presets_queue = LifoQueue()
         self.presets_update_queue = []
         self.isLoaded = False
+        self.externalRegistries = {}
 
         self.initLayout()
 
@@ -120,10 +121,11 @@ class SettingsWindow(QWidget):
         serial = main_class().serialModules
 
         for name in main_class().serialModulesNames:
+            key = name.split(".")[-1:][0]
             if hasattr(serial[name], "conf"):
-                self.settings["serial"][name] = serial[name].conf
+                self.settings["serial"][key] = serial[name].conf
             else:
-                self.logger.error("serialpipe." + name + " has no conf attribute")
+                self.logger.error("serialpipe." + key + " has no conf attribute")
 
         # Parsing canvas section modules
         self.settings["modules"] = {}
@@ -484,6 +486,28 @@ class SettingsWindow(QWidget):
 
         return form.rowCount() - 1, wid
 
+    def initExtraRegistries(self):
+        for reg, value in self.external_reg.items():
+            if value.get("inPlace", False):
+                continue
+
+            scroll = QScrollArea()
+            scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            scroll.setWidgetResizable(True)
+            wrapper = QWidget()
+            wrapper.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+            form = QFormLayout()
+
+            for elem in value["items"]:
+                tab = {"conf": {"enable_presets": False}}
+                index = None
+                self.processItem(elem, index, form, tab)
+
+            wrapper.setLayout(form)
+            scroll.setWidget(wrapper)
+            self.externalRegistries[reg] = scroll
+
     def initTab(self, index):
         """
         Parse registry and generate elements
@@ -594,6 +618,9 @@ class SettingsWindow(QWidget):
         """
         Generate layout
         """
+
+        self.initExtraRegistries()
+
         baseLayout = QVBoxLayout(self)
 
         tabWidget = QTabWidget()

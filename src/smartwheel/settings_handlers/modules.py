@@ -16,6 +16,8 @@ from PyQt6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QLineEdit,
+    QInputDialog,
+    QLineEdit,
 )
 import weakref
 
@@ -57,8 +59,15 @@ class ModulesLoader(BaseHandler):
             check = QCheckBox()
             options = QPushButton("...")
 
-            lwid = self.parent_obj().handlers["listmanager"].initElem(elem)
-            options.clicked.connect(lwid.show)
+            if mod.get("registry") is not None:
+                form = self.parent_obj().externalRegistries.get(mod["registry"])
+                if form is not None:
+                    options.clicked.connect(form.show)
+                #handler = self.parent_obj().handlers.get(mod["handler"])
+                #if handler is not None:
+                    #module_edit = handler.initElem(mod)
+                    #self.modules.append(module_edit)
+                    #options.clicked.connect(module_edit.show)
 
             check.setProperty("name", mod["name"])
 
@@ -180,24 +189,38 @@ class SerialLoader(BaseHandler):
 
 
 class ListBox(QWidget):
+    """
+    List manager widget, emits various signals
+    """
     newCommand = pyqtSignal(QWidget)
     delCommand = pyqtSignal(QWidget)
     newGroup = pyqtSignal(QGroupBox)
     delGroup = pyqtSignal(QGroupBox)
     editCommandProps = pyqtSignal(QWidget)
-    editCommandName = pyqtSignal(QWidget)
+    editCommandName = pyqtSignal(tuple)
 
     def __init__(self, *args, **kwargs):
         super(ListBox, self).__init__(*args, **kwargs)
 
 
 class ListViewManager(BaseHandler):
+    """
+    Common list widget manager, useful for dynamically adding/removing elements in groups
+    """
     def __init__(self, value_getter, value_setter, parent_obj=None):
         super(ListViewManager, self).__init__(value_getter, value_setter, parent_obj)
         self.logger = logging.getLogger(__name__)
         self.elems = []
 
     def initElem(self, elem):
+        """
+        Initialize list managet widget
+
+        Parameters
+        ==========
+        elem
+            Dictionary with elements content
+        """
         wrapper = ListBox()
         layout = QVBoxLayout()
         baseLayout = QVBoxLayout()
@@ -212,13 +235,21 @@ class ListViewManager(BaseHandler):
         layout.addLayout(buttons)
         wrapper.setLayout(layout)
 
-        #self.addGroup(baseLayout)
-        #self.addGroup(baseLayout)
         self.elems.append(wrapper)
 
         return wrapper
 
     def addCommand(self, listWid, baseWidget):
+        """
+        Create new list widget element and emit newCommand signal
+
+        Parameters
+        ==========
+        listWid
+            QListWidget object
+        baseWidget
+            Main ListBox object
+        """
         wrapper = QWidget()
         listItem = QListWidgetItem()
         label = QLineEdit()
@@ -230,9 +261,13 @@ class ListViewManager(BaseHandler):
         delButton.setProperty("linkedList", weakref.ref(listWid))
         delButton.setProperty("linkedWidget", weakref.ref(baseWidget))
         confButton.setProperty("linkedWidget", weakref.ref(baseWidget))
+        confButton.setProperty("linkedItem", weakref.ref(wrapper))
         label.setProperty("linkedWidget", weakref.ref(baseWidget))
+        label.setProperty("linkedItem", weakref.ref(wrapper))
 
         delButton.clicked.connect(self.delCommand)
+        confButton.clicked.connect(self.confCommand)
+        label.textChanged.connect(self.nameCommand)
 
         layout.addWidget(label)
         layout.addWidget(confButton)
@@ -243,8 +278,54 @@ class ListViewManager(BaseHandler):
         listWid.setItemWidget(listItem, wrapper)
         baseWidget.newCommand.emit(wrapper)
     
+    @pyqtSlot(str)
+    def nameCommand(self, text):
+        """
+        Emit editCommandName signal on item edit
+
+        Parameters
+        ==========
+        text
+            New QLineEdit text
+        """
+        caller = self.sender()
+        item = caller.property("linkedItem")
+        base = caller.property("linkedWidget")
+
+        if base is None or base() is None:
+            self.logger.warning("Could not find base widget")
+            return
+
+        if item is None or item() is None:
+            self.logger.warning("Could not find linked QListWidget")
+            return
+
+        base().editCommandName.emit((item(), text))
+
+    @pyqtSlot()
+    def confCommand(self):
+        """
+        Emit editCommandProps signal on button press
+        """
+        caller = self.sender()
+        item = caller.property("linkedItem")
+        base = caller.property("linkedWidget")
+
+        if base is None or base() is None:
+            self.logger.warning("Could not find base widget")
+            return
+
+        if item is None or item() is None:
+            self.logger.warning("Could not find linked QListWidget")
+            return
+        
+        base().editCommandProps.emit(item())
+
     @pyqtSlot()
     def delCommand(self):
+        """
+        Delete command on delete button press and emit delCommand signal
+        """
         caller = self.sender()
         item = caller.property("linkedItem")
         wid = caller.property("linkedList")
@@ -263,6 +344,9 @@ class ListViewManager(BaseHandler):
 
     @pyqtSlot()
     def appendCommand(self):
+        """
+        Add new command on button press
+        """
         caller = self.sender()
         wid = caller.property("linkedList")
         base = caller.property("linkedWidget")
@@ -279,6 +363,9 @@ class ListViewManager(BaseHandler):
 
     @pyqtSlot()
     def appendGroup(self):
+        """
+        Create new group on button press
+        """
         caller = self.sender()
         base = caller.property("linkedWidget")
 
@@ -289,12 +376,24 @@ class ListViewManager(BaseHandler):
         self.addGroup(base())
 
     def addGroup(self, baseWidget):
+        """
+        Add new group and emit newGroup signal
+
+        Parameters
+        ==========
+        baseWidget
+            Base ListBox widget
+        """
         baseLayout = baseWidget.findChild(QVBoxLayout)
         if baseLayout is None:
             self.logger.warning("Could not find base layout of the listbox")
             return
 
-        group = QGroupBox("Button")
+        name, ok = QInputDialog().getText(baseWidget, "New group", "Group name:", QLineEdit.EchoMode.Normal, "Group " + str(baseLayout.count() - 1))
+        if not ok:
+            return
+
+        group = QGroupBox(name)
         layout = QVBoxLayout()
         listWid = QListWidget()
         buttons = QHBoxLayout()
@@ -322,6 +421,9 @@ class ListViewManager(BaseHandler):
 
     @pyqtSlot()
     def removeGroup(self):
+        """
+        Delete group on button press
+        """
         caller = self.sender()
         wid = caller.property("linkedGroup")
         base = caller.property("linkedWidget")
@@ -338,6 +440,18 @@ class ListViewManager(BaseHandler):
         self.delGroup(wid(), layout(), base())
 
     def delGroup(self, group, layout, baseWidget):
+        """
+        Delete group and emit delGroup signal
+
+        Parameters
+        ==========
+        group
+            QGroupBox object
+        layout
+            QVBoxLayout widget
+        baseWidget
+            Main ListBox widget
+        """
         layout.removeWidget(group)
         baseWidget.delGroup.emit(group)
 

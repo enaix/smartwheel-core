@@ -54,7 +54,9 @@
                 "name": "serialpipe.serial",
                 "config": "serial.json",
                 "title": "Serial",
-                "description": "Serial keyboard/encoder"
+                "description": "Serial keyboard/encoder",
+		"handler": "serialmodule",
+		"registry": "serialmodule"
             },
             {
                 "name": "serialpipe.keyboard",
