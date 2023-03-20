@@ -19,7 +19,7 @@ class SConn(ConnPipe):
         self.loadConfig()
 
     def loadConfig(self):
-        self.conf = config.Config(self.config_file, self.logger)
+        self.conf = config.Config(self.config_file, self.logger, varsWhitelist=["binds"])
         self.conf.loadConfig()
 
     def serialCall(self, string):

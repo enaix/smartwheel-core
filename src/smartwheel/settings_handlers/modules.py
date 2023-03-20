@@ -269,6 +269,7 @@ class ListViewManager(BaseHandler):
         confButton = QPushButton("...")
         delButton = QPushButton("x")
 
+        wrapper.setProperty("linkedWidget", weakref.ref(baseWidget))
         delButton.setProperty("linkedItem", weakref.ref(listItem))
         delButton.setProperty("linkedList", weakref.ref(listWid))
         delButton.setProperty("linkedWidget", weakref.ref(baseWidget))
@@ -276,6 +277,7 @@ class ListViewManager(BaseHandler):
         confButton.setProperty("linkedItem", weakref.ref(wrapper))
         label.setProperty("linkedWidget", weakref.ref(baseWidget))
         label.setProperty("linkedItem", weakref.ref(wrapper))
+        wrapper.setProperty("linkedGroup", weakref.ref(listWid.parent()))
 
         delButton.clicked.connect(self.delCommand)
         confButton.clicked.connect(self.confCommand)
@@ -426,6 +428,7 @@ class ListViewManager(BaseHandler):
         delButton.setProperty("linkedWidget", weakref.ref(baseWidget))
         delButton.setProperty("linkedGroup", weakref.ref(group))
         delButton.setProperty("linkedLayout", weakref.ref(baseLayout))
+        group.setProperty("linkedWidget", weakref.ref(baseWidget))
 
         addButton.setProperty("linkedList", weakref.ref(listWid))
         addButton.clicked.connect(self.appendCommand)

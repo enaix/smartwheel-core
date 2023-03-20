@@ -70,6 +70,7 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Move to PyQt6
   - [X] Add colorable icons
   - [X] Add modules background processes
+  - [ ] Rewrite serial input with new api
   - [ ] Add media fetching on Windows
   - [ ] Add key combos
   - [ ] Finish folders support
@@ -79,6 +80,7 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Saving
   - [X] Theme presets
   - [X] Add color picker
+  - [ ] Add unified input editor (new input api)
   - [ ] Better overlays editor
   - [ ] Actions editor
   - [ ] Modules import (.zip)
