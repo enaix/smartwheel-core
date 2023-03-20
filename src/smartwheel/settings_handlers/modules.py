@@ -1,6 +1,6 @@
 import logging
 
-from PyQt6.QtCore import Qt, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -12,7 +12,12 @@ from PyQt6.QtWidgets import (
     QSpacerItem,
     QVBoxLayout,
     QWidget,
+    QGroupBox,
+    QListWidget,
+    QListWidgetItem,
+    QLineEdit,
 )
+import weakref
 
 from smartwheel.settings_handlers.base import BaseHandler
 
@@ -51,6 +56,9 @@ class ModulesLoader(BaseHandler):
         for i, mod in enumerate(elem["modules"]):
             check = QCheckBox()
             options = QPushButton("...")
+
+            lwid = self.parent_obj().handlers["listmanager"].initElem(elem)
+            options.clicked.connect(lwid.show)
 
             check.setProperty("name", mod["name"])
 
@@ -171,4 +179,167 @@ class SerialLoader(BaseHandler):
         self.value_setter(module="canvas", prop="serialModulesLoad", value=modulesLoad)
 
 
-handlers = {"modules": ModulesLoader, "serial": SerialLoader}
+class ListBox(QWidget):
+    newCommand = pyqtSignal(QWidget)
+    delCommand = pyqtSignal(QWidget)
+    newGroup = pyqtSignal(QGroupBox)
+    delGroup = pyqtSignal(QGroupBox)
+    editCommandProps = pyqtSignal(QWidget)
+    editCommandName = pyqtSignal(QWidget)
+
+    def __init__(self, *args, **kwargs):
+        super(ListBox, self).__init__(*args, **kwargs)
+
+
+class ListViewManager(BaseHandler):
+    def __init__(self, value_getter, value_setter, parent_obj=None):
+        super(ListViewManager, self).__init__(value_getter, value_setter, parent_obj)
+        self.logger = logging.getLogger(__name__)
+        self.elems = []
+
+    def initElem(self, elem):
+        wrapper = ListBox()
+        layout = QVBoxLayout()
+        baseLayout = QVBoxLayout()
+        buttons = QHBoxLayout()
+        addButton = QPushButton("+")
+
+        addButton.setProperty("linkedWidget", weakref.ref(wrapper))
+        addButton.clicked.connect(self.appendGroup)
+
+        buttons.addWidget(addButton)
+        layout.addLayout(baseLayout)
+        layout.addLayout(buttons)
+        wrapper.setLayout(layout)
+
+        #self.addGroup(baseLayout)
+        #self.addGroup(baseLayout)
+        self.elems.append(wrapper)
+
+        return wrapper
+
+    def addCommand(self, listWid, baseWidget):
+        wrapper = QWidget()
+        listItem = QListWidgetItem()
+        label = QLineEdit()
+        layout = QHBoxLayout()
+        confButton = QPushButton("...")
+        delButton = QPushButton("x")
+
+        delButton.setProperty("linkedItem", weakref.ref(listItem))
+        delButton.setProperty("linkedList", weakref.ref(listWid))
+        delButton.setProperty("linkedWidget", weakref.ref(baseWidget))
+        confButton.setProperty("linkedWidget", weakref.ref(baseWidget))
+        label.setProperty("linkedWidget", weakref.ref(baseWidget))
+
+        delButton.clicked.connect(self.delCommand)
+
+        layout.addWidget(label)
+        layout.addWidget(confButton)
+        layout.addWidget(delButton)
+        wrapper.setLayout(layout)
+        listItem.setSizeHint(wrapper.sizeHint())
+        listWid.addItem(listItem)
+        listWid.setItemWidget(listItem, wrapper)
+        baseWidget.newCommand.emit(wrapper)
+    
+    @pyqtSlot()
+    def delCommand(self):
+        caller = self.sender()
+        item = caller.property("linkedItem")
+        wid = caller.property("linkedList")
+        base = caller.property("linkedWidget")
+
+        if base is None or base() is None:
+            self.logger.warning("Could not find base widget")
+            return
+
+        if item is None or wid is None or item() is None or wid() is None:
+            self.logger.warning("Could not find linked QListWidget")
+            return
+
+        base().delCommand.emit(wid().itemWidget(item()))
+        wid().takeItem(wid().row(item()))
+
+    @pyqtSlot()
+    def appendCommand(self):
+        caller = self.sender()
+        wid = caller.property("linkedList")
+        base = caller.property("linkedWidget")
+
+        if base is None or base() is None:
+            self.logger.warning("Could not find base widget")
+            return
+
+        if wid is None or wid() is None:
+            self.logger.warning("Could not find linked QListWidget")
+            return
+        
+        self.addCommand(wid(), base())
+
+    @pyqtSlot()
+    def appendGroup(self):
+        caller = self.sender()
+        base = caller.property("linkedWidget")
+
+        if base is None or base() is None:
+            self.logger.warning("Could not find base widget")
+            return
+
+        self.addGroup(base())
+
+    def addGroup(self, baseWidget):
+        baseLayout = baseWidget.findChild(QVBoxLayout)
+        if baseLayout is None:
+            self.logger.warning("Could not find base layout of the listbox")
+            return
+
+        group = QGroupBox("Button")
+        layout = QVBoxLayout()
+        listWid = QListWidget()
+        buttons = QHBoxLayout()
+        addButton = QPushButton("Add command")
+        delButton = QPushButton("x")
+        addButton.setProperty("linkedWidget", weakref.ref(baseWidget))
+        delButton.setProperty("linkedWidget", weakref.ref(baseWidget))
+        delButton.setProperty("linkedGroup", weakref.ref(group))
+        delButton.setProperty("linkedLayout", weakref.ref(baseLayout))
+
+        addButton.setProperty("linkedList", weakref.ref(listWid))
+        addButton.clicked.connect(self.appendCommand)
+        delButton.clicked.connect(self.removeGroup)
+
+        buttons.addWidget(addButton)
+        buttons.addWidget(delButton)
+        layout.addWidget(listWid)
+        layout.addLayout(buttons)
+        group.setLayout(layout)
+        baseLayout.addWidget(group)
+
+        baseWidget.newGroup.emit(group)
+
+        #self.addCommand(listWid)
+
+    @pyqtSlot()
+    def removeGroup(self):
+        caller = self.sender()
+        wid = caller.property("linkedGroup")
+        base = caller.property("linkedWidget")
+        layout = caller.property("linkedLayout")
+
+        if base is None or base() is None:
+            self.logger.warning("Could not find base widget")
+            return
+
+        if wid is None or wid() is None or layout is None or layout() is None:
+            self.logger.warning("Could not find linked group")
+            return
+
+        self.delGroup(wid(), layout(), base())
+
+    def delGroup(self, group, layout, baseWidget):
+        layout.removeWidget(group)
+        baseWidget.delGroup.emit(group)
+
+
+handlers = {"modules": ModulesLoader, "serial": SerialLoader, "listmanager": ListViewManager}
