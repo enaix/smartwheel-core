@@ -74,11 +74,11 @@ class RootCanvas(QObject):
 
     def loadModules(self):
         """
-        Read module classes from `modules` config
+        Read main module classes from `modules` config
         """
-        for i in self.conf["modulesLoad"]:
-            self.conf["modules"][i]["class"] = self.importModule(
-                self.conf["modules"][i]
+        if 0 in self.conf["modulesLoad"]:
+            self.conf["modules"][0]["class"] = self.importModule(
+                self.conf["modules"][0]
             )
 
     def importModule(self, meta):
@@ -133,7 +133,7 @@ class RootCanvas(QObject):
             #    print("Error importing module ", mod["name"], ": No such module. Aborting...",sep="")
             #    return 1
             mod_class = self.loadWheelModule(mod)
-            if i["name"] == "ui.folder":
+            if mod_class is not None and i["name"] == "ui.folder":
                 mod_class["class"].wrapper_pointer = weakref.ref(mod_class)
             mods.append(mod_class)
         return mods
@@ -196,6 +196,12 @@ class RootCanvas(QObject):
         merge_dicts(self.conf, self.common_config)
 
     def loadWheelModule(self, module):
+        for i, key in enumerate(self.conf["modules"]):
+            if module["name"] == key["name"]:
+                if not i in self.conf["modulesLoad"]:
+                    module["class"] = None
+                    return module
+
         mod = importlib.import_module("smartwheel." + module["name"])
         if module.get("config", None) is not None:
             ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)

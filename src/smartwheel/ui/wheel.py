@@ -34,7 +34,7 @@ class Section:
         # mod = importlib.import_module(self.module["name"])
         # ui = mod.UIElem(self.module["config"], self.parent.conf)
         # self.module["class"] = ui
-        if self.module["class"].icon_path is None:
+        if self.module["class"] is None or self.module["class"].icon_path is None:
             self.pixmap = None  # QImage(os.path.join(self.parent().conf["iconsFolder"], "folder.png"))
         else:
             self.pixmap = QPixmap(
@@ -44,7 +44,7 @@ class Section:
             )
 
     def draw_module(self, qp, opacity):
-        if self.module is not None:
+        if self.module is not None and self.module["class"] is not None:
             qp.setOpacity(opacity)
             self.module["class"].draw(qp, self.parent()._sections_pos)
             qp.setOpacity(1.0)

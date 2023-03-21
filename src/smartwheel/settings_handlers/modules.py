@@ -39,7 +39,7 @@ class ModulesLoader(BaseHandler):
         Parameters
         ==========
         elem
-            Dict containing modules {"modules": [{"name": "internalName", "title": ..., "description": ...,}, ...], "modulesLoad": [0, 1, ...]}
+            Dict containing modules {"modules": [{"name": "internalName", "title": ..., "description": ...,}, ...], "modulesLoad": [0, 1, ...], "disabled": [0, ...]}
         """
         layout = QGridLayout()
 
@@ -53,6 +53,9 @@ class ModulesLoader(BaseHandler):
             layout.addWidget(labels[i], 0, i, Qt.AlignmentFlag.AlignLeft)
 
         # layout.setColumnStretch(10, 0)
+        if elem.get("disabled") is not None:
+            for i in elem["disabled"]:
+                elem["modules"][i]["disabled"] = True
 
         for i, mod in enumerate(elem["modules"]):
             check = QCheckBox()
@@ -83,11 +86,15 @@ class ModulesLoader(BaseHandler):
 
             for j in range(1, 4):
                 if layout.itemAtPosition(i + 1, j) is not None:
-                    check.clicked.connect(
-                        layout.itemAtPosition(i + 1, j).widget().setEnabled
-                    )
-                    if not check.isChecked():
+                    if mod.get("disabled", False):
                         layout.itemAtPosition(i + 1, j).widget().setDisabled(True)
+                        layout.itemAtPosition(i + 1, 0).widget().setDisabled(True)
+                    else:
+                        check.clicked.connect(
+                            layout.itemAtPosition(i + 1, j).widget().setEnabled
+                        )
+                        if not check.isChecked():
+                            layout.itemAtPosition(i + 1, j).widget().setDisabled(True)
 
         vbox = QVBoxLayout()
         vbox.addLayout(layout)

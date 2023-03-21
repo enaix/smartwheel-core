@@ -29,7 +29,7 @@ from smartwheel.settings import SettingsWindow
 
 class WConfig(config.Config):
     def __init__(self, config_file, launch_config):
-        super(WConfig, self).__init__(config_file, varsWhitelist=["serialModulesLoad"])
+        super(WConfig, self).__init__(config_file, varsWhitelist=["modulesLoad", "serialModulesLoad"])
 
         if not self.loadConfig():
             print("Fatal: error loading main config file. Exiting..")
@@ -40,7 +40,7 @@ class WConfig(config.Config):
         self.processConfig()
 
     def processConfig(self):
-        self.c_canvas = config.Config(config_dict=self.c["canvas"])
+        self.c_canvas = config.Config(config_dict=self.c["canvas"], varsWhitelist=["modulesLoad", "serialModulesLoad"])
         c_geometry = self.c["window"]["geometry"]
         self.c_canvas["width"] = c_geometry[2] - self.c["window"]["padding"] * 2
         self.c_canvas["height"] = c_geometry[3] - self.c["window"]["padding"] * 2

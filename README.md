@@ -93,7 +93,6 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [ ] Hire core doctor!
 - [ ] Windows support
   - [ ] (Platform) Replace AF_UNIX socket with network socket
-  - [ ] (Platform) Replace pynput with winapi
 - [ ] Add fancy blur (?)
 - [ ] Mac support (?)
 

@@ -12,15 +12,21 @@
         "modules": [
             {
                 "name": "ui.wheel",
-                "config": "wheel.json"
+                "config": "wheel.json",
+		"title": "Wheel",
+		"description": "Main wheel module, cannot be disabled"
             },
             {
                 "name": "ui.media",
-                "config": "media.json"
+                "config": "media.json",
+		"title": "Media",
+		"description": "Control music/volume"
             },
             {
                 "name": "ui.hue",
-                "config": "hue.json"
+                "config": "hue.json",
+		"title": "Color picker",
+		"description": "HSL wheel picker"
             }
         ],
         "wheelModules": [
@@ -88,7 +94,9 @@
             }
         ],
         "modulesLoad": [
-            0
+            0,
+	    1,
+	    2
         ],
         "internalModulesLoad": [
             0,
