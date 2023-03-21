@@ -102,4 +102,4 @@ class IconManager(QObject):
         self.updated.emit()
 
 
-icon_managers = {"wheel": IconManager(), "sections": IconManager()}
+icon_managers = {"wheel": IconManager(), "sections": IconManager(), "tools": IconManager()}

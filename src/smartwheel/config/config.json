@@ -124,7 +124,9 @@
         "brushes_dir": "backgrounds",
         "cacheDir": "cache",
 	"settingsIcon": "settings.svg",
-	"closeIcon": "close.svg"
+	"closeIcon": "close.svg",
+	"toolsIconColor": "#000000",
+	"toolsBackgroundColor": "#ffffff"
     },
     "presets": {
         "appearance": "Polar"

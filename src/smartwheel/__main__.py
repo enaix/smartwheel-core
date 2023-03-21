@@ -155,7 +155,7 @@ class RootWindow(QMainWindow):
         Update UI colors on settings update
         """
         self.toolbar.setStyleSheet(
-            "background-color: " + self.rc.common_config["bgWheelColor"] + ";"
+            "background-color: " + self.rc.conf["toolsBackgroundColor"] + ";"
         )
         self.toolbar.style().unpolish(self.toolbar)
         self.toolbar.style().polish(self.toolbar)
@@ -181,12 +181,12 @@ class RootWindow(QMainWindow):
         # self.settings_pixmap.width = 100
         # self.settings_pixmap.height = 100
         # self.settings_pixmap = self.settings_pixmap.scaled(QSize(100, 100), QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
-        gui_tools.icon_managers["sections"].updated.connect(self.updateIcons)
+        gui_tools.icon_managers["tools"].updated.connect(self.updateIcons)
 
-        gui_tools.icon_managers["sections"].colorPixmap(
+        gui_tools.icon_managers["tools"].colorPixmap(
             self.settings_pixmap, self.settings_icon
         )
-        gui_tools.icon_managers["sections"].colorPixmap(
+        gui_tools.icon_managers["tools"].colorPixmap(
             self.quit_pixmap, self.quit_icon
         )
         self.settingsButton.setIcon(self.settings_icon)
@@ -198,7 +198,7 @@ class RootWindow(QMainWindow):
             QSize(int(self.btn_size // 1.5), int(self.btn_size // 1.5))
         )
 
-        self.rc.common_config.updated.connect(self.updateUi)
+        self.rc.conf.updated.connect(self.updateUi)
 
     @pyqtSlot()
     def openSettings(self):

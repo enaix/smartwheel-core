@@ -294,15 +294,14 @@ class RootCanvas(QObject):
         """
         Will only be called if icon color has been changed
         """
-        res1 = gui_tools.icon_managers["wheel"].setIconColor(
-            self.common_config["wheelIconColor"]
-        )
-        return (
-            gui_tools.icon_managers["sections"].setIconColor(
-                self.common_config["sectionsIconColor"]
-            )
-            or res1
-        )
+        colors = [self.common_config["wheelIconColor"], self.common_config["sectionsIconColor"], self.conf["toolsIconColor"]]
+        keys = ["wheel", "sections", "tools"]
+
+        res = False
+
+        for i in range(len(keys)):
+            res = gui_tools.icon_managers[keys[i]].setIconColor(colors[i]) or res
+        return res
 
     def calculateSmoothFPS(self, new_time):
         """

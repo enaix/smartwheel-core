@@ -30,7 +30,9 @@
       {"name": "Wheel folder switch color", "type": "color", "module": "ui.wheel", "prop": "wheelShadowColor", "preset": true},
       {"name": "Wheel icons color", "type": "color", "module": "common", "prop": "wheelIconColor", "preset": true},
       {"name": "Sections icon color", "type": "color", "module": "common", "prop": "sectionsIconColor", "preset": true},
-      {"name": "Main text color", "type": "color", "module": "common", "prop": "majorTextColor", "preset": true}
+      {"name": "Main text color", "type": "color", "module": "common", "prop": "majorTextColor", "preset": true},
+      {"name": "Tools icon color", "type": "color", "module": "canvas", "prop": "toolsIconColor", "preset": true},
+      {"name": "Tools background color", "type": "color", "module": "canvas", "prop": "toolsBackgroundColor", "preset": true}
     ]},
     {"name": "Background", "options": [
       {"name": "Background style", "type": "combo", "options": {"module": "canvas", "prop": "brushesTypes"}, "module": "ui.wheel", "prop": "backgroundStyle", "external": {"module": "canvas", "prop": "brushesTypes", "pickerName": "background_styles"}, "preset": true}
