@@ -67,15 +67,10 @@
         ]
     },
     "mediaFetchSleep": 0.01,
-    "style": {
-        "textHeaderColor": "#ffffff",
-        "textHeaderFont": "Ubuntu",
-        "textHeaderSize": 14,
-        "bottomTextColor": "#cccccc",
-        "bottomTextFont": "Ubuntu",
-        "bottomTextSize": 12,
-        "seekTextColor": "#cccccc",
-        "seekTextFont": "Ubuntu",
-        "seekTextSize": 14
-    }
+    "textHeaderFont": "Ubuntu",
+    "textHeaderSize": 14,
+    "bottomTextFont": "Ubuntu",
+    "bottomTextSize": 12,
+    "seekTextFont": "Ubuntu",
+    "seekTextSize": 14
 }

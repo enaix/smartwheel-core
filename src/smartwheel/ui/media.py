@@ -166,8 +166,8 @@ class UIElem(BaseUIElem):
         self.drawText(
             qp,
             self.conf["majorTextColor"],
-            self.conf["style"]["textHeaderFont"],
-            self.conf["style"]["textHeaderSize"],
+            self.conf["textHeaderFont"],
+            self.conf["textHeaderSize"],
             1,
             t,
         )
@@ -176,8 +176,8 @@ class UIElem(BaseUIElem):
         self.drawText(
             qp,
             self.conf["majorTextColor"],
-            self.conf["style"]["bottomTextFont"],
-            self.conf["style"]["bottomTextSize"],
+            self.conf["bottomTextFont"],
+            self.conf["bottomTextSize"],
             2,
             t,
         )
@@ -186,8 +186,8 @@ class UIElem(BaseUIElem):
         self.drawText(
             qp,
             self.conf["majorTextColor"],
-            self.conf["style"]["seekTextFont"],
-            self.conf["style"]["seekTextSize"],
+            self.conf["seekTextFont"],
+            self.conf["seekTextSize"],
             3,
             t1 + " / " + t2,
         )

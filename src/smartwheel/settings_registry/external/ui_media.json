@@ -1,0 +1,12 @@
+{
+    "name": "ui.media",
+    "items": [
+        {"name": "Header text size", "type": "int", "min": 1, "max": 100, "module": "ui.media", "prop": "textHeaderSize"},
+        {"name": "Bottom text size", "type": "int", "min": 1, "max": 100, "module": "ui.media", "prop": "bottomTextSize"},
+        {"name": "Seek text size", "type": "int", "min": 1, "max": 100, "module": "ui.media", "prop": "seekTextSize"},
+        {"name": "Header text font", "type": "string", "module": "ui.media", "prop": "textHeaderFont"},
+        {"name": "Bottom text font", "type": "string", "module": "ui.media", "prop": "bottomTextFont"},
+        {"name": "Seek text font", "type": "string", "module": "ui.media", "prop": "seekTextFont"},
+        {"name": "Media fetch delay", "type": "float", "min": 0.001, "max": 100.0, "module": "ui.media", "prop": "mediaFetchSleep"}
+    ]
+}

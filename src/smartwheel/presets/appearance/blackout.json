@@ -4,7 +4,7 @@
     "props": {
         "ui.wheel.drawOverlayCircles": true,
         "ui.wheel.drawOverlayRects": false,
-        "ui.wheel.overlayCirclesOpacity": 0.2,
+        "ui.wheel.overlayCirclesOpacity": 0.5,
         "ui.wheel.overlayCirclesWidth": 10,
         "ui.wheel.overlayCirclesColor": "#2a2a2a",
         "ui.wheel.overlayRectsOpacity": 0.2,
@@ -19,6 +19,8 @@
         "common.wheelIconColor": "#ffffff",
         "common.sectionsIconColor": "#ffffff",
         "common.majorTextColor": "#ffffff",
+        "canvas.toolsIconColor": "#ffffff",
+        "canvas.toolsBackgroundColor": "#000000",
         "ui.wheel.backgroundStyle": "pattern",
         "canvas.brush_configs.pattern.patternType": "None",
         "canvas.brush_configs.pattern.patternScale": 1.0,

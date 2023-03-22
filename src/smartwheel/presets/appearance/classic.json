@@ -19,6 +19,8 @@
         "common.wheelIconColor": "#ffffff",
         "common.sectionsIconColor": "#ffffff",
         "common.majorTextColor": "#ffffff",
+        "canvas.toolsIconColor": "#ffffff",
+        "canvas.toolsBackgroundColor": "#161616",
         "ui.wheel.backgroundStyle": "pattern",
         "canvas.brush_configs.pattern.patternType": "Diagonal (right)",
         "canvas.brush_configs.pattern.patternScale": 1.0,

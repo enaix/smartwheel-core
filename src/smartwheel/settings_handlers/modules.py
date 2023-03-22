@@ -40,6 +40,7 @@ class ModulesLoader(BaseHandler):
         ==========
         elem
             Dict containing modules {"modules": [{"name": "internalName", "title": ..., "description": ...,}, ...], "modulesLoad": [0, 1, ...], "disabled": [0, ...]}
+            Optional: module may contain registry property, which will be linked to the settings button
         """
         layout = QGridLayout()
 

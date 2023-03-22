@@ -20,7 +20,8 @@
                 "name": "ui.media",
                 "config": "media.json",
 		"title": "Media",
-		"description": "Control music/volume"
+		"description": "Control music/volume",
+		"registry": "ui_media"
             },
             {
                 "name": "ui.hue",
