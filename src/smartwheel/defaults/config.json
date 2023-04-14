@@ -125,6 +125,7 @@
         "brushes_dir": "backgrounds",
         "cacheDir": "cache",
 	"settingsIcon": "settings.svg",
+	"serialConfigDir": "serial",
 	"closeIcon": "close.svg",
 	"toolsIconColor": "#000000",
 	"toolsBackgroundColor": "#ffffff"

@@ -34,6 +34,35 @@ class ConfigManager(QObject):
         self.save.emit()
 
 
+class DefaultsManager(QObject):
+    """
+    Global class that manages defaults for config files. Is a singleton
+    """
+
+    def __init__(self):
+        super(DefaultsManager, self).__init__()
+
+    def postInit(self, config_dir, defaults_config_dir):
+        """
+        Post-initialize manager
+
+        Parameters
+        ==========
+        config_dir
+            Common configuration file dir
+        """
+        self.config_dir = config_dir
+        self.defaults_config_dir = defaults_config_dir
+
+    def __new__(cls):
+        """
+        Singleton implementation
+        """
+        if not hasattr(cls, "instance"):
+            cls.instance = super(DefaultsManager, cls).__new__(cls)
+        return cls.instance
+
+
 class CacheManager(QObject):
     """
     Global class that manages cache access. Not inteded to be called from other threads
@@ -126,4 +155,5 @@ class CacheManager(QObject):
 
 
 config_manager = ConfigManager()
+defaults_manager = DefaultsManager()
 cache_manager = CacheManager()

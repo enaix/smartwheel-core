@@ -1,3 +1,4 @@
 {
-  "config_dir": "config"
+  "config_dir": "config",
+  "defaults_config_dir": "defaults"
 }

@@ -4,6 +4,6 @@
     "pattern": "pattern.json",
     "contour": "contour.json"
   },
-  "brushes_config_dir": "config"
+  "brushes_config_dir": "backgrounds"
 }
 

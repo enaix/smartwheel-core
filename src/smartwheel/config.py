@@ -25,12 +25,14 @@ class Config(QObject):
     def __init__(
         self,
         config_file=None,
+        default_config_file=None,
         config_dict=None,
         logger=None,
         ignoreNewVars=True,
         varsWhitelist=[],
         varsBlacklist=[],
         updateFunc=None,
+        disableSaving=False,
     ):
         """
         Initialize Config object
@@ -40,8 +42,10 @@ class Config(QObject):
         ==========
         config_file
             (Optional) Path to the configuration file
+        default_config_file
+            (Optional) Path to the default configuration file, `defaults/...` dir if not specified
         config_dict
-            (Optional) Dict containing initial values. Overwritten if config_file is specified.
+            (Optional) Dict containing initial values. Overwritten if config_file is specified
         logger
             logger.Logger instance (recommended, will print to stdout if not given)
         ignoreNewVars
@@ -52,9 +56,20 @@ class Config(QObject):
             (Optional) List of keys that contain runtime variables, new children variables of any depth are ignored
         updateFunc
             (Optional) Update function to call when settings are updated. Use only if signals are not supported
+        disableSaving
+            (Optional) Do not save config file automatically. False by default
         """
         super(Config, self).__init__()
         self.config_file = config_file
+        self.default_config_file = default_config_file
+
+        if self.default_config_file is None and self.config_file is not None:
+            self.default_config_file = self.config_file.replace(
+                common.defaults_manager.config_dir,
+                common.defaults_manager.defaults_config_dir,
+                1,
+            )
+
         # self.c = self.loadConfig()
         self.c = config_dict
         self.logger = logger
@@ -62,6 +77,7 @@ class Config(QObject):
         self.whitelist = varsWhitelist
         self.blacklist = varsBlacklist
         self.updateFunc = updateFunc
+        self.disableSaving = disableSaving
         self.links = []  # Storing source dicts to allow updating the variables
 
         common.config_manager.save.connect(self.saveConfig)
@@ -205,7 +221,33 @@ class Config(QObject):
         """
         return self.c.items()
 
-    def loadConfig(self, immediate=False):
+    def createConfig(self):
+        """
+        Create config file and underlying file structure if it does not exist
+
+        Returns True if config has been loaded from defaults
+        """
+        if self.default_config_file is None:
+            return False
+
+        if os.path.exists(self.config_file):
+            return False
+
+        os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
+        ok, defaults = self.loadConfig(
+            immediate=True, override=self.default_config_file
+        )
+        if not ok:
+            return
+
+        self.c = defaults
+
+        with open(self.config_file, "w") as f:
+            json.dump(defaults, f, indent=4)
+
+        return True
+
+    def loadConfig(self, immediate=False, override=None):
         """
         Load the config from file, returns True if it is loaded successfully
 
@@ -213,14 +255,24 @@ class Config(QObject):
         ==========
         immediate
             If false (default), the function applies the config and does not return it's copy. True - it returns (bool, dict) without applying it
+        override
+            (Optional) Override config file path with given one
         """
         if self.config_file is None:
             if immediate:
                 return True, self.c
             return True
 
+        config_file = self.config_file
+        if override is not None:
+            config_file = override
+
+        if not override and not immediate:
+            if self.createConfig():
+                return True
+
         try:
-            with open(self.config_file, "r") as f:
+            with open(config_file, "r") as f:
                 if immediate:
                     return True, json.load(f)
                 self.c = json.load(f)
@@ -310,7 +362,7 @@ class Config(QObject):
         Save the config file
         Note: new variables are dropped by default (we need to purge runtime variables)
         """
-        if self.config_file is None:
+        if self.config_file is None or self.disableSaving:
             return
 
         # We need to drop runtime variables, so we need to load the json file again
@@ -329,3 +381,47 @@ class Config(QObject):
 
         with open(self.config_file, "w") as f:
             json.dump(old_values, f, indent=4)
+
+    @pyqtSlot()
+    def mergeDefaults(self):
+        """
+        Refresh config file with default variables. Is invoked in case of an update or config error
+        """
+        if self.default_config_file is None or config_file is None:
+            return
+
+        ok, defauls = self.loadConfig(self.default_config_file)
+
+        if not ok:
+            if self.logger is not None:
+                self.logger.error("Failed to merge defaults")
+            else:
+                print("Failed to merge defaults")
+            return
+
+        # Default refresh strategy
+        self.dictIter(defaults, self.c, dropNew=False)
+        self.dictIter(self.c, defaults, dropNew=self.ignoreNew)
+
+        with open(self.config_file, "w") as f:
+            json.dump(defaults, f, indent=4)
+
+    @pyqtSlot()
+    def loadDefaults(self):
+        """
+        Reload config file from defaults
+        """
+        if self.default_config_file is None or self.config_file is None:
+            return
+
+        ok, defauls = self.loadConfig(self.default_config_file)
+
+        if not ok:
+            if self.logger is not None:
+                self.logger.error("Failed to merge defaults")
+            else:
+                print("Failed to merge defaults")
+            return
+
+        with open(self.config_file, "w") as f:
+            json.dump(defaults, f, indent=4)

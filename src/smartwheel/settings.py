@@ -21,18 +21,22 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from smartwheel import common
+from smartwheel import common, config
 
 
 class SettingsWindow(QWidget):
-    def __init__(self, config_file, main_class, conf_class, basedir, parent=None):
+    def __init__(
+        self, config_file, defaults_file, main_class, conf_class, basedir, parent=None
+    ):
         """
         Init SettingsWindow
 
         Parameters
         ==========
         config_file
-            Path to settings registry
+            Path to settings registry config
+        defaults_file
+            Path to settings registry default config
         main_class
             Weakref to RootWindow object
         conf_class
@@ -48,7 +52,7 @@ class SettingsWindow(QWidget):
         self.settings = {}
         self.external_reg = {}
         self.logger = logging.getLogger(__name__)
-        self.loadConfig(config_file)
+        self.loadConfig(config_file, defaults_file)
         self.setConfigHook(main_class, conf_class)
         self.loadSettingsHandlers(
             os.path.join(self.basedir, self.conf["settings_handlers_dir"])
@@ -63,7 +67,7 @@ class SettingsWindow(QWidget):
 
         self.initLayout()
 
-    def loadConfig(self, config_file):
+    def loadConfig(self, config_file, defaults_file):
         """
         Import settings registry
 
@@ -71,9 +75,16 @@ class SettingsWindow(QWidget):
         ==========
         config_file
             Settings registry config.json file
+        defaults_file
+            Default config file
         """
-        with open(config_file, "r") as f:
-            self.conf = json.load(f)
+        self.conf = config.Config(
+            config_file=config_file,
+            default_config_file=defaults_file,
+            disableSaving=True,
+        )
+        if not self.conf.loadConfig():
+            os._exit(1)
 
         if self.conf.get("tabs") is not None:
             for i in range(len(self.conf["tabs"])):
@@ -153,12 +164,13 @@ class SettingsWindow(QWidget):
             Directory containing settings handlers, must contain config.json file
         """
         s_config = os.path.join(handlers_dir, "config.json")
-        if not os.path.exists(s_config):
+        s_default = os.path.join(handlers_dir, "config_defaults.json")
+        self.handlers_conf = config.Config(
+            config_file=s_config, default_config_file=s_default, disableSaving=True
+        )
+        if not self.handlers_conf.loadConfig():
             self.logger.error("Missing " + s_config + " file")
-            os.exit(1)
-
-        with open(s_config, "r") as f:
-            self.handlers_conf = json.load(f)
+            os._exit(1)
 
         self.handlers = {}
         for mod_name in self.handlers_conf["handlers_modules"]:

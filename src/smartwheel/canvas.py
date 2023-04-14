@@ -145,12 +145,16 @@ class RootCanvas(QObject):
         b_config = os.path.join(
             self.conf["basedir"], self.conf["brushes_dir"], "config.json"
         )
-        if not os.path.exists(b_config):
-            self.logger.error("Missing " + b_config + " file")
-            os._exit(1)
+        b_defaults = os.path.join(
+            self.conf["basedir"], self.conf["brushes_dir"], "config_defaults.json"
+        )
 
-        with open(b_config, "r") as f:
-            self.brushes_conf = json.load(f)
+        self.brushes_conf = config.Config(
+            config_file=b_config, default_config_file=b_defaults, disableSaving=True
+        )
+        ok = self.brushes_conf.loadConfig()
+        if not ok:
+            os._exit(1)
 
         self.brushes = {}
         self.conf["brush_configs"] = {}
@@ -167,7 +171,7 @@ class RootCanvas(QObject):
                 self.conf["brush_configs"][k] = config.Config(
                     os.path.join(
                         self.conf["basedir"],
-                        self.conf["brushes_dir"],
+                        self.config_dir,
                         self.brushes_conf["brushes_config_dir"],
                         self.brushes_conf["brushes_config"][k],
                     )

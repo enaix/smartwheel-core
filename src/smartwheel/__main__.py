@@ -22,7 +22,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from smartwheel import config, gui_tools
+from smartwheel import common, config, gui_tools
 from smartwheel.canvas import RootCanvas
 from smartwheel.settings import SettingsWindow
 
@@ -87,6 +87,9 @@ class RootWindow(QMainWindow):
 
         self.settings = SettingsWindow(
             os.path.join(self.conf["basedir"], "settings_registry", "config.json"),
+            os.path.join(
+                self.conf["basedir"], "settings_registry", "config_defaults.json"
+            ),
             weakref.ref(self),
             weakref.ref(self.conf),
             self.conf["basedir"],
@@ -298,6 +301,7 @@ class RootWindow(QMainWindow):
                 cls = mod.SConn(
                     os.path.join(
                         self.conf["config_dir"],
+                        self.conf.c["canvas"]["serialConfigDir"],
                         self.conf.c["canvas"]["serialModules"][i]["config"],
                     ),
                     self.rc.ae.callAction,
@@ -306,7 +310,7 @@ class RootWindow(QMainWindow):
                 self.serialModules[mod_name] = cls
                 self.serialModulesNames.append(mod_name)
             except BaseException as e:
-                self.logger.error("Failed to load " + mod_name + ": ", e)
+                self.logger.error("Failed to load " + mod_name + ": " + str(e))
 
     def loadClasses(self):
         self.rc = RootCanvas(
@@ -321,16 +325,25 @@ class RootWindow(QMainWindow):
 
 def main():
     dirpath = os.path.dirname(os.path.realpath(__file__))
+    launch = os.path.join(dirpath, "launch.json")
 
-    if not os.path.exists(dirpath):
+    if not os.path.exists(launch):
         print(
             "Please check that configuration files are present in the installation directory"
         )
+        return
 
-    with open(os.path.join(dirpath, "launch.json"), "r") as f:
+    with open(launch, "r") as f:
         launch_config = json.load(f)
 
+    common.defaults_manager.postInit(
+        launch_config["config_dir"], launch_config["defaults_config_dir"]
+    )
+
     launch_config["config_dir"] = os.path.join(dirpath, launch_config["config_dir"])
+    launch_config["defaults_config_dir"] = os.path.join(
+        dirpath, launch_config["defaults_config_dir"]
+    )
 
     main_conf_path = os.path.join(launch_config["config_dir"], "config.json")
     conf = WConfig(main_conf_path, launch_config)
