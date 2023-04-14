@@ -2,6 +2,9 @@
   "items": [
     {"name": "Ui modules", "options": [
       {"type": "uimodules"}
+    ]},
+    {"name": "Sections", "options": [
+      {"type": "sections"}
     ]}
   ]
 }

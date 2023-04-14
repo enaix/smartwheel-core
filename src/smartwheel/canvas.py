@@ -294,7 +294,11 @@ class RootCanvas(QObject):
         """
         Will only be called if icon color has been changed
         """
-        colors = [self.common_config["wheelIconColor"], self.common_config["sectionsIconColor"], self.conf["toolsIconColor"]]
+        colors = [
+            self.common_config["wheelIconColor"],
+            self.common_config["sectionsIconColor"],
+            self.conf["toolsIconColor"],
+        ]
         keys = ["wheel", "sections", "tools"]
 
         res = False

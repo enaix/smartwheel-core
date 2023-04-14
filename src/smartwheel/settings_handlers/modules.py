@@ -4,6 +4,7 @@ import weakref
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
+    QAbstractItemView,
     QCheckBox,
     QGridLayout,
     QGroupBox,
@@ -270,14 +271,15 @@ class ListViewManager(BaseHandler):
         listItem = QListWidgetItem()
 
         if elem is None:
-            label = QPushButton("...")
+            label = QLineEdit()
         else:
-            label = QPushButton(elem["string"])
+            label = QLineEdit(elem["string"])
         layout = QHBoxLayout()
         confButton = QPushButton("...")
         delButton = QPushButton("x")
 
         wrapper.setProperty("linkedWidget", weakref.ref(baseWidget))
+        wrapper.setProperty("linkedLabel", weakref.ref(label))
         delButton.setProperty("linkedItem", weakref.ref(listItem))
         delButton.setProperty("linkedList", weakref.ref(listWid))
         delButton.setProperty("linkedWidget", weakref.ref(baseWidget))
@@ -285,11 +287,12 @@ class ListViewManager(BaseHandler):
         confButton.setProperty("linkedItem", weakref.ref(wrapper))
         label.setProperty("linkedWidget", weakref.ref(baseWidget))
         label.setProperty("linkedItem", weakref.ref(wrapper))
+        label.setProperty("oldText", label.text())
         wrapper.setProperty("linkedGroup", weakref.ref(listWid.parent()))
 
         delButton.clicked.connect(self.delCommand)
         confButton.clicked.connect(self.confCommand)
-        label.clicked.connect(self.nameCommand)
+        label.editingFinished.connect(self.nameCommand)
 
         layout.addWidget(label)
         layout.addWidget(confButton)
@@ -304,11 +307,6 @@ class ListViewManager(BaseHandler):
     def nameCommand(self):
         """
         Emit editCommandName signal on item edit
-
-        Parameters
-        ==========
-        text
-            New QLineEdit text
         """
         caller = self.sender()
         item = caller.property("linkedItem")
@@ -437,6 +435,8 @@ class ListViewManager(BaseHandler):
         delButton.setProperty("linkedGroup", weakref.ref(group))
         delButton.setProperty("linkedLayout", weakref.ref(baseLayout))
         group.setProperty("linkedWidget", weakref.ref(baseWidget))
+
+        listWid.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
 
         addButton.setProperty("linkedList", weakref.ref(listWid))
         addButton.clicked.connect(self.appendCommand)

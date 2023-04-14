@@ -80,10 +80,11 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Saving
   - [X] Theme presets
   - [X] Add color picker
+  - [X] Actions editor
+  - [ ] Sections editor
   - [ ] Add unified input editor (new input api)
-  - [ ] Better overlays editor
-  - [ ] Actions editor
-  - [ ] Modules import (.zip)
+  - [ ] Better overlays editor (?)
+  - [ ] Modules import (.zip) (?)
 - [ ] Wheel hiding
   - [ ] Hide after timeout
   - [ ] Hide after losing window focus
@@ -126,9 +127,9 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 
 ## DIY knob
 
-If you don't have a standalone dial, you may 3D print one: there is a Freecad model in `pad` folder. Sadly, some components don't fit, but I don't have time to fix it right now. DM me if you need the fixed case model.
+If you don't have a standalone dial, you may 3D print one! 
 
-Update: remodeling the pad, going to upload soon
+### [smartwheel pad](https://github.com/enaix/smartwheel-pad-mk1)
 
 ## Gallery
 

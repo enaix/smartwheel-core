@@ -1,13 +1,15 @@
-from smartwheel.settings_handlers.base import BaseHandler
+import logging
+import math
 
 from PyQt6.QtCore import pyqtSlot
-from PyQt6.QtWidgets import QVBoxLayout, QGridLayout
+from PyQt6.QtWidgets import QComboBox, QGridLayout, QSizePolicy, QVBoxLayout, QWidget
 
-import logging
+from smartwheel.settings_handlers.base import BaseHandler
+
 
 class UIModulesLoader(BaseHandler):
     """
-    UI modules picker
+    UI modules loader
     """
 
     def __init__(self, value_getter, value_setter, parent_obj=None):
@@ -89,4 +91,48 @@ class UIModulesLoader(BaseHandler):
         self.value_setter(module="canvas", prop="modulesLoad", value=modulesLoad)
 
 
-handlers = {"uimodules": UIModulesLoader}
+class SelectorWheel(QWidget):
+    def __init__(self, n_sections):
+        super(SelectorWheel, self).__init__()
+        self.combos = []
+
+        for a in range(0, 360, 360 // n_sections):
+            combo = QComboBox(parent=self)
+            # combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+            # combo.setFixedSize(10, 10)
+            combo.move(
+                self.x() + int(100 + 100 * math.cos(math.radians(a))),
+                self.y() + int(100 + 100 * math.sin(math.radians(a))),
+            )
+            self.combos.append(combo)
+
+
+class WheelPicker(BaseHandler):
+    """
+    Wheel sections picker
+    """
+
+    def __init__(self, value_getter, value_setter, parent_obj=None):
+        super(WheelPicker, self).__init__(value_getter, value_setter, parent_obj)
+        self.logger = logging.getLogger(__name__)
+
+    def initElem(self, elem):
+        """
+        Initialize picker
+
+        Parameters
+        ==========
+        elem
+            Wheel elem config
+        """
+        ok, num_sections = self.value_getter("common", "selectionWheelEntries")
+        if not ok:
+            self.logger.warning("Could not get selection wheel entries number")
+            return
+
+        wrapper = SelectorWheel(num_sections)
+
+        return wrapper
+
+
+handlers = {"uimodules": UIModulesLoader, "sections": WheelPicker}

@@ -508,6 +508,7 @@ class SettingsWindow(QWidget):
 
             wrapper.setLayout(form)
             scroll.setWidget(wrapper)
+            scroll.setWindowTitle("Settings")
             self.externalRegistries[reg] = scroll
 
     def initTab(self, index):
