@@ -78,6 +78,7 @@ class SettingsWindow(QWidget):
         defaults_file
             Default config file
         """
+        common.app_manager.updateState(common.AppState.SettingsRegistryInit)
         self.conf = config.Config(
             config_file=config_file,
             default_config_file=defaults_file,
@@ -163,6 +164,7 @@ class SettingsWindow(QWidget):
         handlers_dir
             Directory containing settings handlers, must contain config.json file
         """
+        common.app_manager.updateState(common.AppState.SettingsHandlersInit)
         s_config = os.path.join(handlers_dir, "config.json")
         s_default = os.path.join(handlers_dir, "config_defaults.json")
         self.handlers_conf = config.Config(
@@ -633,7 +635,7 @@ class SettingsWindow(QWidget):
         """
         Generate layout
         """
-
+        common.app_manager.updateState(common.AppState.SettingsInit)
         self.initExtraRegistries()
 
         baseLayout = QVBoxLayout(self)

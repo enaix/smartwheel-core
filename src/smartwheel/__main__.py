@@ -76,7 +76,7 @@ class RootWindow(QMainWindow):
 
         self.setAutoFillBackground(True)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setWindowTitle("SmartWHEEL")
+        self.setWindowTitle("Smartwheel")
         self.setWindowIcon(QIcon("logo.png"))
         self.setGeometry(*self.conf.c["window"]["geometry"])
         self.loadClasses()
@@ -96,10 +96,18 @@ class RootWindow(QMainWindow):
         )
         # self.settings.show()
 
+        self.appPostStart()
+
         self.show()
         # self.qp = QPainter(self)
 
+    def appPostStart(self):
+        common.app_manager.updateState(common.AppState.PostStart)
+
+        common.app_manager.updateState(common.AppState.Loaded)
+
     def initUI(self):
+        common.app_manager.updateState(common.AppState.WindowInit)
         # self.dock = QDockWidget()
         # self.dock.setMaximumWidth(300)
         # self.dock.setMaximumHeight(300)
@@ -289,6 +297,7 @@ class RootWindow(QMainWindow):
         Init main serial connections
         """
         # TODO add serial.tools.miniterm in settings
+        common.app_manager.updateState(common.AppState.SerialInit)
 
         self.serialModules = {}
         self.serialModulesNames = []

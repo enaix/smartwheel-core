@@ -41,10 +41,11 @@ class RootCanvas(QObject):
         # TODO add try catch everywhere
         self.initCacheDir()
         self.loadInternalModules()
-        self.loadBrushes()
         self.startInternalModules()
+        self.loadBrushes()
         self.pool = QThreadPool.globalInstance()
         self.threads = []
+        common.app_manager.updateState(common.AppState.ModulesInit)
         self.wheel_modules = self.loadSections(self.conf["wheelModules"])
         self.cur_wheel_modules = self.wheel_modules
         if self.wheel_modules == 1:
@@ -76,6 +77,7 @@ class RootCanvas(QObject):
         """
         Read main module classes from `modules` config
         """
+        common.app_manager.updateState(common.AppState.WheelInit)
         if 0 in self.conf["modulesLoad"]:
             self.conf["modules"][0]["class"] = self.importModule(
                 self.conf["modules"][0]
@@ -142,6 +144,7 @@ class RootCanvas(QObject):
         common.cache_manager.initManager(self.conf)
 
     def loadBrushes(self):
+        common.app_manager.updateState(common.AppState.BrushesInit)
         b_config = os.path.join(
             self.conf["basedir"], self.conf["brushes_dir"], "config.json"
         )
@@ -252,6 +255,7 @@ class RootCanvas(QObject):
         self.conf["modules"][0]["class"].reloadModules(self.cur_wheel_modules)
 
     def loadInternalModules(self):
+        common.app_manager.updateState(common.AppState.InternalModulesInit)
         self.conf["internal"] = {}
         for i in self.conf["internalModulesLoad"]:
             mod = self.conf["internalModules"][i]
@@ -284,6 +288,7 @@ class RootCanvas(QObject):
         return self.cur_wheel_modules[i]
 
     def loadActionEngine(self):
+        common.app_manager.updateState(common.AppState.ActionsInit)
         self.ae = ActionEngine(
             self.wheel_modules,
             os.path.join(self.config_dir, self.conf["actionEngineConfig"]),
@@ -352,7 +357,31 @@ class RootCanvas(QObject):
         """
         # for i in self.conf["modulesLoad"]:
         #    self.conf["modules"][i]["class"].draw(qp)
+        if self.conf["stabilizeFPS"]:
+            sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)
+        else:
+            sleep_time = 1 / self.conf["fps"]
+
+        time.sleep(sleep_time)
+
+        start_time = time.time_ns()
+
         self.conf["modules"][0]["class"].draw(qp)  # render wheel
+
+        e_time = (time.time_ns() - start_time) / 1000000000  # seconds
+
+        if self.conf["stabilizeFPS"]:
+            if self.conf["logFPS"]:
+                self.logger.info(
+                    "FPS(AVG): "
+                    + str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1))
+                )
+            self.calculateSmoothFPS(e_time)
+
+        else:
+            if self.conf["logFPS"]:
+                self.logger.info("FPS: " + str(round(1 / (sleep_time + e_time), 1)))
+
         m = self.getWheelModule()
         cache = self.updateIconCache()
         if (
@@ -364,27 +393,4 @@ class RootCanvas(QObject):
             )
             or cache
         ):
-            if self.conf["stabilizeFPS"]:
-                sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)
-            else:
-                sleep_time = 1 / self.conf["fps"]
-
-            time.sleep(sleep_time)
-
-            start_time = time.time()
-
-            self.update_func()  # TODO add another update event
-
-            e_time = (time.time() - start_time) * 1000
-
-            if self.conf["stabilizeFPS"]:
-                if self.conf["logFPS"]:
-                    self.logger.info(
-                        "FPS(AVG): "
-                        + str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1))
-                    )
-                self.calculateSmoothFPS(e_time)
-
-            else:
-                if self.conf["logFPS"]:
-                    self.logger.info("FPS: " + str(round(1 / (sleep_time + e_time), 1)))
+            self.update_func()

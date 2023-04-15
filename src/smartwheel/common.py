@@ -1,5 +1,8 @@
 import json
+import logging
 import os
+import time
+from enum import IntEnum
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
@@ -32,6 +35,93 @@ class ConfigManager(QObject):
         Slot function that executes the saving of all Config objects, must be called from settings module
         """
         self.save.emit()
+
+
+class AppState(IntEnum):
+    PreStart = 0
+    InternalModulesInit = 1
+    BrushesInit = 2
+    ModulesInit = 3
+    WheelInit = 4
+    ActionsInit = 5
+    SerialInit = 6
+    WindowInit = 7
+    SettingsRegistryInit = 8
+    SettingsHandlersInit = 9
+    SettingsInit = 10
+    PostStart = 11
+    Loaded = 12
+
+
+class SignalWrapper(QObject):
+    """
+    Wrapper class that contains unique signal
+    """
+
+    signal = pyqtSignal()
+
+
+class ApplicationManager(QObject):
+    """
+    Global class that reports application startup status
+
+    Emits global stateChanged(state) signal and individual self.<state>.signal signals
+    """
+
+    state = AppState.PreStart
+    stateChanged = pyqtSignal(int)
+    # startupSignals = [pyqtSignal() for _ in AppState]
+
+    def __init__(self):
+        super(ApplicationManager, self).__init__()
+        self.logger = logging.getLogger(__name__)
+
+        for i in AppState:
+            setattr(self, i.name, SignalWrapper())
+        self.Loaded.signal.connect(self.loadComplete)
+
+        self.stage_time = time.time_ns()
+        self.total_time = self.stage_time
+
+    def __new__(cls):
+        """
+        Singleton implementation
+        """
+        if not hasattr(cls, "instance"):
+            cls.instance = super(ApplicationManager, cls).__new__(cls)
+        return cls.instance
+
+    def updateState(self, state):
+        """
+        Set current startup state
+
+        Parameters
+        ==========
+        state
+            AppState.<state> enum
+        """
+        self.state = state
+        self.stateChanged.emit(self.state)
+        getattr(self, self.state.name).signal.emit()
+
+        if self.state == 0:
+            return
+        new_time = time.time_ns()
+        self.logger.info(
+            "Init: "
+            + AppState(self.state - 1).name
+            + " took "
+            + str((new_time - self.stage_time) // 1000000)
+            + " ms"
+        )
+        self.stage_time = new_time
+
+    @pyqtSlot()
+    def loadComplete(self):
+        final_time = (time.time_ns() - self.total_time) // 1000000
+        self.logger.info(
+            "Init: load complete. Total load time is " + str(final_time) + " ms"
+        )
 
 
 class DefaultsManager(QObject):
@@ -156,4 +246,5 @@ class CacheManager(QObject):
 
 config_manager = ConfigManager()
 defaults_manager = DefaultsManager()
+app_manager = ApplicationManager()
 cache_manager = CacheManager()

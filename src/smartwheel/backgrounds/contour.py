@@ -23,6 +23,7 @@ class ContourBackground(Background):
         # self.conf.updated.connect(self.updatePixmap)
 
     def genContour(self):
+        print("Generating contour")
         if self.conf["randomSeed"]:
             seed = random.randint(0, 100000)
             self.conf["seed"] = seed
@@ -133,8 +134,7 @@ class ContourBackground(Background):
         return True
 
     def updatePixmap(self):
-        pix = self.genContour()
-        self.setTexture(pix)
+        self.setTexture(self.loadPixmap())
 
     def loadPixmap(self):
         if self.conf["useCache"] and not self.conf["randomSeed"]:
