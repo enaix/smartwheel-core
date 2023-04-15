@@ -62,7 +62,7 @@ class RootCanvas(QObject):
 
     def loadCommonConf(self):
         self.common_config = config.Config(
-            os.path.join(self.config_dir, self.conf["commonConfig"]), self.logger
+            os.path.join(self.config_dir, self.conf["commonConfig"]), logger=self.logger
         )
         if not self.common_config.loadConfig():
             self.logger.error("Could not find common config file. Exiting..")

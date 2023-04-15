@@ -20,7 +20,7 @@ class SConn(ConnPipe):
 
     def loadConfig(self):
         self.conf = config.Config(
-            self.config_file, self.logger, varsWhitelist=["binds"]
+            config_file=self.config_file, logger=self.logger, varsWhitelist=["binds"]
         )
         self.conf.loadConfig()
 

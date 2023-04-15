@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import time
-from enum import IntEnum
+from enum import auto, IntEnum, StrEnum
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
@@ -122,6 +122,83 @@ class ApplicationManager(QObject):
         self.logger.info(
             "Init: load complete. Total load time is " + str(final_time) + " ms"
         )
+
+
+class StartupMode(StrEnum):
+    Normal = auto()
+    Update = auto()
+    PostUpdate = auto()
+    Defaults = auto()
+    PostDefaults = auto()
+
+
+class Doctor(QObject):
+    """
+    Medic! This class handles errors and startup modes
+    """
+    def __init__(self):
+        super(Doctor, self).__init__()
+        self.startupMode = StartupMode.Normal
+        self.file = None
+        self.logger = logging.getLogger(__name__)
+
+    def saveStatus(self):
+        """
+        Save current startup status to the file
+        """
+        if self.startupMode == StartupMode.Normal:
+            if os.path.exists(self.file):
+                os.remove(self.file)
+                return
+        else:
+            status = {"startupMode": self.startupMode.value, "update": False}
+            with open(self.file, "w") as f:
+                json.dump(status, f, indent=4)
+
+    def loadStatus(self, file):
+        """
+        Load previous startup status from file
+
+        Parameters
+        ==========
+        file
+            Input filename
+        """
+        self.file = file
+        if not os.path.exists(file):
+            return
+
+        try:
+            with open(file, "r") as f:
+                status = json.load(f)
+        except BaseException:
+            self.logger.error("Could not load previous startup status: file corruption. Merging defaults..")
+            self.startupMode = StartupMode.Update
+            return
+
+        if status.get("update", False):
+            self.startupMode = StartupMode.Update
+            self.logger.warning("Note: the app has been updated. Merging the defaults")
+
+        if status.get("startupMode") is not None:
+            try:
+                appStatus = StartupMode(status["startupMode"])
+            except BaseException:
+                self.logger.warning("Could not decode previous startup mode")
+                appStatus = StartupMode.Normal
+            
+            if appStatus == StartupMode.Update:
+                self.startupMode = StartupMode.PostUpdate
+            elif appStatus == StartupMode.Defaults:
+                self.startupMode = StartupMode.PostDefaults
+
+    def __new__(cls):
+        """
+        Singleton implementation
+        """
+        if not hasattr(cls, "instance"):
+            cls.instance = super(Doctor, cls).__new__(cls)
+        return cls.instance
 
 
 class DefaultsManager(QObject):
@@ -248,3 +325,4 @@ config_manager = ConfigManager()
 defaults_manager = DefaultsManager()
 app_manager = ApplicationManager()
 cache_manager = CacheManager()
+doctor = Doctor()

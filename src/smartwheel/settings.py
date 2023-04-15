@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
     QTabWidget,
     QVBoxLayout,
     QWidget,
+    QComboBox,
 )
 
 from smartwheel import common, config
@@ -58,6 +59,8 @@ class SettingsWindow(QWidget):
             os.path.join(self.basedir, self.conf["settings_handlers_dir"])
         )
         self.preset_tabs = {}
+        self.preset_controllers = {}
+        self.presets_index_mapping = {}
         self.conf["presets"] = {}
         self.linked_widgets = {}
         self.presets_queue = LifoQueue()
@@ -309,6 +312,11 @@ class SettingsWindow(QWidget):
         props = prop.split(".")
 
         if self.dictWalk(self.settings[module], props, value, index):
+            name = module + "." + prop
+            if index is not None:
+                name += "." + str(index)
+            self.setCustom(name)
+
             if self.isLoaded:
                 common.config_manager.updated.emit(props[-1:][0])
                 self.main_class().update()
@@ -384,6 +392,22 @@ class SettingsWindow(QWidget):
                     + " widget value from preset "
                     + preset["title"]
                 )
+            #else:
+            #    self.presetValueSet.connect(self.preset_controllers[index]().setCustom)
+
+    def setCustom(self, name):
+        """
+        Set custom preset on settings edit
+
+        Parameters
+        ==========
+        name
+            Internal preset name
+        """
+        index = self.presets_index_mapping.get(name)
+        if index is None:
+            return
+        self.preset_controllers[index]().setCurrentText("Custom")
 
     @pyqtSlot(str)
     def showLinkedWidgets(self, text):
@@ -452,6 +476,9 @@ class SettingsWindow(QWidget):
                 wid.setProperty("index", elem["index"])
                 prop_preset += "." + str(elem["index"])
 
+            if elem["type"] == "preset":
+                self.preset_controllers[index] = weakref.ref(wid.findChild(QComboBox))
+
             if (
                 tab["conf"].get("enable_presets", False)
                 and elem.get("preset", False)
@@ -463,6 +490,8 @@ class SettingsWindow(QWidget):
                     weakref.ref(wid),
                     self.handlers[elem["type"]],
                 )
+
+                self.presets_index_mapping[prop_preset] = index
 
             if registriesName is not None:
                 ok = self.handlers[elem["type"]].linkElem(wid, registriesName)

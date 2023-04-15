@@ -35,7 +35,7 @@ class WConfig(config.Config):
 
         if not self.loadConfig():
             print("Fatal: error loading main config file. Exiting..")
-            os.exit(1)
+            os._exit(1)
 
         self.launch_config = launch_config
 
@@ -103,6 +103,8 @@ class RootWindow(QMainWindow):
 
     def appPostStart(self):
         common.app_manager.updateState(common.AppState.PostStart)
+
+        common.doctor.saveStatus()
 
         common.app_manager.updateState(common.AppState.Loaded)
 
@@ -353,6 +355,9 @@ def main():
     launch_config["defaults_config_dir"] = os.path.join(
         dirpath, launch_config["defaults_config_dir"]
     )
+
+    status = os.path.join(dirpath, "status.json")
+    common.doctor.loadStatus(status)
 
     main_conf_path = os.path.join(launch_config["config_dir"], "config.json")
     conf = WConfig(main_conf_path, launch_config)

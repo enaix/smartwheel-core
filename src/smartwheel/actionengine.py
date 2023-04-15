@@ -52,7 +52,7 @@ class ActionEngine(QObject):
 
         """
         self.conf = config.Config(
-            config_file, self.logger, varsWhitelist=["commandBind"]
+            config_file=config_file, logger=self.logger, varsWhitelist=["commandBind"]
         )
         self.conf.loadConfig()
 

@@ -31,7 +31,7 @@ class SConn(ConnPipe):
         self.loadKeys()
 
     def loadConfig(self):
-        self.conf = config.Config(self.config_file, self.logger)
+        self.conf = config.Config(config_file=self.config_file, logger=self.logger)
         self.conf.loadConfig()
 
     def loadKeys(self):

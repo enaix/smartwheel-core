@@ -276,6 +276,10 @@ class Config(QObject):
                 if immediate:
                     return True, json.load(f)
                 self.c = json.load(f)
+                if common.doctor.startupMode == common.StartupMode.Update:
+                    self.mergeDefaults()
+                elif common.doctor.startupMode == common.StartupMode.Defaults:
+                    self.loadDefaults()
         except BaseException as e:
             if self.logger is not None:
                 self.logger.error("Could not load config file:")
@@ -290,7 +294,7 @@ class Config(QObject):
 
         return True
 
-    def listIter(self, new, old, dropNew=True):
+    def listIter(self, new, old, dropNew=True, preserveOld=False):
         """
         Recursively iterate through the list and update old config value iff it is present in config file
 
@@ -302,6 +306,8 @@ class Config(QObject):
             Old values from the json config file
         dropNew
             (Optional) Drop new variables
+        preserveOld
+            (Optional) Preserve old variables (update only missing)
         """
         if dropNew and not len(new) == len(old):
             return
@@ -315,17 +321,18 @@ class Config(QObject):
             if i < len(old):
                 if type(new[i]) == type(old[i]):
                     if type(new[i]) == dict:
-                        self.dictIter(new[i], old[i], dropNew)
+                        self.dictIter(new[i], old[i], dropNew, preserveOld)
                     elif type(new[i]) == list:
-                        self.listIter(new[i], old[i], dropNew)
+                        self.listIter(new[i], old[i], dropNew, preserveOld)
                     else:
-                        old[i] = new[i]
+                        if not preserveOld:
+                            old[i] = new[i]
             elif not dropNew:
                 old.append(new[i])
             else:
                 return
 
-    def dictIter(self, new, old, dropNew=True):
+    def dictIter(self, new, old, dropNew=True, preserveOld=False):
         """
         Recursively iterate through the dict and update old config value iff it is present in config file
 
@@ -337,6 +344,8 @@ class Config(QObject):
             Old values from the json config file
         dropNew
             (Optional) Drop new variables
+        preserveOld
+            (Optional) Preserve old variables (update only missing)
         """
         for key, val in new.items():
             if old.get(key) is not None and type(val) == type(old[key]):
@@ -347,11 +356,12 @@ class Config(QObject):
                     drop = True
 
                 if type(val) == dict:
-                    self.dictIter(new[key], old[key], drop)
+                    self.dictIter(new[key], old[key], drop, preserveOld)
                 elif type(val) == list:
-                    self.listIter(val, old[key], drop)
+                    self.listIter(val, old[key], drop, preserveOld)
                 else:
-                    old[key] = val
+                    if not preserveOld:
+                        old[key] = val
                     # print(key)
             elif not dropNew:
                 old[key] = val
@@ -382,15 +392,14 @@ class Config(QObject):
         with open(self.config_file, "w") as f:
             json.dump(old_values, f, indent=4)
 
-    @pyqtSlot()
     def mergeDefaults(self):
         """
         Refresh config file with default variables. Is invoked in case of an update or config error
         """
-        if self.default_config_file is None or config_file is None:
+        if self.default_config_file is None or self.config_file is None:
             return
 
-        ok, defauls = self.loadConfig(self.default_config_file)
+        ok, defaults = self.loadConfig(immediate=True, override=self.default_config_file)
 
         if not ok:
             if self.logger is not None:
@@ -400,13 +409,12 @@ class Config(QObject):
             return
 
         # Default refresh strategy
-        self.dictIter(defaults, self.c, dropNew=False)
+        self.dictIter(defaults, self.c, dropNew=False, preserveOld=True)
         self.dictIter(self.c, defaults, dropNew=self.ignoreNew)
 
         with open(self.config_file, "w") as f:
             json.dump(defaults, f, indent=4)
 
-    @pyqtSlot()
     def loadDefaults(self):
         """
         Reload config file from defaults
@@ -414,7 +422,7 @@ class Config(QObject):
         if self.default_config_file is None or self.config_file is None:
             return
 
-        ok, defauls = self.loadConfig(self.default_config_file)
+        ok, defaults = self.loadConfig(immediate=True, override=self.default_config_file)
 
         if not ok:
             if self.logger is not None:
