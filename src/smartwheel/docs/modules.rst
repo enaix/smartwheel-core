@@ -9,7 +9,6 @@ Modules navigation
    canvas
    config
    common
-   main
    serialpipe
    ui
    settings

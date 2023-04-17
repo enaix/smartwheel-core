@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "smartwheel-core"
-version = "0.0.2"
+version = "0.0.3"
 description = "Keyboard knob/dial controller with a ton of features"
 readme = 'README.md'
 authors = [{ name = "enaix", email = "enaix@protonmail.com" }]
