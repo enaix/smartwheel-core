@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import queue
@@ -8,12 +7,14 @@ import time
 from PyQt6.QtCore import *
 
 from smartwheel.ui.internal.baseinternal import BaseInternal
+from smartwheel import config 
 
 
 class Internal(BaseInternal):
     sendSignal = pyqtSignal(str)
     mutex = QMutex()
     wake = QWaitCondition()
+    name = "kritaServer"
 
     def __init__(self, WConfig, config_file):
         super().__init__()
@@ -22,7 +23,6 @@ class Internal(BaseInternal):
         self.signals = {"send": self.sendSignal}
         self.config_file = config_file
         self.conf = WConfig
-        self.name = "kritaServer"
         self.loadConfig()
         self.data = queue.SimpleQueue()
 
@@ -31,8 +31,8 @@ class Internal(BaseInternal):
             self.sock.close()
 
     def loadConfig(self):
-        with open(self.config_file, "r") as f:
-            self.conf = {**json.load(f), **self.conf}
+        self.conf = config.Config(config_file=self.config_file)
+        self.conf.loadConfig()
 
     def getSignals(self):
         return self.signals

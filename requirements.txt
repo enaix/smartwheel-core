@@ -5,3 +5,4 @@ numpydoc
 pyqtdarktheme
 swcolorpicker
 matplotlib
+setuptools

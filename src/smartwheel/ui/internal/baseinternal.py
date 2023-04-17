@@ -2,9 +2,10 @@ from PyQt6.QtCore import QThread
 
 
 class BaseInternal(QThread):
+    name = "baseInternal"
+    
     def __init__(self):
         super().__init__()
-        self.name = "baseInternal"
         self.signals = {}
 
     def __del__(self):

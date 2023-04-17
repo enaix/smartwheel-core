@@ -14,7 +14,7 @@ class UIElem(BaseUIElem):
         self.wrapper_pointer = None
 
     def loadConfig(self):
-        self.conf = config.Config(self.config_file)
+        self.conf = config.Config(config_file=self.config_file)
         self.conf.loadConfig()
 
     def processKey(self, event):
