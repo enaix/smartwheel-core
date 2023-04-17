@@ -60,7 +60,7 @@ I've started working on this project a while ago, but it turned out that it's to
 
 Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/latest/
 
-## Release 0.1.0
+## Release 1.0.0
 
 - [x] Stable version (Linux)
 - [x] Documentation (in progress)
@@ -90,7 +90,7 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [ ] Hide after losing window focus
 - [ ] Packaging
   - [X] Configure setup.py
-  - [ ] Add auto update feature
+  - [X] Add update feature
   - [ ] Hire core doctor!
 - [ ] Windows support
   - [ ] (Platform) Replace AF_UNIX socket with network socket

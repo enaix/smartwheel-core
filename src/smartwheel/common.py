@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import time
-from enum import auto, IntEnum, StrEnum
+from enum import auto, IntEnum, Enum
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
@@ -124,7 +124,7 @@ class ApplicationManager(QObject):
         )
 
 
-class StartupMode(StrEnum):
+class StartupMode(str, Enum):
     Normal = auto()
     Update = auto()
     PostUpdate = auto()
