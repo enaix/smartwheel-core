@@ -1,5 +1,6 @@
 import json
 import os
+import gc
 import weakref
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
@@ -80,9 +81,24 @@ class Config(QObject):
         self.disableSaving = disableSaving
         self.links = []  # Storing source dicts to allow updating the variables
 
+        self.__fetchParentMeta()
+
+        self._fixStrategy = common.doctor.defaultMergeStrategy
         common.config_manager.save.connect(self.saveConfig)
         common.config_manager.updated.connect(self.__updated)
         common.config_manager.batchUpdate.connect(self.__batchUpdate)
+        common.config_manager.merge.connect(self.__merge)
+        common.config_manager.defaults.connect(self.__defaults)
+
+    def __fetchParentMeta(self):
+        # TODO fetch referrers using garbage collector
+
+        self.meta_name = "unknown"
+        self.meta_desc = "--"
+
+    def configureMetadata(self, name, description):
+        self.meta_name = name
+        self.meta_desc = "--"
 
     def __fetchkey(self, key):
         """
@@ -392,6 +408,13 @@ class Config(QObject):
         with open(self.config_file, "w") as f:
             json.dump(old_values, f, indent=4)
 
+    @pyqtSlot()
+    def __merge(self):
+        """
+        Refresh config file with default variables. Should be called from common module
+        """
+        self.mergeDefaults()
+
     def mergeDefaults(self):
         """
         Refresh config file with default variables. Is invoked in case of an update or config error
@@ -414,6 +437,12 @@ class Config(QObject):
 
         with open(self.config_file, "w") as f:
             json.dump(defaults, f, indent=4)
+
+    @pyqtSlot()
+    def __defaults(self):
+        """
+        Reload defaults for this config. Should be called from common module
+        """
 
     def loadDefaults(self):
         """

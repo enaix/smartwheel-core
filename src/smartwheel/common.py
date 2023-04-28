@@ -5,6 +5,7 @@ import time
 from enum import auto, IntEnum, Enum
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt6.QtWidgets import QMessageBox
 
 from smartwheel import config
 
@@ -17,6 +18,7 @@ class ConfigManager(QObject):
     save = pyqtSignal()
     updated = pyqtSignal(str)
     batchUpdate = pyqtSignal(list)
+    merge = pyqtSignal()
 
     def __init__(self):
         super(ConfigManager, self).__init__()
@@ -132,6 +134,15 @@ class StartupMode(str, Enum):
     PostDefaults = auto()
 
 
+class ConfigFixStrategy(IntEnum):
+    Merge = 0
+    MergeAll = 1
+    Defaults = 2
+    DefaultsAll = 3
+    HaltModule = 4
+    Halt = 5
+    Ignore = 6
+
 class Doctor(QObject):
     """
     Medic! This class handles errors and startup modes
@@ -141,6 +152,7 @@ class Doctor(QObject):
         self.startupMode = StartupMode.Normal
         self.file = None
         self.logger = logging.getLogger(__name__)
+        self.defaultMergeStrategy = ConfigFixStrategy.MergeAll
 
     def saveStatus(self):
         """
@@ -154,6 +166,85 @@ class Doctor(QObject):
             status = {"startupMode": self.startupMode.value, "update": False}
             with open(self.file, "w") as f:
                 json.dump(status, f, indent=4)
+
+    def executeConfigFix(self, conf, key):
+        if conf._fixStrategy == ConfigFixStrategy.Merge:
+            conf.mergeDefaults()
+
+        elif conf._fixStrategy == ConfigFixStrategy.MergeAll:
+            # Ensure that it is loaded
+            conf.mergeDefaults()
+            conf.blockSignals(True)
+            config_manager.merge.emit()
+            conf.blockSignals(False)
+
+        elif conf._fixStrategy == ConfigFixStrategy.Defaults:
+            conf.loadDefaults()
+
+        elif conf._fixStrategy == ConfigFixStrategy.DefaultsAll:
+            conf.loadDefaults()
+            conf.blockSignals(True)
+            config_manager.defaults.emit()
+            conf.blockSignals(False)
+
+        elif conf._fixStrategy == ConfigFixStrategy.HaltModule:
+            # TODO finish this
+            pass
+        
+    def notifyOnError(self, config, key):
+        if conf._fixStrategy <= ConfigFixStrategy.DefaultsAll:
+            # Configs have not been restored yet
+            msg = QMessageBox()
+            msg.setTitle("Doctor")
+            defaults = msg.addButton("Restore defaults", QMessageBox.ButtonRole.AcceptRole)
+            defaultsAll = msg.addButton("Restore all defaults", QMessageBox.ButtonRole.DestructiveRole)
+            ignore = msg.addButton("Ignore", QMessageBox.ButtonRole.RejectRole)
+            
+            if conf.meta_name == "unknown":
+                msg.setText("Doctor has reported an error in configuration file")
+            else:
+                msg.setText("Doctor has reported an error in " + conf.meta_name + " (" + conf.meta_desc + ")")
+
+            err = ""
+            if key is not None:
+                err += "No such key " + str(key) + ". " 
+            if conf.config_file is not None:
+                err += "File: " + conf.config_file
+            
+            msg.setDetailedText(err)
+
+            msg.setInformativeText("Restoring defaults would delete your previous config")
+
+            msg.exec()
+
+            if msg.clickedButton() == defaults:
+                conf._fixStrategy = ConfigFixStrategy.Defaults
+            elif msg.clickedButton() == defaultsAll:
+                conf._fixStrategy = ConfigFixStrategy.DefaultsAll
+            else:
+                conf._fixStrategy = ConfigFixStrategy.Ignore
+            # Display message that asks the user to disable the module that throws errors
+            # We ignore any errors caused by this module until the next restart
+
+    def handleConfigError(self, conf, key=None):
+        """
+        Manage config KeyError. Will attempt to recover the state on-the-fly if possible
+
+        Parameters
+        ==========
+        conf
+            config.Config object that caused an error
+        key
+            (Optional) The key that is missing from the config
+        """
+
+        # files are already merged
+        if not self.startupMode == StartupMode.Normal:
+            if conf._fixStrategy <= ConfigFixStrategy.MergeAll:
+                conf._fixStrategy = ConfigFixStrategy.Defaults
+
+        self.executeConfigFix(conf, key)
+
 
     def loadStatus(self, file):
         """
