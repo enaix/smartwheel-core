@@ -4,7 +4,7 @@
 
 A powerful keyboard knob controller with GUI
 
-![smartwheel-core ui](/extra/banner.png)
+![smartwheel-core ui](/extra/banner_dark.jpg)
 
 ## Why do I need it?
 
