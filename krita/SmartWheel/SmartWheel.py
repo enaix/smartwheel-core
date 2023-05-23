@@ -3,14 +3,19 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread, pyqtSignal
 import socket
 import os
+import sys
 import json
 import time
+
 
 class WheelSocket(QThread):
     def __init__(self, signal):
         super().__init__()
         self.timeout = 1
         self.signal = signal
+        self.socket_addr = "/tmp/krita_socket"
+        self.socket_type = socket.AF_UNIX
+        self.client = None
 
     def __del__(self):
         if hasattr(self, "client"):
@@ -21,19 +26,22 @@ class WheelSocket(QThread):
         self.readSocket()
 
     def openSocket(self):
-        self.client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        if sys.platform == 'darwin' or sys.platform == 'win32':
+            self.socket_addr = ("127.0.0.1", 34782)
+            self.socket_type = socket.AF_INET
+
+        self.client = socket.socket(self.socket_type, socket.SOCK_STREAM)
         while self.isRunning():
-            if os.path.exists("/tmp/krita_socket"):
-                try:
-                    self.client.connect("/tmp/krita_socket")
-                    break
-                except BaseException:
-                    time.sleep(self.timeout)
-                #print("Connection established.")
-            else:
-                #print("Could not connect to the socket")
+
+            if sys.platform == 'linux' and not os.path.exists("/tmp/krita_socket"):
                 time.sleep(self.timeout)
-                #os.exit(1)
+                continue
+            try:
+                self.client.connect(self.socket_addr)
+                break
+            except BaseException:
+                time.sleep(self.timeout)
+                #print("Connection established.")
 
     def reconnect(self):
         try:

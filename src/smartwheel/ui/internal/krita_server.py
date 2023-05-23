@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 import queue
 import socket
 import time
@@ -25,6 +26,9 @@ class Internal(BaseInternal):
         self.conf = WConfig
         self.loadConfig()
         self.data = queue.SimpleQueue()
+        self.socket_addr = "/tmp/krita_socket"
+        self.socket_type = socket.AF_UNIX
+        self.sock = None
 
     def __del__(self):
         if hasattr(self, "sock"):
@@ -40,26 +44,25 @@ class Internal(BaseInternal):
     def run(self):
         ok = self.open_socket()
         if not ok:
-            self.logger.warning("Cannot open socket")
+            self.logger.warning("Cannot open krita socket")
+            return
         while True:
-            self.wake.wait(self.mutex)
-            # self.mutex.lock()
-            # data_copy = self.data
-            # self.mutex.unlock()
-            while not self.data.empty():
-                self.logger.debug("Reading data")
-                self.sendData(self.data.get())
+            self.sendData(self.data.get())
 
     def open_socket(self):
-        if not os.name == "posix":
-            return
-        if os.path.exists("/tmp/krita_socket"):
-            os.remove("/tmp/krita_socket")
-        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        if sys.platform == 'darwin' or sys.platform == 'win32':
+            self.socket_addr = ("127.0.0.1", 34782)
+            self.socket_type = socket.AF_INET
+
+        elif sys.platform == 'linux':
+            if os.path.exists(str(self.socket_addr)):
+                os.remove(str(self.socket_addr))
+
+        self.sock = socket.socket(self.socket_type, socket.SOCK_STREAM)
         self.sock.settimeout(self.conf["socketTimeout"])
         while self.isRunning:
             try:
-                self.sock.bind("/tmp/krita_socket")
+                self.sock.bind(self.socket_addr)
                 self.sock.listen()
                 return True
             except BaseException as e:
@@ -68,10 +71,7 @@ class Internal(BaseInternal):
 
     @pyqtSlot(str)
     def send(self, data):
-        # self.mutex.lock()
-        self.data.put(data)
-        self.wake.wakeAll()
-        # self.mutex.unlock()
+        self.data.put(data)  # queue is thread safe
 
     def sendData(self, data):
         self.logger.debug(data)

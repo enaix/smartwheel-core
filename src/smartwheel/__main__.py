@@ -8,6 +8,10 @@ import os
 import sys
 import weakref
 
+# Should be enabled in alpha release
+import faulthandler
+faulthandler.enable()
+
 import qdarktheme
 from PyQt6 import QtCore
 from PyQt6.QtCore import QEvent, QPoint, QSize, pyqtSlot
@@ -25,7 +29,6 @@ from PyQt6.QtWidgets import (
 from smartwheel import common, config, gui_tools
 from smartwheel.canvas import RootCanvas
 from smartwheel.settings import SettingsWindow
-
 
 class WConfig(config.Config):
     def __init__(self, config_file, launch_config):
