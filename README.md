@@ -1,16 +1,16 @@
-![smartwheel-core](/extra/render1.jpg)
-
 ![smartwheel-core logo](/extra/logo.png)
 
-A powerful keyboard knob controller with GUI
+#### A powerful keyboard knob controller with GUI
 
-![smartwheel-core ui](/extra/banner_dark.jpg)
+![smartwheel-core render](/extra/banner_dark.jpg)
 
 ## Why do I need it?
 
 The main problem with keyboard encoders and standalone dials is that there aren't many features out of the box, but *they can be much, much more powerful than they are right now*. Have you seen those techy gadgets from Hollywood blockbusters that hackers use (like Q's fancy joystick from latest 007)? Smartwheel gives you the same functionality, but adapted for day-to-day use.
 
 Smartwheel is written in Python/PyQt6, so it could be easily modded with custom plugins. There aren't many right now, but this project is in constant development - there will be more soon.
+
+![smartwheel-core ui](/extra/banner.png)
 
 ## Features
 
