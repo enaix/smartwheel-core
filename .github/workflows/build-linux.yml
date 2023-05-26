@@ -25,7 +25,7 @@ jobs:
         python-version: "3.10"
     - name: Install dependencies
       run: |
-        sudo apt-get install libgl1-mesa-dev
+        sudo apt-get install libgl1-mesa-dev libasound2-dev libjack-dev
         python -m pip install --upgrade pip
         python -m pip install nuitka ordered-set
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
