@@ -112,6 +112,8 @@ class Config(QObject):
         include_only
             (Optional) Exclude other keys except whitelisted
         """
+        if self.c is None:
+            return
         if include_only is None:
             self.c.update(other)
         else:
@@ -206,6 +208,9 @@ class Config(QObject):
         default
             Value to return if the key is not found
         """
+        if self.c is None:
+            return None
+
         if len(self.links) == 0:
             return self.c.get(key, default)
 

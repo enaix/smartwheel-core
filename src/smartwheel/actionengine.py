@@ -103,6 +103,10 @@ class ActionEngine(QObject):
         self.current_module = self.current_module_getter()
         if self.getModule(self.current_module) == None:
             return
+
+        if self.modules[self.current_module]["class"].conf.get("actions") is None:
+            return
+
         context = (
             self.modules[self.current_module]["class"].conf["actions"].get(call, None)
         )

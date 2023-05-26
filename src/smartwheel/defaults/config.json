@@ -13,21 +13,28 @@
             {
                 "name": "ui.wheel",
                 "config": "wheel.json",
-		"title": "Wheel",
-		"description": "Main wheel module, cannot be disabled"
+		        "title": "Wheel",
+		        "description": "Main wheel module, cannot be disabled"
             },
             {
                 "name": "ui.media",
                 "config": "media.json",
-		"title": "Media",
-		"description": "Control music/volume",
-		"registry": "ui_media"
+		        "title": "Media",
+		        "description": "Control music/volume",
+		        "registry": "ui_media"
             },
             {
                 "name": "ui.hue",
                 "config": "hue.json",
-		"title": "Color picker",
-		"description": "HSL wheel picker"
+		        "title": "Color picker",
+		        "description": "HSL wheel picker"
+            },
+            {
+                "name": "ui.midi",
+                "config": "midi.json",
+		        "title": "MIDI device simulator",
+		        "description": "Use your picker as a MIDI device",
+                "registry": "ui_midi"
             }
         ],
         "wheelModules": [
@@ -45,6 +52,9 @@
             },
             {
                 "name": "ui.hue"
+            },
+            {
+                "name": "ui.midi"
             }
         ],
         "internalModules": [
@@ -62,8 +72,8 @@
                 "config": "serial.json",
                 "title": "Serial",
                 "description": "Serial keyboard/encoder",
-		"handler": "serialmodule",
-		"registry": "serialmodule"
+		        "handler": "serialmodule",
+		        "registry": "serialmodule"
             },
             {
                 "name": "serialpipe.keyboard",
@@ -96,8 +106,9 @@
         ],
         "modulesLoad": [
             0,
-	    1,
-	    2
+	        1,
+            2,
+            3
         ],
         "internalModulesLoad": [
             0,

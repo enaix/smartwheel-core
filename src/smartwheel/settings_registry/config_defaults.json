@@ -6,7 +6,7 @@
     {"name": "Modules", "config": "uimodules.json"}
   ],
   "external":
-  {"contour": {"linkedCombo": "contour", "inPlace": true}, "pattern": {"linkedCombo": "pattern", "inPlace": true}, "serialmodule": {}, "ui_media": {}},
+  {"contour": {"linkedCombo": "contour", "inPlace": true}, "pattern": {"linkedCombo": "pattern", "inPlace": true}, "serialmodule": {}, "ui_media": {}, "ui_midi": {}},
   "groupMinimalHeight": 100,
   "fieldWidth": 200,
   "settings_handlers_dir": "settings_handlers"
