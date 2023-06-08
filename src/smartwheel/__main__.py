@@ -29,6 +29,7 @@ from PyQt6.QtWidgets import (
 from smartwheel import common, config, gui_tools
 from smartwheel.canvas import RootCanvas
 from smartwheel.settings import SettingsWindow
+from smartwheel.api.app import Classes
 
 class WConfig(config.Config):
     def __init__(self, config_file, launch_config):
@@ -63,6 +64,7 @@ class RootWindow(QMainWindow):
         self.app = QApplication(sys.argv)
         self.app.setStyleSheet(qdarktheme.load_stylesheet())
         super(RootWindow, self).__init__()
+        Classes.MainWindow = weakref.ref(self)
         self.conf = conf
         self.rc = None
         self.kb = None
@@ -84,6 +86,9 @@ class RootWindow(QMainWindow):
         self.setGeometry(*self.conf.c["window"]["geometry"])
         self.loadClasses()
         self.loadSerial()
+
+
+
         self.initUI()
 
         self.postStart()

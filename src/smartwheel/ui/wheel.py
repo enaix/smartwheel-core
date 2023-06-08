@@ -11,6 +11,7 @@ from PyQt6.QtGui import *
 from smartwheel import config, gui_tools
 from smartwheel.tools import merge_dicts
 from smartwheel.ui.base import BaseUIElem
+from smartwheel.api.app import Classes
 
 
 class Section:
@@ -42,6 +43,7 @@ class Section:
                     self.parent().conf["iconsFolder"], self.module["class"].icon_path
                 )
             )
+            self.pixmap.setDevicePixelRatio(Classes.MainWindow().devicePixelRatio())
 
     def draw_module(self, qp, opacity):
         if self.module is not None and self.module["class"] is not None:
@@ -53,7 +55,7 @@ class Section:
         self.delta = self.parent()._angle - self.init_angle
 
     def scale_pixmap(self):
-        w = self.parent().conf["pixmapScale"]
+        w = int(self.parent().conf["pixmapScale"] * Classes.MainWindow().devicePixelRatio())
         self.pixmap.width = w
         self.pixmap.height = w
         self.pixmap = self.pixmap.scaled(
