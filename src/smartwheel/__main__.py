@@ -63,6 +63,7 @@ class RootWindow(QMainWindow):
     def __init__(self, conf):
         self.app = QApplication(sys.argv)
         self.app.setStyleSheet(qdarktheme.load_stylesheet())
+        self.app.setStyle("fusion")
         super(RootWindow, self).__init__()
         Classes.MainWindow = weakref.ref(self)
         self.conf = conf
