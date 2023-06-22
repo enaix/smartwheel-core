@@ -27,7 +27,7 @@ class Internal(BaseInternal):
         self.loadConfig()
         self.data = queue.SimpleQueue()
         self.socket_addr = "/tmp/krita_socket"
-        self.socket_type = socket.AF_UNIX
+        self.socket_type = None
         self.sock = None
 
     def __del__(self):
@@ -50,13 +50,14 @@ class Internal(BaseInternal):
             self.sendData(self.data.get())
 
     def open_socket(self):
-        if sys.platform == 'darwin' or sys.platform == 'win32':
-            self.socket_addr = ("127.0.0.1", 34782)
-            self.socket_type = socket.AF_INET
-
-        elif sys.platform == 'linux':
+        if sys.platform == 'linux':
+            self.socket_type = socket.AF_UNIX
             if os.path.exists(str(self.socket_addr)):
                 os.remove(str(self.socket_addr))
+
+        else:
+            self.socket_addr = ("127.0.0.1", 34782)
+            self.socket_type = socket.AF_INET
 
         self.sock = socket.socket(self.socket_type, socket.SOCK_STREAM)
         self.sock.settimeout(self.conf["socketTimeout"])

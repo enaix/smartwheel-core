@@ -14,7 +14,7 @@ class WheelSocket(QThread):
         self.timeout = 1
         self.signal = signal
         self.socket_addr = "/tmp/krita_socket"
-        self.socket_type = socket.AF_UNIX
+        self.socket_type = None
         self.client = None
 
     def __del__(self):
@@ -26,13 +26,14 @@ class WheelSocket(QThread):
         self.readSocket()
 
     def openSocket(self):
-        if sys.platform == 'darwin' or sys.platform == 'win32':
+        if sys.platform == 'linux':
+            self.socket_type = socket.AF_UNIX
+        else:
             self.socket_addr = ("127.0.0.1", 34782)
             self.socket_type = socket.AF_INET
 
         self.client = socket.socket(self.socket_type, socket.SOCK_STREAM)
         while self.isRunning():
-
             if sys.platform == 'linux' and not os.path.exists("/tmp/krita_socket"):
                 time.sleep(self.timeout)
                 continue
