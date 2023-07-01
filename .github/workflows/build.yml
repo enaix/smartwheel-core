@@ -11,7 +11,14 @@ permissions:
 
 jobs:
   macos:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        macos_arch:
+          - "x64"
+          - "ARM64"
+    env:
+      SMARTWHEEL_DMG_NAME: ${{ matrix.macos_arch == "x64" && "smartwheel-core-nightly-intel.dmg" || "smartwheel-core-nightly-silicon.dmg" }}
+    runs-on: [macos-latest, ${{ matrix.macos_arch }}]
     name: Build macos version
     steps:
     - uses: actions/checkout@v3
@@ -33,12 +40,12 @@ jobs:
     - name: Parse artifacts
       run: |
         mv src/main.app smartwheel-core.app
-    - name: Zip artifacts
+    - name: Build dmg
       run: |
-        create-dmg --volname "Smartwheel Core Installer"\
-        --window-size 800 350 --icon "smartwheel-core.app" 100 100\
-        --app-drop-link 500 100 "smartwheel-core-nightly.dmg"\
-        "smartwheel-core.app"
+        create-dmg --volname "Smartwheel Core Installer" \
+          --window-size 800 350 --icon "smartwheel-core.app" 100 100 \
+          --app-drop-link 500 100 $SMARTWHEEL_DMG_NAME \
+          "smartwheel-core.app"
     - name: Upload to nightly releases
       uses: ncipollo/release-action@v1.12.0
       with:
