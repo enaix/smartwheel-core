@@ -18,7 +18,9 @@ jobs:
           - 'ARM64'
     env:
       SMARTWHEEL_DMG_NAME: ${{ matrix.macos_arch == 'x64' && 'smartwheel-core-nightly-intel.dmg' || 'smartwheel-core-nightly-silicon.dmg' }}
-    runs-on: [macos-latest, ${{ matrix.macos_arch }}]
+    runs-on:
+      - macos-latest
+      - ${{ matrix.macos_arch }}
     name: Build macos version
     steps:
     - uses: actions/checkout@v3
