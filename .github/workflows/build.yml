@@ -14,10 +14,10 @@ jobs:
     strategy:
       matrix:
         macos_arch:
-          - "x64"
-          - "ARM64"
+          - 'x64'
+          - 'ARM64'
     env:
-      SMARTWHEEL_DMG_NAME: ${{ matrix.macos_arch == "x64" && "smartwheel-core-nightly-intel.dmg" || "smartwheel-core-nightly-silicon.dmg" }}
+      SMARTWHEEL_DMG_NAME: ${{ matrix.macos_arch == 'x64' && 'smartwheel-core-nightly-intel.dmg' || 'smartwheel-core-nightly-silicon.dmg' }}
     runs-on: [macos-latest, ${{ matrix.macos_arch }}]
     name: Build macos version
     steps:
@@ -56,7 +56,7 @@ jobs:
         body: CI build from the latest commit, may contain bugs
         generateReleaseNotes: true
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: smartwheel-core-nightly.dmg
+        artifacts: ${{ env.SMARTWHEEL_DMG_NAME }}
 
   linux:
     runs-on: ubuntu-latest
