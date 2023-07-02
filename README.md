@@ -48,9 +48,9 @@ Make sure that Python 3 is installed
 
 #### Compilation
 
-Nuitka now supports only Python <= 3.10
+Nuitka now supports only Python <= 3.11
 
-`./build.sh` or `.\build.bat`
+`./build.sh`, `.\build.bat` or `./build_macos.sh`
 
 ## We need your help!
 
@@ -72,8 +72,9 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Move to PyQt6
   - [X] Add colorable icons
   - [X] Add modules background processes
+  - [X] Add proper API package
+  - [ ] Rewrite actionengine with pulses & acceleration
   - [ ] Rewrite serial input with new api
-  - [ ] Add media fetching on Windows
   - [ ] Add key combos
   - [ ] Finish folders support
 - [ ] Settings menu (in progress)
@@ -94,10 +95,13 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Configure setup.py
   - [X] Add update feature
   - [ ] Hire core doctor!
-- [ ] Windows support
-  - [ ] (Platform) Replace AF_UNIX socket with network socket
-- [ ] Add fancy blur (?)
-- [ ] Mac support (?)
+- [X] Windows support
+  - [X] (Platform) Replace AF_UNIX socket with network socket
+  - [ ] Add proper media fetching
+- [X] Mac support
+  - [X] Add CI builds
+  - [ ] Fix keypresses simulation
+  - [ ] Add permission requests
 
 ## Features progress
 

@@ -12,7 +12,6 @@ class _Classes(QObject):
     RootCanvas: weakref.ref = None
     Settings: weakref.ref = None
 
-    # TODO add more classes and rewrite everything with this api
     # TODO add warning about import styles
 
     def __init__(self):

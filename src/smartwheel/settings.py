@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
 )
 
 from smartwheel import common, config
+from smartwheel.api.settings import HandlersApi
 
 
 class SettingsWindow(QWidget):
@@ -53,6 +54,14 @@ class SettingsWindow(QWidget):
         self.settings = {}
         self.external_reg = {}
         self.logger = logging.getLogger(__name__)
+
+        HandlersApi.getter = self.getValue
+        HandlersApi.setter = self.setValue
+        HandlersApi._savePreset = self.savePreset
+        HandlersApi._loadPreset = self.loadPreset
+        HandlersApi._setCustomPreset = self.setCustom
+        HandlersApi._showLinkedWidgets = self.showLinkedWidgets
+
         self.loadConfig(config_file, defaults_file)
         self.setConfigHook(main_class, conf_class)
         self.loadSettingsHandlers(
@@ -67,6 +76,8 @@ class SettingsWindow(QWidget):
         self.presets_update_queue = []
         self.isLoaded = False
         self.externalRegistries = {}
+
+        HandlersApi.externalRegistries = self.externalRegistries
 
         self.initLayout()
 
@@ -158,6 +169,8 @@ class SettingsWindow(QWidget):
                     if i == 1:
                         self.logger.error(mod["name"] + " has no class attribute")
 
+        HandlersApi._hooks = self.settings
+
     def loadSettingsHandlers(self, handlers_dir):
         """
         Init settings handlers from the directory
@@ -188,9 +201,9 @@ class SettingsWindow(QWidget):
                     self.logger.warning(
                         "Setting handler " + k + " is defined twice. Overriding"
                     )
-                self.handlers[k] = h_dict[k](
-                    self.getValue, self.setValue, weakref.ref(self)
-                )
+                self.handlers[k] = h_dict[k]()
+
+        HandlersApi.handlers = self.handlers
 
     def getValue(self, module, prop, index=None):
         """
@@ -416,8 +429,8 @@ class SettingsWindow(QWidget):
 
         Parameters
         ==========
-        index
-            Index of selected element
+        text
+            Selector text
         """
         caller = self.sender()
 

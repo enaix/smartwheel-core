@@ -5,6 +5,7 @@ from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import QComboBox, QGridLayout, QSizePolicy, QVBoxLayout, QWidget
 
 from smartwheel.settings_handlers.base import BaseHandler
+from smartwheel.api.settings import HandlersApi
 
 
 class UIModulesLoader(BaseHandler):
@@ -12,8 +13,8 @@ class UIModulesLoader(BaseHandler):
     UI modules loader
     """
 
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(UIModulesLoader, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(UIModulesLoader, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
@@ -25,12 +26,12 @@ class UIModulesLoader(BaseHandler):
         elem
             Element from config
         """
-        ok, modules = self.value_getter("canvas", "modules")
+        ok, modules = HandlersApi.getter("canvas", "modules")
         if not ok:
             self.logger.error("Could not get ui modules")
             return None
 
-        ok, modulesLoad = self.value_getter("canvas", "modulesLoad")
+        ok, modulesLoad = HandlersApi.getter("canvas", "modulesLoad")
         if not ok:
             self.logger.error("Could not get loaded ui modules")
             return None
@@ -39,7 +40,7 @@ class UIModulesLoader(BaseHandler):
         elem["modulesLoad"] = modulesLoad
         elem["disabled"] = [0]
 
-        picker = self.parent_obj().handlers["modules"].initElem(elem)
+        picker = HandlersApi.handlers["modules"].initElem(elem)
         if picker is None:
             self.logger.error("Could not initialize modules picker")
             return None
@@ -61,12 +62,12 @@ class UIModulesLoader(BaseHandler):
 
         name = caller.property("name")
 
-        ok, modules = self.value_getter("canvas", "modules")
+        ok, modules = HandlersApi.getter("canvas", "modules")
         if not ok:
             self.logger.error("Could not get ui modules")
             return
 
-        ok, modulesLoad = self.value_getter("canvas", "modulesLoad")
+        ok, modulesLoad = HandlersApi.getter("canvas", "modulesLoad")
         if not ok:
             self.logger.error("Could not get loaded ui modules")
             return
@@ -88,7 +89,7 @@ class UIModulesLoader(BaseHandler):
         else:
             modulesLoad.remove(index)
 
-        self.value_setter(module="canvas", prop="modulesLoad", value=modulesLoad)
+        HandlersApi.setter(module="canvas", prop="modulesLoad", value=modulesLoad)
 
 
 class SelectorWheel(QWidget):
@@ -112,8 +113,8 @@ class WheelPicker(BaseHandler):
     Wheel sections picker
     """
 
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(WheelPicker, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(WheelPicker, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
@@ -125,7 +126,7 @@ class WheelPicker(BaseHandler):
         elem
             Wheel elem config
         """
-        ok, num_sections = self.value_getter("common", "selectionWheelEntries")
+        ok, num_sections = HandlersApi.getter("common", "selectionWheelEntries")
         if not ok:
             self.logger.warning("Could not get selection wheel entries number")
             return

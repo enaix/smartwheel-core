@@ -12,21 +12,22 @@ from PyQt6.QtWidgets import (
 )
 
 from smartwheel.settings_handlers.base import BaseHandler
+from smartwheel.api.settings import HandlersApi
 
 
 class SerialHandler(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(SerialHandler, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(SerialHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
         self.pickers = []
 
     def initElem(self, elem):
-        ok, binds = self.value_getter(module=elem["module"], prop=elem["prop"])
+        ok, binds = HandlersApi.getter(module=elem["module"], prop=elem["prop"])
         if not ok:
             self.logger.warning("Could not get serial handler binds")
             return None
 
-        lwid = self.parent_obj().handlers["listmanager"].initElem({"binds": binds})
+        lwid = HandlersApi.handlers["listmanager"].initElem({"binds": binds})
         lwid.setProperty("module", elem["module"])
         lwid.setProperty("prop", elem["prop"])
         lwid.newCommand.connect(self.newCommand)
@@ -56,7 +57,7 @@ class SerialHandler(BaseHandler):
 
         name = group().title()
 
-        ok, binds = self.value_getter(module=module, prop=prop)
+        ok, binds = HandlersApi.getter(module=module, prop=prop)
         if not ok:
             self.logger.warning("Could not get serial binds")
             return
@@ -64,7 +65,7 @@ class SerialHandler(BaseHandler):
         for i in range(len(binds)):
             if binds[i]["name"] == name:
                 binds[i]["commands"].append({"string": ""})
-                self.value_setter(module=module, prop=prop, value=binds)
+                HandlersApi.setter(module=module, prop=prop, value=binds)
                 return
 
         self.logger.warning("Could not get group with name " + name)
@@ -101,7 +102,7 @@ class SerialHandler(BaseHandler):
                 for j in range(len(binds[i]["commands"])):
                     if binds[i]["commands"][j]["string"] == cmd_name:
                         binds[i]["commands"].pop(j)
-                        self.value_setter(module=module, prop=prop, value=binds)
+                        HandlersApi.setter(module=module, prop=prop, value=binds)
                         return
 
         self.logger.warning("Could not get command with name " + cmd_name)
@@ -126,7 +127,7 @@ class SerialHandler(BaseHandler):
 
         name = group().title()
 
-        ok, binds = self.value_getter(module=module, prop=prop)
+        ok, binds = HandlersApi.getter(module=module, prop=prop)
         if not ok:
             self.logger.warning("Could not get serial binds")
             return
@@ -139,7 +140,7 @@ class SerialHandler(BaseHandler):
                 for j in range(len(binds[i]["commands"])):
                     if binds[i]["commands"][j]["string"] == oldText:
                         binds[i]["commands"][j]["string"] = newText
-                        self.value_setter(module=module, prop=prop, value=binds)
+                        HandlersApi.setter(module=module, prop=prop, value=binds)
                         wid.property("linkedLabel")().setProperty("oldText", newText)
                         return
 
@@ -169,7 +170,7 @@ class SerialHandler(BaseHandler):
 
         context = {"device": name, "command": cmd_name}
 
-        picker = self.parent_obj().handlers["actions_list"].initElem(context)
+        picker = HandlersApi.handlers["actions_list"].initElem(context)
         self.pickers.append(picker)
         picker.show()
 
@@ -199,13 +200,13 @@ class SerialHandler(BaseHandler):
             # closeButton[1].clicked.emit()
             return
 
-        ok, groups = self.value_getter(module=module, prop=prop)
+        ok, groups = HandlersApi.getter(module=module, prop=prop)
         if not ok:
             self.logger.warning("Could not get serial binds")
             return
 
         groups.append({"name": name, "type": item, "commands": []})
-        self.value_setter(module=module, prop=prop, value=groups)
+        HandlersApi.setter(module=module, prop=prop, value=groups)
 
     @pyqtSlot(QGroupBox)
     def delGroup(self, wid):
@@ -225,7 +226,7 @@ class SerialHandler(BaseHandler):
 
         name = wid.title()
 
-        ok, groups = self.value_getter(module=module, prop=prop)
+        ok, groups = HandlersApi.getter(module=module, prop=prop)
         if not ok:
             self.logger.warning("Could not get serial binds")
             return
@@ -233,7 +234,7 @@ class SerialHandler(BaseHandler):
         for i in range(len(groups)):
             if groups[i]["name"] == name:
                 groups.pop(i)
-                self.value_setter(module=module, prop=prop, value=groups)
+                HandlersApi.setter(module=module, prop=prop, value=groups)
                 return
 
         self.logger.warning("Could not get group with name" + name)
