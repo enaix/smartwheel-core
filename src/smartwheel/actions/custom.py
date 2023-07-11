@@ -1,14 +1,12 @@
 from smartwheel.actions.baseaction import BaseAction
+from smartwheel.api.action import Pulse
 
 
 class Action(BaseAction):
-    def __init__(self):
-        pass
-
-    def run(self, context):
+    def run(self, context: dict, pulse: Pulse):
         event = {
             "canvas": context["canvas"],
             "wheel": context["wheel"],
             "call": context["call"],
         }
-        context["module"]().processKey(event)
+        context["module"]().processKey(event, pulse)

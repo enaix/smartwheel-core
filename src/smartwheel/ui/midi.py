@@ -41,7 +41,10 @@ class UIElem(BaseUIElem):
         else:
             self.midiout.open_virtual_port(self.conf["virtualPortName"])
 
-    def processKey(self, event):
+    def processKey(self, event, pulse):
+        if not pulse.click:
+            return
+
         if not self.midiout.is_port_open():
             return
         if event["call"] == "scrollUp":

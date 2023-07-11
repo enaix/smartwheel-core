@@ -5,12 +5,14 @@ from PyQt6.QtCore import *
 
 from smartwheel import config
 from smartwheel.serialpipe.base import ClickButton, ConnPipe, PRButton, Rotary
+from smartwheel.api.app import Classes
+from smartwheel.api.action import DevicePulse, PulseTypes
 
 
 class SConn(ConnPipe):
     """Background keyboard listener"""
 
-    def __init__(self, config_file, call_signal):
+    def __init__(self, config_file):
         """
         Initialize keyboardpipe
 
@@ -18,15 +20,13 @@ class SConn(ConnPipe):
         ----------
         config_file
             Configuration file
-        call_signal
-            Actionegnine signal to call
         """
         super().__init__()
         self.keys = None
         self.conf = None
         self.logger = logging.getLogger(__name__)
         self.config_file = config_file
-        self.call = call_signal
+        self.call = Classes.ActionEngine().callAction
         self.loadConfig()
         self.loadKeys()
 
@@ -50,14 +50,16 @@ class SConn(ConnPipe):
 
         for kbs in self.conf["keyboards"]:
             for k in kbs["keys"]:
-                self.keys["keyboards"][k["string"]] = (kbs, k)
+                self.keys["keyboards"][k["string"]] = DevicePulse(bind=kbs["name"], command=k["string"],
+                                                                  pulse_type=PulseTypes.BUTTON)
 
         for btn in self.conf["prbuttons"]:
             self.keys["prbuttons"][btn["key"]] = btn
             self.prbuttons[btn["name"]] = PRButton(btn["threshold"])
             self.prbuttons[btn["name"]].setupCallbacks(
                 [self.call] * 3,
-                [(btn, {"string": x}) for x in ["press", "click", "doubleclick"]],
+                [DevicePulse(bind=btn["name"], command=x, pulse_type=PulseTypes.BUTTON)
+                 for x in ["press", "click", "doubleclick"]]
             )
 
         for btn in self.conf["clickbuttons"]:
@@ -65,7 +67,7 @@ class SConn(ConnPipe):
             self.clickbuttons[btn["name"]] = ClickButton(btn["threshold"])
             self.clickbuttons[btn["name"]].setupCallbacks(
                 [self.call] * 2,
-                [(btn, {"string": x}) for x in ["click", "doubleclick"]],
+                [DevicePulse(bind=btn["name"], command=x, pulse_type=PulseTypes.BUTTON) for x in ["click", "doubleclick"]]
             )
 
         for enc in self.conf["encoders"]:
@@ -87,7 +89,7 @@ class SConn(ConnPipe):
             self.encoders[enc["name"]].setupCallbacks(
                 [self.call] * 6,
                 [
-                    (enc, {"string": x})
+                    DevicePulse(bind=enc["name"], command=x, pulse_type=PulseTypes.ENCODER)
                     for x in [
                         "up",
                         "down",
@@ -111,8 +113,7 @@ class SConn(ConnPipe):
         k = str(key).strip("'")
 
         if self.keys["keyboards"].get(k) is not None:
-            kb, btn = self.keys["keyboards"][k]
-            self.call.emit((kb, btn))
+            self.call.emit(self.keys["keyboards"][k])
 
         if self.keys["prbuttons"].get(k) is not None:
             btn = self.keys["prbuttons"][k]

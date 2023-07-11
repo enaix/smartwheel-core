@@ -41,7 +41,10 @@ class UIElem(BaseUIElem):
         data = self.conf["internal"]["kritaAPI"]["class"].setColor(r, g, b)
         self.conf["internal"]["kritaServer"]["signals"]["send"].emit(data)
 
-    def processKey(self, event):
+    def processKey(self, event, pulse):
+        if not pulse.click:
+            return
+
         if event["call"] == "keyAction1":
             self.mode = (self.mode + 1) % 3
             self.startWidthAnimation()

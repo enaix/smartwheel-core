@@ -6,12 +6,13 @@ import weakref
 from PyQt6.QtCore import *
 
 from smartwheel import config, tools
+from smartwheel.api.action import Pulse, DevicePulse, PulseTypes
 
 
 class ActionEngine(QObject):
     """Modules and wheel interactions interface"""
 
-    callAction = pyqtSignal(tuple, name="action_call")
+    callAction = pyqtSignal(DevicePulse, name="action_call")
 
     def __init__(self, modules, config_file, WConfig):
         """
@@ -90,7 +91,7 @@ class ActionEngine(QObject):
             return None
         return self.modules[i]
 
-    def action(self, call):
+    def action(self, call: str, pulse: Pulse = None):
         """
         Execute action
 
@@ -98,10 +99,15 @@ class ActionEngine(QObject):
         ----------
         call
             Module action (from actions list)
+        pulse
+            Emitted pulse, may be None
         """
+        if pulse is None:
+            pulse = Pulse(pulse_type=PulseTypes.BUTTON)
+
         self.modules = self.current_module_list_getter()
         self.current_module = self.current_module_getter()
-        if self.getModule(self.current_module) == None:
+        if self.getModule(self.current_module) is None:
             return
 
         if self.modules[self.current_module]["class"].conf.get("actions") is None:
@@ -117,7 +123,7 @@ class ActionEngine(QObject):
             i["wheel"] = self.wheel
             i["module"] = weakref.ref(self.modules[self.current_module]["class"])
             i["call"] = call
-            self.actions[i["action"].lower()].run(i)
+            self.actions[i["action"].lower()].run(i, pulse)
 
     def getWheelAction(self, a):
         """
@@ -138,7 +144,7 @@ class ActionEngine(QObject):
             return "module"
         return "wheel"
 
-    @pyqtSlot(tuple)
+    @pyqtSlot(DevicePulse)
     def processCall(self, p_call):
         """
         Execute action by call (slot function)
@@ -147,21 +153,26 @@ class ActionEngine(QObject):
         Parameters
         ----------
         p_call
-            callAction in the form of (bind, command)
-            bind is a dict that contains 'name' string
-            command is a dict with 'string' field (the command)
+            DevicePulse class that contains several fields
+            bind: string that contains action bind/device name (in actionengine config)
+            command: string that contains device command
+            type: either PulseTypes.BUTTON or PulseTypes.ENCODER
         """
-        elem, call = p_call
+        elem = p_call.bind
+        call = p_call.command
+
         cur_state = self.getState()
 
-        if elem.get("name") is None or call.get("string") is None:
+        if elem is None or call is None:
             self.logger.warning("actionengine could not parse the signal")
 
-        self.logger.debug("Incoming call: " + call["string"])
+        self.logger.debug("Incoming call: " + call)
 
-        i = self.conf["commandBind"].get(elem["name"], None)
+        pulse = self.generatePulse(p_call)
+
+        i = self.conf["commandBind"].get(elem, None)
         if i is not None:
-            c = list(j for j in i if j["command"] == call["string"])
+            c = list(j for j in i if j["command"] == call)
             if c:  # c != []
                 for act in c:
                     for a in act["actions"]:
@@ -175,11 +186,35 @@ class ActionEngine(QObject):
                                 continue
                             for _ in range(1 + a.get("repeat", 0)):
                                 self.wheel_actions[cmd["type"]].run(
-                                    cmd["name"], self.canvas, weakref.ref(self)
+                                    cmd["name"], pulse
                                 )
                 self.canvas().update_func()
         else:
             self.logger.warning("actionengine could not find call with this name")
+
+    def generatePulse(self, dpulse: DevicePulse):
+        """
+        Process device pulse and return new Pulse object
+
+        Parameters
+        ==========
+        dpulse
+            Emitted device pulse
+        """
+        pulse = Pulse()
+        pulse.type = dpulse.type
+
+        if pulse.type == PulseTypes.BUTTON:
+            return pulse
+
+        # TODO add actual pulses processing
+
+        pulse.click = True
+        pulse.step = 0.0
+        pulse.target = 0.0
+        pulse.velocity = 0.0
+
+        return pulse
 
     def loadModulesConf(self, conf):
         self.modules.append(conf)

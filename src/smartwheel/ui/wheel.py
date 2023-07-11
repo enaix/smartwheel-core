@@ -12,6 +12,7 @@ from smartwheel import config, gui_tools
 from smartwheel.tools import merge_dicts
 from smartwheel.ui.base import BaseUIElem
 from smartwheel.api.app import Classes
+from smartwheel.api.action import Pulse
 
 
 class Section:
@@ -190,8 +191,10 @@ class UIElem(BaseUIElem):
         self.sections[self.cur_section].is_selected = True
         self.sections[old_selection].is_selected = False
 
-    def processKey(self, up):
+    def processKey(self, up: bool, pulse: Pulse):
         # self.scrollModule(up)
+        if not pulse.click:
+            return
 
         self.wheelUp.put(up)
         if self.is_scroll_anim_running:

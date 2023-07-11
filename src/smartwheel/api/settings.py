@@ -1,6 +1,3 @@
-import weakref
-
-from PyQt6.QtCore import pyqtSlot
 from typing import Callable
 from PyQt6.QtCore import QObject
 

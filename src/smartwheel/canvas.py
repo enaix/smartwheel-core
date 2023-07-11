@@ -300,6 +300,7 @@ class RootCanvas(QObject):
         self.ae.current_module_getter = self.conf["modules"][0]["class"].getCurModule
         self.ae.canvas = weakref.ref(self)
         self.ae.wheel = weakref.ref(self.conf["modules"][0]["class"])
+        Classes.ActionEngine = weakref.ref(self.ae)
 
     def updateIconCache(self):
         """

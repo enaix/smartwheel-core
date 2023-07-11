@@ -323,8 +323,7 @@ class RootWindow(QMainWindow):
                         self.conf["config_dir"],
                         self.conf.c["canvas"]["serialConfigDir"],
                         self.conf.c["canvas"]["serialModules"][i]["config"],
-                    ),
-                    self.rc.ae.callAction,
+                    )
                 )
                 cls.start()
                 self.serialModules[mod_name] = cls

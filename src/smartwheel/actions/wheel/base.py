@@ -1,6 +1,10 @@
-class BaseWheelAction:
-    def __init__(self):
-        pass
+from PyQt6.QtCore import QObject
+from smartwheel.api.action import Pulse
 
-    def run(self):
+
+class BaseWheelAction(QObject):
+    def __init__(self):
+        super(BaseWheelAction, self).__init__()
+
+    def run(self, action: str, pulse: Pulse):
         pass

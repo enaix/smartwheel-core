@@ -5,16 +5,18 @@ from PyQt6.QtCore import *
 
 from smartwheel import config
 from smartwheel.serialpipe.base import ConnPipe
+from smartwheel.api.app import Classes
+from smartwheel.api.action import DevicePulse, PulseTypes
 
 
 class SConn(ConnPipe):
     """Default serial connection interface (compatible with pico)"""
 
-    def __init__(self, config_file, call_signal):
+    def __init__(self, config_file):
         super().__init__()
         self.conf = None
         self.config_file = config_file
-        self.call = call_signal
+        self.call = Classes.ActionEngine().callAction
         self.logger = logging.getLogger(__name__)
         self.loadConfig()
 
@@ -42,11 +44,20 @@ class SConn(ConnPipe):
         for b in self.conf["binds"]:
             for c in b["commands"]:
                 if c["string"] == string:
-                    cmd.append((b, c))
+                    pulse = DevicePulse()
+                    pulse.bind = b["name"]
+                    pulse.command = c["string"]
+
+                    if b["type"] == "button":
+                        pulse.type = PulseTypes.BUTTON
+                    else:
+                        pulse.type = PulseTypes.ENCODER
+
+                    cmd.append(pulse)
+
         if cmd != []:
             for c in cmd:
-                if c != []:
-                    self.call.emit(c)
+                self.call.emit(c)
 
     def run(self):
         """

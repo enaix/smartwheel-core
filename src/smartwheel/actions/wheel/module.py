@@ -1,11 +1,13 @@
 from smartwheel.actions.wheel.base import BaseWheelAction
 
+from smartwheel.api.app import Classes
+from smartwheel.api.action import Pulse
+
 
 class WheelAction(BaseWheelAction):
-    def __init__(self):
-        self.type = "module"
+    type = "module"
 
-    def run(self, action, canvas, ae):
+    def run(self, action: str, pulse: Pulse):
         if action in [
             "scrollUp",
             "scrollDown",
@@ -14,4 +16,4 @@ class WheelAction(BaseWheelAction):
             "scrollUp2",
             "scrollDown2",
         ]:
-            ae().action(action)
+            Classes.ActionEngine().action(action, pulse)
