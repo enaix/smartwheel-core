@@ -11,6 +11,7 @@ class _Classes(QObject):
     MainWindow: weakref.ref = None
     RootCanvas: weakref.ref = None
     Settings: weakref.ref = None
+    ActionEngine: weakref.ref = None
 
     # TODO add warning about import styles
 

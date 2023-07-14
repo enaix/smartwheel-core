@@ -52,6 +52,8 @@ Nuitka now supports only Python <= 3.11
 
 `./build.sh`, `.\build.bat` or `./build_macos.sh`
 
+To create macos dmg file run `./package_macos_dmg.sh`
+
 ## We need your help!
 
 I've started working on this project a while ago, but it turned out that it's too big: it won't be possible to finish it without your help. However, it's much easier to implement features one-by-one: you only need basic Python3 (and sometimes PyQt6) knowledge. If you believe in this project and want to contribute, please DM me. Even small fixes, ideas or suggestions are very important.
