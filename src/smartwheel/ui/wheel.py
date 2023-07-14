@@ -223,7 +223,10 @@ class UIElem(BaseUIElem):
         self.sections_timer.stop()
         self.hideSections()
 
-    def quickSwitch(self, up):
+    def quickSwitch(self, up, pulse: Pulse):
+        if not pulse.click:
+            return
+        
         # self.scrollModule(up)
         self.wheelUp.put(up)
 
