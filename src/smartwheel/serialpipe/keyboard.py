@@ -1,8 +1,8 @@
-import config
 from PyQt6.QtCore import *
 
 from smartwheel.serialpipe.base import ConnPipe
 from smartwheel.api.app import Classes
+from smartwheel import config
 
 
 class SConn(ConnPipe):
@@ -16,8 +16,6 @@ class SConn(ConnPipe):
         ----------
         config_file
             Configuration file
-        call_signal
-            Actionegnine signal to call
         """
         super().__init__()
         self.conf = None

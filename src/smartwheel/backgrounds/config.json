@@ -1,0 +1,11 @@
+{
+    "brushes_modules": [
+        "basic",
+        "contour"
+    ],
+    "brushes_config": {
+        "pattern": "pattern.json",
+        "contour": "contour.json"
+    },
+    "brushes_config_dir": "backgrounds"
+}

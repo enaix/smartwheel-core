@@ -9,6 +9,30 @@ from smartwheel import config, tools
 from smartwheel.api.action import Pulse, DevicePulse, PulseTypes
 
 
+class AccelerationMeta:
+    """
+    Internal acceleration metadata for each pulse
+    """
+    def __init__(self, step, target, velocity, accel, maxvel):
+        self.step = step
+        self.target = target
+        self.velocity = velocity
+        self.acceleration = accel
+        self.maxVelocity = maxvel
+
+    step: float = None
+
+    target: float = None
+
+    velocity: float = None
+
+    acceleration: float = None
+
+    maxVelocity: float = None
+
+    threshClick: bool = False
+
+
 class ActionEngine(QObject):
     """Modules and wheel interactions interface"""
 
@@ -41,6 +65,11 @@ class ActionEngine(QObject):
         self.actions = {}
         self.importActions()
         self.importWheelActions()
+
+        self.accelMeta = {}
+        self.accelTime = QTimer(self)
+        self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
+        self.accelTime.timeout.connect(self.pulseCycle)
 
     def importConfig(self, config_file):
         """
@@ -145,7 +174,7 @@ class ActionEngine(QObject):
         return "wheel"
 
     @pyqtSlot(DevicePulse)
-    def processCall(self, p_call):
+    def processCall(self, p_call: DevicePulse):
         """
         Execute action by call (slot function)
         This is the main interface of ActionEngine, check serial.py for example
@@ -192,6 +221,76 @@ class ActionEngine(QObject):
         else:
             self.logger.warning("actionengine could not find call with this name")
 
+    @pyqtSlot()
+    def pulseCycle(self):
+        """
+        Generate intermediate pulses using fancy physics formulas
+        """
+        for key, _ in self.accelMeta.items():
+            if self.accelMeta[key].step == self.accelMeta[key].target and self.accelMeta[key].acceleration == 0.0:
+                continue
+
+            pulse = key
+            pulse._virtual = True
+
+            gravity = self.conf["acceleration"]["gravity"] / self.conf["acceleration"]["pulseRefreshTime"]
+            stopped = False
+
+            if 0.0 <= self.accelMeta[key].step < self.conf["acceleration"]["switchThreshold"]:
+                # less than thresh, > 0
+                self.accelMeta[key].acceleration -= gravity
+                self.accelMeta[key].threshClick = False
+            elif 0.0 >= self.accelMeta[key].step > 1.0 - self.conf["acceleration"]["switchThreshold"]:
+                # less than thresh, < 0
+                self.accelMeta[key].acceleration += gravity
+                self.accelMeta[key].threshClick = False
+            else:
+                # more than thresh
+                if not self.accelMeta[key].threshClick:
+                    pulse._click = True
+                self.accelMeta[key].threshClick = True
+
+                if self.accelMeta[key].acceleration < self.conf["acceleration"]["maxStopAccel"]:
+                    self.accelMeta[key].step = 0.0
+                    self.accelMeta[key].target = 0.0
+                    self.accelMeta[key].acceleration = 0.0
+                    stopped = True
+
+                if self.accelMeta[key].step > 0:
+                    # > 0
+                    self.accelMeta[key].acceleration += gravity
+                else:
+                    # < 0
+                    self.accelMeta[key].acceleration -= gravity
+
+            if not stopped:
+                self.accelMeta[key].step += self.accelMeta[key].acceleration / self.conf["acceleration"]["pulseRefreshTime"]
+
+            if abs(self.accelMeta[key].step) >= 1.0:
+                if self.accelMeta[key].step > 0:
+                    # >= 1.0
+                    self.accelMeta[key].step -= 1.0
+                    self.accelMeta[key].target = \
+                        0.0 if self.accelMeta[key].step < self.conf["acceleration"]["switchThreshold"] else 1.0
+                else:
+                    # <= -1.0
+                    self.accelMeta[key].step += 1.0
+                    self.accelMeta[key].target = \
+                        0.0 if self.accelMeta[key].step > 1.0 - self.conf["acceleration"]["switchThreshold"] else -1.0
+
+            if abs(self.accelMeta[key].target - self.accelMeta[key].step) < self.conf["acceleration"]["deadzone"] and \
+                    abs(self.accelMeta[key].acceleration) < self.conf["acceleration"]["minAccel"]:
+                self.accelMeta[key].step = 0.0
+                self.accelMeta[key].target = 0.0
+                self.accelMeta[key].acceleration = 0.0
+                # we should not stop the timer as there may be >1 encoder
+                # self.accelTime.stop()
+
+            self.logger.debug("Step: " + str(self.accelMeta[key].step) + "; target: " + str(self.accelMeta[key].target)
+                              + "; vel: " + str(self.accelMeta[key].acceleration))
+
+            self.callAction.emit(pulse)
+
     def generatePulse(self, dpulse: DevicePulse):
         """
         Process device pulse and return new Pulse object
@@ -204,15 +303,55 @@ class ActionEngine(QObject):
         pulse = Pulse()
         pulse.type = dpulse.type
 
+        if dpulse._virtual:
+            pulse.virtual = True
+            if dpulse._click:
+                pulse.click = True
+            pulse.step = self.accelMeta[dpulse].step
+            pulse.target = self.accelMeta[dpulse].target
+            pulse.velocity = self.accelMeta[dpulse].acceleration
+            return pulse
+
         if pulse.type == PulseTypes.BUTTON:
             return pulse
 
-        # TODO add actual pulses processing
+        if dpulse.up is None:
+            self.logger.error("Device encoder pulse direction is unset")
+            pulse.click = False
+            pulse.step = 0.0
+            pulse.target = 0.0
+            pulse.velocity = 0.0
+            pulse.virtual = False
+            return pulse
 
-        pulse.click = True
-        pulse.step = 0.0
-        pulse.target = 0.0
-        pulse.velocity = 0.0
+        if self.accelMeta.get(dpulse) is None:
+            if dpulse.up:
+                accel = self.conf["acceleration"]["clickAccel"]
+            else:
+                accel = -self.conf["acceleration"]["clickAccel"]
+
+            self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel,
+                                                      self.conf["acceleration"]["maxAccel"])
+        else:
+            if dpulse.up:
+                self.accelMeta[dpulse].acceleration += self.conf["acceleration"]["clickAccel"]
+            else:
+                self.accelMeta[dpulse].acceleration -= self.conf["acceleration"]["clickAccel"]
+
+            if abs(self.accelMeta[dpulse].acceleration) >= self.conf["acceleration"]["maxAccel"]:
+                if self.accelMeta[dpulse].acceleration > 0:
+                    self.accelMeta[dpulse].acceleration = self.conf["acceleration"]["maxAccel"]
+                else:
+                    self.accelMeta[dpulse].acceleration = -self.conf["acceleration"]["maxAccel"]
+
+        pulse.virtual = False
+        pulse.click = False
+        pulse.step = self.accelMeta[dpulse].step
+        pulse.target = self.accelMeta[dpulse].target
+        pulse.velocity = self.accelMeta[dpulse].acceleration
+
+        if not self.accelTime.isActive():
+            self.accelTime.start()
 
         return pulse
 

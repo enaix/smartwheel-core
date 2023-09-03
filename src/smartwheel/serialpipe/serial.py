@@ -53,6 +53,11 @@ class SConn(ConnPipe):
                     else:
                         pulse.type = PulseTypes.ENCODER
 
+                    if c["up"]:
+                        pulse.up = True
+                    else:
+                        pulse.up = False
+
                     cmd.append(pulse)
 
         if cmd != []:

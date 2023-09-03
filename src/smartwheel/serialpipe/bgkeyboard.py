@@ -89,15 +89,15 @@ class SConn(ConnPipe):
             self.encoders[enc["name"]].setupCallbacks(
                 [self.call] * 6,
                 [
-                    DevicePulse(bind=enc["name"], command=x, pulse_type=PulseTypes.ENCODER)
-                    for x in [
+                    DevicePulse(bind=enc["name"], command=x, pulse_type=PulseTypes.ENCODER, up=bool((i + 1) % 2))
+                    for i, x in enumerate([
                         "up",
                         "down",
                         "click up",
                         "click down",
                         "double up",
                         "double down",
-                    ]
+                    ])
                 ],
             )
 
