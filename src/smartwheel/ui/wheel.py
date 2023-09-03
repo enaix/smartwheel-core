@@ -36,7 +36,7 @@ class Section:
         # mod = importlib.import_module(self.module["name"])
         # ui = mod.UIElem(self.module["config"], self.parent.conf)
         # self.module["class"] = ui
-        if self.module["class"] is None or self.module["class"].icon_path is None:
+        if self.module.get("class") is None or self.module["class"] is None or self.module["class"].icon_path is None:
             self.pixmap = None  # QImage(os.path.join(self.parent().conf["iconsFolder"], "folder.png"))
         else:
             self.pixmap = QPixmap(

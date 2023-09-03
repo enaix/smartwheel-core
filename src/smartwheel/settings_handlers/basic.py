@@ -146,6 +146,9 @@ class ColorHandler(BaseHandler):
         else:
             self.logger.warning("Could not get value for " + elem["name"])
 
+        if value is None:
+            value = "#000000"
+
         self.setIcon(wid, QColor(value))
 
         wid.clicked.connect(self.setColor)

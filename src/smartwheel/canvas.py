@@ -5,6 +5,7 @@ import os
 import queue
 import time
 import weakref
+import traceback
 
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
@@ -94,14 +95,19 @@ class RootCanvas(QObject):
         meta
             Configuration of the module
         """
-        mod = importlib.import_module("smartwheel." + meta["name"])
-        ui = mod.UIElem(
-            os.path.join(self.config_dir, meta["config"]),
-            self.conf,
-            self.wheel_modules,
-            self.update_func,
-            weakref.ref(self),
-        )
+        try:
+            mod = importlib.import_module("smartwheel." + meta["name"])
+            ui = mod.UIElem(
+                os.path.join(self.config_dir, meta["config"]),
+                self.conf,
+                self.wheel_modules,
+                self.update_func,
+                weakref.ref(self),
+                )
+        except BaseException:
+            self.logger.error("Failed to initialize module " + meta["name"])
+            traceback.print_exc()
+            return None
         return ui
 
     def loadSections(self, modules_list, parent_mod=None):
@@ -183,11 +189,15 @@ class RootCanvas(QObject):
                 )
                 self.conf["brush_configs"][k].loadConfig()
 
-                self.brushes[k] = b_dict[k](
-                    weakref.ref(self.conf),
-                    self.conf["brush_configs"][k],
-                    weakref.ref(self),
-                )
+                try:
+                    self.brushes[k] = b_dict[k](
+                        weakref.ref(self.conf),
+                        self.conf["brush_configs"][k],
+                        weakref.ref(self),
+                    )
+                except BaseException:
+                    self.logger.error("Could not load brush " + k)
+                    traceback.print_exc()
 
         self.conf["brushesTypes"] = list(self.brushes.keys())
 
@@ -213,7 +223,12 @@ class RootCanvas(QObject):
 
         mod = importlib.import_module("smartwheel." + module["name"])
         if module.get("config", None) is not None:
-            ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)
+            try:
+                ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)
+            except BaseException:
+                self.logger.error("Module has crashed! Could not initialize " + module["name"])
+                traceback.print_exc()
+                return module
 
             if hasattr(ui, "updateSignal"):
                 ui.updateSignal.connect(self.updateCanvas)
@@ -221,7 +236,13 @@ class RootCanvas(QObject):
             if hasattr(ui, "thread"):
                 self.threads.append(ui.thread)
         else:
-            ui = mod.UIElem("", module)
+            try:
+                ui = mod.UIElem("", module)
+            except BaseException:
+                self.logger.error("Module has crashed! Could not initialize " + module["name"])
+                traceback.print_exc()
+                return module
+
         module["class"] = ui
         # self.pixmap = QImage(self.module["class"].icon_path)
         return module
@@ -265,9 +286,16 @@ class RootCanvas(QObject):
                 cnf = os.path.join(self.config_dir, mod["config"])
             else:
                 cnf = None
-            mod_class = importlib.import_module("smartwheel." + mod["name"]).Internal(
-                self.conf, cnf
-            )
+
+            try:
+                mod_class = importlib.import_module("smartwheel." + mod["name"]).Internal(
+                    self.conf, cnf
+                )
+            except BaseException:
+                self.logger.error("Failed to initialize internal module " + mod["name"])
+                traceback.print_exc()
+                return
+
             self.conf["internal"][mod_class.name] = {
                 "class": mod_class,
                 "signals": mod_class.getSignals(),
@@ -275,7 +303,11 @@ class RootCanvas(QObject):
 
     def startInternalModules(self):
         for i in self.conf["internal"]:
-            self.conf["internal"][i]["class"].start()
+            try:
+                self.conf["internal"][i]["class"].start()
+            except BaseException:
+                self.logger.error("Failed to start internal module " + self.conf["internal"][i].name)
+                traceback.print_exc()
 
     def getCurModList(self):
         """
