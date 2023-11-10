@@ -140,7 +140,7 @@ class UIElem(BaseUIElem):
         self.initShadowAnimation()
         self.initSectionsAnimation()
         self._opacity = 0
-        self._angle = 0.0
+        self._angle = self.conf["selectionAngle"]
         self._sections_pos = 0
         self.global_shadow = False
         self.wheelUp = LifoQueue()
@@ -198,7 +198,7 @@ class UIElem(BaseUIElem):
             self.startShadowAnimation()
             #self._angle += self.delta
 
-        self._angle = (self._angle - self._angle % self.delta) % 360.0 + pulse.step * self.delta
+        self._angle = pulse.step + self.conf["selectionAngle"] #(self._angle - self._angle % self.delta) % 360.0 + pulse.step * self.delta
 
         #if self.is_scroll_anim_running:
         #    self.updateAnimation(up)
