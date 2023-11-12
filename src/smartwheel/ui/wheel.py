@@ -198,7 +198,8 @@ class UIElem(BaseUIElem):
             self.startShadowAnimation()
             #self._angle += self.delta
 
-        self._angle = pulse.step + self.conf["selectionAngle"] #(self._angle - self._angle % self.delta) % 360.0 + pulse.step * self.delta
+        if pulse.step is not None:
+            self._angle = pulse.step + self.conf["selectionAngle"] #(self._angle - self._angle % self.delta) % 360.0 + pulse.step * self.delta
 
         #if self.is_scroll_anim_running:
         #    self.updateAnimation(up)

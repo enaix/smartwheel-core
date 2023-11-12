@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QComboBox,
+    QMessageBox,
 )
 
 from smartwheel import common, config
@@ -542,6 +543,13 @@ class SettingsWindow(QWidget):
 
         return form.rowCount() - 1, wid
 
+    @pyqtSlot()
+    def setDefaults(self):
+        ok = QMessageBox.question(self, "Defaults", "This will restore all defaults.\nWould you like to proceed?")
+        if ok:
+            common.config_manager.defaults.emit()
+
+
     def initExtraRegistries(self):
         for reg, value in self.external_reg.items():
             if value.get("inPlace", False):
@@ -700,9 +708,14 @@ class SettingsWindow(QWidget):
 
         cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(self.close)
+
+        defaultsButton = QPushButton("Defaults")
+        defaultsButton.clicked.connect(self.setDefaults)
+
         spacer = QSpacerItem(
             40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
         )
+        bottomPanel.addWidget(defaultsButton)
         bottomPanel.addSpacerItem(spacer)
         bottomPanel.addWidget(cancelButton)
         bottomPanel.addWidget(applyButton)

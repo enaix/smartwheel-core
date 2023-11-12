@@ -450,11 +450,12 @@
         ]
     },
     "acceleration": {
-        "clickAccel": 2.0,
+        "clickAccel": 12.0,
         "maxAccel": 100.0,
-        "gravity": 0.1,
+        "gravity": 0.3,
+        "friction": 0.2,
         "switchThreshold": 0.5,
-        "pulseRefreshTime": 100,
+        "pulseRefreshTime": 50,
         "deadzone": 0.0001,
         "minAccel": 0.1,
         "maxStopAccel": 3.0

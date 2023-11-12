@@ -15,6 +15,7 @@ class ConfigManager(QObject):
     """
 
     save = pyqtSignal()
+    defaults = pyqtSignal()
     updated = pyqtSignal(str)
     batchUpdate = pyqtSignal(list)
 
@@ -35,6 +36,13 @@ class ConfigManager(QObject):
         Slot function that executes the saving of all Config objects, must be called from settings module
         """
         self.save.emit()
+
+    @pyqtSlot()
+    def setDefaults(self):
+        """
+        Slot function that sets defaults for all Config objects
+        """
+        self.defaults.emit()
 
 
 class AppState(IntEnum):

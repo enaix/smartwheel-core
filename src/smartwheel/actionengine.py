@@ -22,6 +22,7 @@ class AccelerationMeta:
 
         # TODO add n_positions fetch and move angles to ActionEngine
         self.angles = [x for x in range(0, 360, 360//n_positions)]
+        self.n_pos = n_positions
 
     step: float = None
 
@@ -224,90 +225,9 @@ class ActionEngine(QObject):
         else:
             self.logger.warning("actionengine could not find call with this name")
 
-    @pyqtSlot()
-    def oldPulseCycle(self):
-        """
-        Generate intermediate pulses using fancy physics formulas
-        """
-        for key, _ in self.accelMeta.items():
-            if self.accelMeta[key].step == self.accelMeta[key].target and self.accelMeta[key].acceleration == 0.0:
-                continue
-
-            pulse = key
-            pulse._virtual = True
-
-            # Calculate current steps from gravity
-            # steps: [-1.0, 1.0]
-
-            # gravity_func = lambda x:
-
-            gravity = (-self.accelMeta[key].step) * self.conf["acceleration"]["gravity"] / self.conf["acceleration"]["pulseRefreshTime"]
-            stopped = False
-
-            #  *---.----*
-            #  at 0.0: gravity = 0
-            #  at 
-            #  at 1.0: gravity = -1.0
-            #  at -1.0: gravity = 1.0
-
-            self.accelMeta[key].acceleration -= gravity
-            self.accelMeta[key].threshClick = False
-
-            # Subtract gravity steps from
-            # if 0.0 <= self.accelMeta[key].step < self.conf["acceleration"]["switchThreshold"]:
-            #     # less than thresh, > 0
-            #     self.accelMeta[key].acceleration -= gravity
-            #     self.accelMeta[key].threshClick = False
-            # elif 0.0 >= self.accelMeta[key].step > 1.0 - self.conf["acceleration"]["switchThreshold"]:
-            #     # less than thresh, < 0
-            #     self.accelMeta[key].acceleration += gravity
-            #     self.accelMeta[key].threshClick = False
-            if abs(self.accelMeta[key].step) >= self.conf["acceleration"]["switchThreshold"]:
-                # more than thresh
-                if not self.accelMeta[key].threshClick:
-                    pulse._click = True
-                self.accelMeta[key].threshClick = True
-
-                if abs(self.accelMeta[key].acceleration) < self.conf["acceleration"]["maxStopAccel"]:
-                    self.accelMeta[key].step = 0.0
-                    self.accelMeta[key].target = 0.0
-                    self.accelMeta[key].acceleration = 0.0
-                    stopped = True
-
-                if self.accelMeta[key].step > 0:
-                    # > 0
-                    self.accelMeta[key].acceleration += gravity
-                else:
-                    # < 0
-                    self.accelMeta[key].acceleration -= gravity
-
-            if not stopped:
-                self.accelMeta[key].step += self.accelMeta[key].acceleration / self.conf["acceleration"]["pulseRefreshTime"]
-
-            if abs(self.accelMeta[key].step) >= 1.0:
-                if self.accelMeta[key].step > 0:
-                    # >= 1.0
-                    self.accelMeta[key].step -= 1.0
-                    self.accelMeta[key].target = \
-                        0.0 if self.accelMeta[key].step < self.conf["acceleration"]["switchThreshold"] else 1.0
-                else:
-                    # <= -1.0
-                    self.accelMeta[key].step += 1.0
-                    self.accelMeta[key].target = \
-                        0.0 if self.accelMeta[key].step > 1.0 - self.conf["acceleration"]["switchThreshold"] else -1.0
-
-            if abs(self.accelMeta[key].target - self.accelMeta[key].step) < self.conf["acceleration"]["deadzone"] and \
-                    abs(self.accelMeta[key].acceleration) < self.conf["acceleration"]["minAccel"]:
-                self.accelMeta[key].step = 0.0
-                self.accelMeta[key].target = 0.0
-                self.accelMeta[key].acceleration = 0.0
-                # we should not stop the timer as there may be >1 encoder
-                # self.accelTime.stop()
-
-            self.logger.debug("Step: " + str(self.accelMeta[key].step) + "; target: " + str(self.accelMeta[key].target)
-                              + "; vel: " + str(self.accelMeta[key].acceleration))
-
-            self.callAction.emit(pulse)
+    @staticmethod
+    def sign(x):
+        return -1.0 if x < 0.0 else 1.0
 
     @pyqtSlot()
     def pulseCycle(self):
@@ -321,24 +241,34 @@ class ActionEngine(QObject):
             # calculate the direction towards the nearest fixed angle
             direction = 1 if nearest_angle > self.accelMeta[key].step else -1
 
+            # calculate the normalized distance to the nearest angle
+            norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (180.0/self.accelMeta[key].n_pos)
+
+            # calculate deltaTime
+            delta = self.conf["acceleration"]["pulseRefreshTime"] / 1000
+
             # update the position with inertia
-            self.accelMeta[key].step += self.accelMeta[key].acceleration * self.conf["acceleration"]["pulseRefreshTime"] / 1000
+            self.accelMeta[key].step += self.accelMeta[key].acceleration * delta
 
             if not self.accelMeta[key].target == nearest_angle:
                 pulse._click = True
                 self.accelMeta[key].target = nearest_angle
 
+            # friction calculation
+            self.accelMeta[key].acceleration += (-self.accelMeta[key].acceleration) * ((1.0 - norm_dist) ** 2) * self.conf["acceleration"]["friction"] * delta
+
+            # deadzone check: TODO enable it or rewrite
             if False and abs(nearest_angle - self.accelMeta[key].step) < self.conf["acceleration"]["deadzone"] and\
                     abs(self.accelMeta[key].acceleration) < self.conf["acceleration"]["maxStopAccel"]:
                 self.accelMeta[key].acceleration = 0
                 self.accelMeta[key].step = nearest_angle
             else:
                 # constantly adjust inertia based on the current direction
-                self.accelMeta[key].acceleration += self.conf["acceleration"]["gravity"] * direction
+                self.accelMeta[key].acceleration += self.conf["acceleration"]["gravity"] * direction * (0.5 + 0.5 * (1.0 - norm_dist)) * delta
 
             self.callAction.emit(pulse)
             self.logger.debug("Step: " + str(self.accelMeta[key].step) + "; target: " + str(nearest_angle)
-                              + "; vel: " + str(self.accelMeta[key].acceleration))
+                              + "; vel: " + str(self.accelMeta[key].acceleration) + "; dist: " + str(norm_dist))
 
 
     def generatePulse(self, dpulse: DevicePulse):
