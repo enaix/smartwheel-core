@@ -439,7 +439,8 @@ class Config(QObject):
                 print("Failed to merge defaults")
             return
 
+        self.dictIter(defaults, self.c)
+
         with open(self.config_file, "w") as f:
-            print("Saving " + self.config_file)
             json.dump(defaults, f, indent=4)
 
