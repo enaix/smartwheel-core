@@ -2,7 +2,7 @@ import json
 import os
 import weakref
 
-from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, Qt
 
 from smartwheel import common
 
@@ -37,6 +37,7 @@ class Config(QObject):
         """
         Initialize Config object
         Note: the config file needs to be loaded manually by calling loadConfig()
+        Warning: do not initialize it in another thread
 
         Parameters
         ==========
@@ -83,6 +84,8 @@ class Config(QObject):
         common.config_manager.save.connect(self.saveConfig)
         common.config_manager.updated.connect(self.__updated)
         common.config_manager.batchUpdate.connect(self.__batchUpdate)
+        # We assume that all configs are in the same thread as settings
+        common.config_manager.defaults.connect(self.loadDefaults) # , Qt.ConnectionType.QueuedConnection)
 
     def __fetchkey(self, key):
         """
@@ -437,4 +440,6 @@ class Config(QObject):
             return
 
         with open(self.config_file, "w") as f:
+            print("Saving " + self.config_file)
             json.dump(defaults, f, indent=4)
+

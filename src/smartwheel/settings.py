@@ -3,6 +3,7 @@ import importlib
 import json
 import logging
 import os
+import time
 import weakref
 from queue import LifoQueue
 
@@ -62,6 +63,7 @@ class SettingsWindow(QWidget):
         HandlersApi._loadPreset = self.loadPreset
         HandlersApi._setCustomPreset = self.setCustom
         HandlersApi._showLinkedWidgets = self.showLinkedWidgets
+        HandlersApi.refresh.connect(self.refreshAll)
 
         self.loadConfig(config_file, defaults_file)
         self.setConfigHook(main_class, conf_class)
@@ -77,6 +79,8 @@ class SettingsWindow(QWidget):
         self.presets_update_queue = []
         self.isLoaded = False
         self.externalRegistries = {}
+        # all weakrefs of the widgets
+        self.settings_widgets = []
 
         HandlersApi.externalRegistries = self.externalRegistries
 
@@ -490,6 +494,9 @@ class SettingsWindow(QWidget):
                 wid.setProperty("index", elem["index"])
                 prop_preset += "." + str(elem["index"])
 
+            # set handler name property
+            wid.setProperty("elem_type", elem["type"])
+
             if elem["type"] == "preset":
                 self.preset_controllers[index] = weakref.ref(wid.findChild(QComboBox))
 
@@ -536,6 +543,8 @@ class SettingsWindow(QWidget):
 
             widWrapper.addWidget(wid)
 
+            self.settings_widgets.append(weakref.ref(wid))
+
             if label is not None:
                 form.addRow(label, widWrapper)
             else:
@@ -545,10 +554,66 @@ class SettingsWindow(QWidget):
 
     @pyqtSlot()
     def setDefaults(self):
+        """
+        Open confirmation dialog and restore all defaults
+        Note: it seems that automatic signal connection prevents race conditions. Need more testing
+        """
         ok = QMessageBox.question(self, "Defaults", "This will restore all defaults.\nWould you like to proceed?")
-        if ok:
-            common.config_manager.defaults.emit()
+        if ok == QMessageBox.StandardButton.Yes:
+            self.logger.info("Resetting defaults..")
 
+            # execute the update and wait
+            start_time = time.time_ns()
+            common.config_manager.defaults.emit()
+            self.logger.info("Reset took " + str((time.time_ns() - start_time) / 1000000) + " ms")
+
+            # time.sleep(3.0)
+
+            self.refreshAll()
+
+    def refreshElem(self, elem):
+        """
+        Update element value from config
+
+        Parameters
+        ==========
+        elem
+            Element to update
+        """
+        module = elem.property("widmodule")
+        prop = elem.property("prop")
+        index = elem.property("index")
+        handler = elem.property("elem_type")
+
+        if module is None or prop is None:
+            self.logger.info("Found some ghost widget with no module or property")
+            return
+
+        if handler is None:
+            self.logger.error("Could not get element type of " + str(module) + "." + str(prop))
+            return
+
+        ok, value = self.getValue(module, prop, index=index)
+        if not ok:
+            self.logger.warning("Could not get value for the element " + str(module) + "." + str(prop))
+            return
+
+        if self.handlers.get(handler) is None:
+            self.logger.error("Could not get handler of element type " + handler)
+            return
+
+        ok = self.handlers[handler].updateValue(elem, value)
+        if not ok:
+            self.logger.info("Could not set value for element " + str(module) + "." + str(prop) +
+                             ". May be intended behavior")
+
+    @pyqtSlot()
+    def refreshAll(self):
+        """
+        Updates all settings widgets from config
+        """
+        for elem in self.settings_widgets:
+            self.refreshElem(elem())
 
     def initExtraRegistries(self):
         for reg, value in self.external_reg.items():
