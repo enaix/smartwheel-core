@@ -1,4 +1,3 @@
-from PyQt6.QtCore import QObject
 from enum import Enum
 
 
@@ -48,6 +47,13 @@ class DevicePulse:
         self.type = pulse_type
         self.up = up
 
+    def copy(self):
+        """
+        Copy constructor of DevicePusle
+        Note that it doesn't copy _virtual and _click properties
+        """
+        return DevicePulse(bind=self.bind, command=self.command, pulse_type=self.type, up=self.up)
+
     def __str__(self):
         return self.bind
 
@@ -75,12 +81,12 @@ class Pulse:
 
     step: float = None
     """
-    Accumulated encoder steps (from -1.0 to 1.0)
+    Accumulated encoder steps (from 0.0 to 360.0)
     """
 
     target: float = None
     """
-    Encoder target position (either -1.0, 0.0 or 1.0)
+    Encoder target position (one of the fixed angles in 0-360 range)
     """
 
     velocity: float = None

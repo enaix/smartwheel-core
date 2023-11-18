@@ -199,7 +199,8 @@ class ActionEngine(QObject):
         if elem is None or call is None:
             self.logger.warning("actionengine could not parse the signal")
 
-        self.logger.debug("Incoming call: " + call)
+        if not p_call._virtual:
+            self.logger.debug("Incoming call: " + elem + "." + call)
 
         pulse = self.generatePulse(p_call)
 
@@ -232,8 +233,9 @@ class ActionEngine(QObject):
     @pyqtSlot()
     def pulseCycle(self):
         for key, _ in self.accelMeta.items():
-            pulse = key
+            pulse = key.copy()
             pulse._virtual = True
+            pulse._click = False
 
             # TODO add O(1) nearest angle calculation
             nearest_angle = min(self.accelMeta[key].angles, key=lambda x: abs(x - self.accelMeta[key].step))
@@ -250,6 +252,7 @@ class ActionEngine(QObject):
             # update the position with inertia
             self.accelMeta[key].step += self.accelMeta[key].acceleration * delta
 
+            # change of direction
             if not self.accelMeta[key].target == nearest_angle:
                 pulse._click = True
                 self.accelMeta[key].target = nearest_angle
@@ -304,6 +307,7 @@ class ActionEngine(QObject):
             pulse.virtual = False
             return pulse
 
+        # Rotary
         if self.accelMeta.get(dpulse) is None:
             if dpulse.up:
                 accel = self.conf["acceleration"]["clickAccel"]
