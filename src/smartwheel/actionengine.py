@@ -21,7 +21,7 @@ class AccelerationMeta:
         self.maxVelocity = maxvel
 
         # TODO add n_positions fetch and move angles to ActionEngine
-        self.angles = [x for x in range(0, 360, 360//n_positions)]
+        self.angles = [float(x) for x in range(0, 360, 360//n_positions)]
         self.n_pos = n_positions
 
     step: float = None
@@ -255,6 +255,12 @@ class ActionEngine(QObject):
             # change of direction
             if not self.accelMeta[key].target == nearest_angle:
                 pulse._click = True
+                # check the direction
+                if self.accelMeta[key].target < nearest_angle:
+                    pulse.up = False
+                else:
+                    pulse.up = True
+
                 self.accelMeta[key].target = nearest_angle
 
             # friction calculation
