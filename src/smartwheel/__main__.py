@@ -29,7 +29,7 @@ from PyQt6.QtWidgets import (
 from smartwheel import common, config, gui_tools
 from smartwheel.canvas import RootCanvas
 from smartwheel.settings import SettingsWindow
-from smartwheel.api.app import Classes
+from smartwheel.api.app import Classes, Common
 
 class WConfig(config.Config):
     def __init__(self, config_file, launch_config):
@@ -354,6 +354,8 @@ def main():
 
     with open(launch, "r") as f:
         launch_config = json.load(f)
+
+    Common.Basedir = dirpath
 
     common.defaults_manager.postInit(
         launch_config["config_dir"], launch_config["defaults_config_dir"]

@@ -85,7 +85,7 @@ class Config(QObject):
         common.config_manager.updated.connect(self.__updated)
         common.config_manager.batchUpdate.connect(self.__batchUpdate)
         # We assume that all configs are in the same thread as settings
-        common.config_manager.defaults.connect(self.loadDefaults) # , Qt.ConnectionType.QueuedConnection)
+        common.config_manager.defaults.connect(self.loadDefaults)
 
     def __fetchkey(self, key):
         """
@@ -302,7 +302,7 @@ class Config(QObject):
 
         return True
 
-    def listIter(self, new, old, dropNew=True, preserveOld=False):
+    def listIter(self, new, old, dropNew=True, preserveOld=False, checkModified=False, _key=None):
         """
         Recursively iterate through the list and update old config value iff it is present in config file
 
@@ -316,6 +316,10 @@ class Config(QObject):
             (Optional) Drop new variables
         preserveOld
             (Optional) Preserve old variables (update only missing)
+        checkModified
+            (Optional) Ignore preserveOld if the key has not been modified
+        _key
+            (Internal) The key of the list in the config file
         """
         if dropNew and not len(new) == len(old):
             return
@@ -329,18 +333,19 @@ class Config(QObject):
             if i < len(old):
                 if type(new[i]) == type(old[i]):
                     if type(new[i]) == dict:
-                        self.dictIter(new[i], old[i], dropNew, preserveOld)
+                        self.dictIter(new[i], old[i], dropNew, preserveOld, checkModified)
                     elif type(new[i]) == list:
-                        self.listIter(new[i], old[i], dropNew, preserveOld)
+                        self.listIter(new[i], old[i], dropNew, preserveOld, checkModified)
                     else:
-                        if not preserveOld:
+                        if not preserveOld or (checkModified and _key is not None
+                                               and _key not in common.defaults_manager.modified):
                             old[i] = new[i]
             elif not dropNew:
                 old.append(new[i])
             else:
                 return
 
-    def dictIter(self, new, old, dropNew=True, preserveOld=False):
+    def dictIter(self, new, old, dropNew=True, preserveOld=False, checkModified=False):
         """
         Recursively iterate through the dict and update old config value iff it is present in config file
 
@@ -354,6 +359,8 @@ class Config(QObject):
             (Optional) Drop new variables
         preserveOld
             (Optional) Preserve old variables (update only missing)
+        checkModified
+            (Optional) Ignore preserveOld if the key has not been modified
         """
         for key, val in new.items():
             if old.get(key) is not None and type(val) == type(old[key]):
@@ -364,11 +371,11 @@ class Config(QObject):
                     drop = True
 
                 if type(val) == dict:
-                    self.dictIter(new[key], old[key], drop, preserveOld)
+                    self.dictIter(new[key], old[key], drop, preserveOld, checkModified)
                 elif type(val) == list:
-                    self.listIter(val, old[key], drop, preserveOld)
+                    self.listIter(val, old[key], drop, preserveOld, checkModified, _key=key)
                 else:
-                    if not preserveOld:
+                    if not preserveOld or (checkModified and key not in common.defaults_manager.modified):
                         old[key] = val
                     # print(key)
             elif not dropNew:
@@ -417,7 +424,7 @@ class Config(QObject):
             return
 
         # Default refresh strategy
-        self.dictIter(defaults, self.c, dropNew=False, preserveOld=True)
+        self.dictIter(defaults, self.c, dropNew=False, preserveOld=True, checkModified=True)
         self.dictIter(self.c, defaults, dropNew=self.ignoreNew)
 
         with open(self.config_file, "w") as f:

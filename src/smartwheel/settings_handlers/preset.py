@@ -146,7 +146,7 @@ class PresetHandler(BaseHandler):
                 caller().blockSignals(True)
                 caller().setCurrentIndex(new_ind)
                 caller().blockSignals(False)
-                self.value_setter(value=title, module=module, prop=prop)
+                HandlersApi.value_setter(value=title, module=module, prop=prop)
         else:
             title = preset
 

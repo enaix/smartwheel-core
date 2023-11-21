@@ -27,4 +27,27 @@ class _Classes(QObject):
         return cls.instance
 
 
+class _Common(QObject):
+    """
+    Common application variables. For common module see smartwheel.common
+    """
+
+    Basedir: str = None
+    """
+    Base directory of the application
+    """
+
+    def __init__(self):
+        super(_Common, self).__init__()
+
+    def __new__(cls):
+        """
+        Singleton implementation
+        """
+        if not hasattr(cls, "instance"):
+            cls.instance = super(_Common, cls).__new__(cls)
+        return cls.instance
+
+
 Classes = _Classes()
+Common = _Common()

@@ -296,7 +296,7 @@ class SettingsWindow(QWidget):
 
         return self.dictWalk(wrapper, props[1:], value, index, _i + 1)
 
-    def setValue(self, obj=None, value=None, module=None, prop=None, index=None):
+    def setValue(self, obj=None, value=None, module=None, prop=None, index=None, _user=True):
         """
         Set property from the application.
         Module, prop and index arguments may be fetched from the object properties (passing only obj and value) or passed directly (module, prop, index (optional) and value)
@@ -313,6 +313,8 @@ class SettingsWindow(QWidget):
             (Optional) Property keys, separated by `.`
         index
             (Optional) If not None, the index in the property array. If an array, then it's duplicated at specified indices
+        _user
+            (Optional) True if this action has been called by the user (the key should be marked as modified)
         """
 
         if obj is not None:
@@ -340,6 +342,9 @@ class SettingsWindow(QWidget):
                 self.main_class().update()
             else:
                 self.presets_update_queue.append(props[-1:][0])
+
+            if _user:
+                common.defaults_manager.modified.add(props[-1:][0])
 
     def savePreset(self, index, name, title, filepath):
         """
