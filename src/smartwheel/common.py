@@ -143,6 +143,7 @@ class ConfigFixStrategy(IntEnum):
     Halt = 5
     Ignore = 6
 
+
 class Doctor(QObject):
     """
     Medic! This class handles errors and startup modes
@@ -191,7 +192,7 @@ class Doctor(QObject):
             # TODO finish this
             pass
         
-    def notifyOnError(self, config, key):
+    def notifyOnError(self, conf, key):
         if conf._fixStrategy <= ConfigFixStrategy.DefaultsAll:
             # Configs have not been restored yet
             msg = QMessageBox()
