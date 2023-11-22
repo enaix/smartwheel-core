@@ -48,6 +48,7 @@ class IntHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setValue(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
 
@@ -87,6 +88,7 @@ class FloatHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setValue(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
 
@@ -118,6 +120,7 @@ class StringHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setText(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
 
@@ -181,7 +184,7 @@ class ColorHandler(BaseHandler):
 
         wid.setText(value)
         self.setIcon(wid, QColor(value))
-        HandlersApi.setter(value=value, module=module, prop=prop)
+        HandlersApi.setter(value=value, module=module, prop=prop, _user=False)
         return True
 
 
@@ -213,6 +216,7 @@ class BoolHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setChecked(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
 
@@ -263,6 +267,7 @@ class ComboHandler(BaseHandler):
 
     def updateValue(self, wid, value):
         wid.setCurrentText(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
     def linkElem(self, elem, registriesName):

@@ -344,6 +344,7 @@ class SettingsWindow(QWidget):
                 self.presets_update_queue.append(props[-1:][0])
 
             if _user:
+                # TODO check if it's equal to default
                 common.defaults_manager.modified.add(props[-1:][0])
 
     def savePreset(self, index, name, title, filepath):
@@ -407,7 +408,11 @@ class SettingsWindow(QWidget):
 
             elem, handler = p_elem
 
+            # We need to block signals in order to prevent config update
+            elem().blockSignals(True)
             ok = handler.updateValue(elem(), value)
+            elem().blockSignals(False)
+
             if not ok:
                 self.logger.warning(
                     "Could not set "

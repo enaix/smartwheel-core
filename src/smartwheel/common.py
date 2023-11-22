@@ -241,7 +241,7 @@ class DefaultsManager(QObject):
         """
         Save the list of modified properties
         """
-        with open(self.modified_file, "x") as f:
+        with open(self.modified_file, 'w') as f:
             json.dump({"modified": list(self.modified)}, f)
 
     def __new__(cls):
