@@ -4,10 +4,12 @@ import os
 from pynput.keyboard import Controller, Key, KeyCode
 
 from smartwheel.actions.baseaction import BaseAction
+from smartwheel.api.action import Pulse
 
 
 class Action(BaseAction):
     def __init__(self):
+        super(Action, self).__init__()
         self.logger = logging.getLogger(__name__)
         self.keeb = Controller()
         self.media_keys = {
@@ -19,7 +21,10 @@ class Action(BaseAction):
             "mute": Key.media_volume_mute,
         }
 
-    def run(self, context):
+    def run(self, context: dict, pulse: Pulse):
+        if not pulse.click:
+            return True
+
         if context["type"] == "up":
             up = True
             down = False
@@ -39,10 +44,9 @@ class Action(BaseAction):
                         self.keeb.release(getattr(Key, context["key"]))
             else:
                 self.logger.warning(
-                    "Error: cannot parse Key.",
-                    context["key"],
-                    ". Please check pynput.Key class",
-                    sep="",
+                    "Error: cannot parse Key." +
+                    context["key"] +
+                    ". Please check pynput.Key class"
                 )
                 self.logger.info("Key context:", context)
                 return False

@@ -8,6 +8,7 @@ from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QMessageBox
 
 from smartwheel import config
+from smartwheel.api.app import Common
 
 
 class ConfigManager(QObject):
@@ -16,6 +17,7 @@ class ConfigManager(QObject):
     """
 
     save = pyqtSignal()
+    defaults = pyqtSignal()
     updated = pyqtSignal(str)
     batchUpdate = pyqtSignal(list)
     merge = pyqtSignal()
@@ -37,6 +39,14 @@ class ConfigManager(QObject):
         Slot function that executes the saving of all Config objects, must be called from settings module
         """
         self.save.emit()
+        defaults_manager.save()
+
+    @pyqtSlot()
+    def setDefaults(self):
+        """
+        Slot function that sets defaults for all Config objects
+        """
+        self.defaults.emit()
 
 
 class AppState(IntEnum):
@@ -300,6 +310,7 @@ class DefaultsManager(QObject):
 
     def __init__(self):
         super(DefaultsManager, self).__init__()
+        self.modified = set()
 
     def postInit(self, config_dir, defaults_config_dir):
         """
@@ -313,6 +324,18 @@ class DefaultsManager(QObject):
         self.config_dir = config_dir
         self.defaults_config_dir = defaults_config_dir
 
+        self.modified_file = os.path.join(Common.Basedir, self.config_dir, "modified.json")
+        if os.path.exists(self.modified_file):
+            with open(self.modified_file, 'r') as f:
+                self.modified = set(json.load(f).get("modified", []))
+
+    def save(self):
+        """
+        Save the list of modified properties
+        """
+        with open(self.modified_file, 'w') as f:
+            json.dump({"modified": list(self.modified)}, f)
+
     def __new__(cls):
         """
         Singleton implementation
@@ -324,7 +347,7 @@ class DefaultsManager(QObject):
 
 class CacheManager(QObject):
     """
-    Global class that manages cache access. Not inteded to be called from other threads
+    Global class that manages cache access. Not intended to be called from other threads
     """
 
     def __init__(self):
@@ -413,8 +436,8 @@ class CacheManager(QObject):
         return cachepath
 
 
-config_manager = ConfigManager()
 defaults_manager = DefaultsManager()
+config_manager = ConfigManager()
 app_manager = ApplicationManager()
 cache_manager = CacheManager()
 doctor = Doctor()

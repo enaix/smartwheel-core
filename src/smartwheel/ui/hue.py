@@ -31,7 +31,20 @@ class UIElem(BaseUIElem):
             return 359 - val
         return val
 
-    def processKey(self, event):
+    def sendData(self, r, g, b):
+        # TODO reformat internal modules api
+        if self.conf["internal"].get("kritaAPI") is None or self.conf["internal"].get("kritaServer") is None:
+            return
+        if self.conf["internal"]["kritaAPI"].get("class") is None or self.conf["internal"]["kritaServer"].get("class") is None:
+            return
+
+        data = self.conf["internal"]["kritaAPI"]["class"].setColor(r, g, b)
+        self.conf["internal"]["kritaServer"]["signals"]["send"].emit(data)
+
+    def processKey(self, event, pulse):
+        if not pulse.click:
+            return
+
         if event["call"] == "keyAction1":
             self.mode = (self.mode + 1) % 3
             self.startWidthAnimation()
@@ -51,9 +64,7 @@ class UIElem(BaseUIElem):
             )
             r, g, b, _ = color.getRgbF()
             self.logger.debug(r, g, b)
-
-            data = self.conf["internal"]["kritaAPI"]["class"].setColor(r, g, b)
-            self.conf["internal"]["kritaServer"]["signals"]["send"].emit(data)
+            self.sendData(r, g, b)
             # print(self.hue_selection, self.sat_selection, self.bri_selection)
 
     def initGUI(self):

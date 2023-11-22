@@ -17,11 +17,12 @@ from PyQt6.QtWidgets import (
 )
 
 from smartwheel.settings_handlers.base import BaseHandler
+from smartwheel.api.settings import HandlersApi
 
 
 class ActionPicker(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(ActionPicker, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(ActionPicker, self).__init__()
         self.logger = logging.getLogger(__name__)
         self.pickers = []  # Prevent pickers from being destroyed
 
@@ -43,12 +44,7 @@ class ActionPicker(BaseHandler):
         editButton = QPushButton("...")
         deleteButton = QPushButton("x")
 
-        # Fetching the ActionList
-        if self.parent_obj is None:
-            self.logger.error("Could not get settings object")
-            return None
-
-        picker = self.parent_obj().handlers["actions_list"].initElem(elem)
+        picker = HandlersApi.handlers["actions_list"].initElem(elem)
         if picker is None:
             self.logger.error("Could not initialize actions window")
             return None
@@ -81,8 +77,8 @@ class OnShown(QWidget):
 
 
 class ActionList(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(ActionList, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(ActionList, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
@@ -94,9 +90,6 @@ class ActionList(BaseHandler):
         elem
             Action engine command name {"device": "commandBind", "command": "commandName"}
         """
-        # if parent_obj is None:
-        #    self.logger.error("Could not load action editor: no parent object found")
-        #    return None
         wrapper = QWidget()
         wrapper.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         layout = QVBoxLayout()
@@ -107,7 +100,7 @@ class ActionList(BaseHandler):
         wheel = QGroupBox("Wheel actions")
         module = QGroupBox("Module actions")
 
-        ok, actions = self.value_getter("actionengine", "commandActions")
+        ok, actions = HandlersApi.getter("actionengine", "commandActions")
 
         if not ok:
             self.logger.error("Could not get actionengine config")
@@ -120,7 +113,7 @@ class ActionList(BaseHandler):
             return None
 
         # {"command": "commandName", "actions": [{"action": "...", "mode": "...", "repeat": ..}, ...]}
-        ok, elem_bind = self.value_getter(
+        ok, elem_bind = HandlersApi.getter(
             "actionengine", "commandBind." + elem["device"]
         )
         if not ok:
@@ -174,21 +167,21 @@ class ActionList(BaseHandler):
             state.insertItems(0, ["Wheel", "Module", "Anywhere"])
             # anyState = QCheckBox()
 
-            if a.get("default") is not None:
-                if a["default"] == "any":
-                    state.setCurrentIndex(2)
-                elif a["default"] == "wheel":
-                    if bind["mode"] == "module":
-                        state.setCurrentIndex(1)
-                    else:
-                        state.setCurrentIndex(0)
-                elif a["default"] == "module":
-                    if bind["mode"] == "wheel":
-                        state.setCurrentIndex(0)
-                    else:
-                        state.setCurrentIndex(1)
-
             for j, bind in enumerate(elem_actions):
+                if a.get("default") is not None:
+                    if a["default"] == "any":
+                        state.setCurrentIndex(2)
+                    elif a["default"] == "wheel":
+                        if bind["mode"] == "module":
+                            state.setCurrentIndex(1)
+                        else:
+                            state.setCurrentIndex(0)
+                    elif a["default"] == "module":
+                        if bind["mode"] == "wheel":
+                            state.setCurrentIndex(0)
+                        else:
+                            state.setCurrentIndex(1)
+
                 if bind["action"] == a["name"]:
                     enabled.setChecked(True)
                 else:
@@ -352,7 +345,7 @@ class ActionList(BaseHandler):
         if not found:
             elem_bind.append({"command": elem["command"], "actions": actions})
 
-        self.value_setter(
+        HandlersApi.setter(
             module="actionengine", prop="commandBind." + elem["device"], value=elem_bind
         )
 

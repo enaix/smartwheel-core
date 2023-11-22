@@ -13,11 +13,12 @@ from PyQt6.QtWidgets import (
 from swcolorpicker import getColor, rgb2hex, useAlpha
 
 from smartwheel.settings_handlers.base import BaseHandler
+from smartwheel.api.settings import HandlersApi
 
 
 class IntHandler(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(IntHandler, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(IntHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
@@ -27,7 +28,7 @@ class IntHandler(BaseHandler):
         if elem.get("max") is not None:
             wid.setMaximum(elem["max"])
 
-        ok, value = self.value_getter(elem["module"], elem["prop"], elem.get("index"))
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
         if ok:
             wid.setValue(value)
         else:
@@ -40,19 +41,20 @@ class IntHandler(BaseHandler):
     @pyqtSlot(int)
     def setInt(self, value):
         caller = self.sender()
-        self.value_setter(caller, value)
+        HandlersApi.setter(caller, value)
 
     def fetchValue(self, wid):
         return wid.value()
 
     def updateValue(self, wid, value):
         wid.setValue(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
 
 class FloatHandler(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(FloatHandler, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(FloatHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
@@ -66,7 +68,7 @@ class FloatHandler(BaseHandler):
         if elem.get("max") is not None:
             wid.setMaximum(elem["max"])
 
-        ok, value = self.value_getter(elem["module"], elem["prop"], elem.get("index"))
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
         if ok:
             wid.setValue(value)
         else:
@@ -79,25 +81,26 @@ class FloatHandler(BaseHandler):
     @pyqtSlot(float)
     def setFloat(self, value):
         caller = self.sender()
-        self.value_setter(caller, value)
+        HandlersApi.setter(caller, value)
 
     def fetchValue(self, wid):
         return wid.value()
 
     def updateValue(self, wid, value):
         wid.setValue(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
 
 class StringHandler(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(StringHandler, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self,):
+        super(StringHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
         wid = QLineEdit()
 
-        ok, value = self.value_getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
         if ok:
             wid.setText(value)
         else:
@@ -110,19 +113,20 @@ class StringHandler(BaseHandler):
     @pyqtSlot(str)
     def setStr(self, value):
         caller = self.sender()
-        self.value_setter(caller, value)
+        HandlersApi.setter(caller, value)
 
     def fetchValue(self, wid):
         return wid.text()
 
     def updateValue(self, wid, value):
         wid.setText(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
 
 class ColorHandler(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(ColorHandler, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(ColorHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def setIcon(self, wid, color):
@@ -139,11 +143,14 @@ class ColorHandler(BaseHandler):
         wid.setProperty("module", elem["module"])
         wid.setProperty("prop", elem["prop"])
 
-        ok, value = self.value_getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
         if ok:
             wid.setText(value)
         else:
             self.logger.warning("Could not get value for " + elem["name"])
+
+        if value is None:
+            value = "#000000"
 
         self.setIcon(wid, QColor(value))
 
@@ -160,7 +167,7 @@ class ColorHandler(BaseHandler):
 
         new_color = "#" + rgb2hex(getColor(color))
         if not color == new_color:
-            self.value_setter(caller, new_color)
+            HandlersApi.setter(caller, new_color)
             self.setIcon(caller, QColor(new_color))
             caller.setText(new_color)
 
@@ -177,19 +184,19 @@ class ColorHandler(BaseHandler):
 
         wid.setText(value)
         self.setIcon(wid, QColor(value))
-        self.value_setter(value=value, module=module, prop=prop)
+        HandlersApi.setter(value=value, module=module, prop=prop, _user=False)
         return True
 
 
 class BoolHandler(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(BoolHandler, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(BoolHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
         wid = QCheckBox()
 
-        ok, value = self.value_getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
         if ok:
             wid.setChecked(value)
         else:
@@ -202,19 +209,20 @@ class BoolHandler(BaseHandler):
     @pyqtSlot(bool)
     def setBool(self, value):
         caller = self.sender()
-        self.value_setter(caller, value)
+        HandlersApi.setter(caller, value)
 
     def fetchValue(self, wid):
         return wid.isChecked()
 
     def updateValue(self, wid, value):
         wid.setChecked(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
 
 class ComboHandler(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(ComboHandler, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(ComboHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
@@ -223,8 +231,8 @@ class ComboHandler(BaseHandler):
         if type(elem["options"]) == list:
             wid.insertItems(0, elem["options"])
         else:
-            # Need to get options programatically
-            ok, ops = self.value_getter(
+            # Need to get options programmatically
+            ok, ops = HandlersApi.getter(
                 module=elem["options"]["module"],
                 prop=elem["options"]["prop"],
                 index=elem["options"].get("index"),
@@ -239,7 +247,7 @@ class ComboHandler(BaseHandler):
                 return None
             wid.insertItems(0, ops)
 
-        ok, value = self.value_getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
         if ok:
             wid.setCurrentText(value)
         else:
@@ -252,18 +260,19 @@ class ComboHandler(BaseHandler):
     @pyqtSlot(str)
     def setStr(self, value):
         caller = self.sender()
-        self.value_setter(caller, value)
+        HandlersApi.setter(caller, value)
 
     def fetchValue(self, wid):
         return wid.currentText()
 
     def updateValue(self, wid, value):
         wid.setCurrentText(value)
+        HandlersApi.setter(wid, value, _user=False)
         return True
 
     def linkElem(self, elem, registriesName):
         elem.setProperty("registriesName", registriesName)
-        elem.currentTextChanged.connect(self.parent_obj().showLinkedWidgets)
+        elem.currentTextChanged.connect(HandlersApi._showLinkedWidgets)
         return True
 
 

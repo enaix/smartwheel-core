@@ -1,0 +1,15 @@
+{
+  "items": [
+    {"name": "Haptics engine", "options": [
+      {"name": "Refresh time (ms)", "type": "int", "min": 0, "max": 1000, "module": "actionengine", "prop": "acceleration.pulseRefreshTime"}
+    ]},
+    {"name": "Haptics engine tuning (advanced)", "options": [
+      {"name": "Click velocity boost", "type": "float", "min": -200.0, "max": 200.0, "module": "actionengine", "prop": "acceleration.clickAccel"},
+      {"name": "Gravity", "type": "float", "min": -200.0, "max": 200.0, "module": "actionengine", "prop": "acceleration.gravity"},
+      {"name": "Maximum acceleration", "type": "float", "min": 0.0, "max": 1000.0, "module": "actionengine", "prop": "acceleration.maxAccel"},
+      {"name": "Friction", "type": "float", "min": -200.0, "max": 200.0, "module": "actionengine", "prop": "acceleration.friction"},
+      {"name": "Deadzone (degrees)", "type": "float", "min": 0.0, "max": 100.0, "module": "actionengine", "prop": "acceleration.deadzone"},
+      {"name": "Maximum deadzone acceleration", "type": "float", "min": 0.0, "max": 100.0, "module": "actionengine", "prop": "acceleration.maxStopAccel"}
+    ]}
+  ]
+}

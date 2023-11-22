@@ -1,0 +1,10 @@
+{
+    "handlers_modules": [
+        "basic",
+        "actions",
+        "modules",
+        "preset",
+        "serial",
+        "ui"
+    ]
+}

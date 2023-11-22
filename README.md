@@ -1,16 +1,16 @@
-![smartwheel-core](/extra/render1.jpg)
-
 ![smartwheel-core logo](/extra/logo.png)
 
-A powerful keyboard knob controller with GUI
+#### A powerful keyboard knob controller with GUI
 
-![smartwheel-core ui](/extra/banner.png)
+![smartwheel-core render](/extra/banner_dark.jpg)
 
 ## Why do I need it?
 
 The main problem with keyboard encoders and standalone dials is that there aren't many features out of the box, but *they can be much, much more powerful than they are right now*. Have you seen those techy gadgets from Hollywood blockbusters that hackers use (like Q's fancy joystick from latest 007)? Smartwheel gives you the same functionality, but adapted for day-to-day use.
 
 Smartwheel is written in Python/PyQt6, so it could be easily modded with custom plugins. There aren't many right now, but this project is in constant development - there will be more soon.
+
+![smartwheel-core ui](/extra/banner.png)
 
 ## Features
 
@@ -48,13 +48,17 @@ Make sure that Python 3 is installed
 
 #### Compilation
 
-Nuitka now supports only Python <= 3.10
+Nuitka now supports only Python <= 3.11
 
-`./build.sh` or `.\build.bat`
+`./build.sh`, `.\build.bat` or `./build_macos.sh`
+
+To create macos dmg file run `./package_macos_dmg.sh`
 
 ## We need your help!
 
 I've started working on this project a while ago, but it turned out that it's too big: it won't be possible to finish it without your help. However, it's much easier to implement features one-by-one: you only need basic Python3 (and sometimes PyQt6) knowledge. If you believe in this project and want to contribute, please DM me. Even small fixes, ideas or suggestions are very important.
+
+## Discord: [server link](https://discord.gg/dHxeHx85nA)
 
 ## Documentation
 
@@ -70,8 +74,9 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Move to PyQt6
   - [X] Add colorable icons
   - [X] Add modules background processes
+  - [X] Add proper API package
+  - [ ] Rewrite actionengine with pulses & acceleration
   - [ ] Rewrite serial input with new api
-  - [ ] Add media fetching on Windows
   - [ ] Add key combos
   - [ ] Finish folders support
 - [ ] Settings menu (in progress)
@@ -92,10 +97,13 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
   - [X] Configure setup.py
   - [X] Add update feature
   - [ ] Hire core doctor!
-- [ ] Windows support
-  - [ ] (Platform) Replace AF_UNIX socket with network socket
-- [ ] Add fancy blur (?)
-- [ ] Mac support (?)
+- [X] Windows support
+  - [X] (Platform) Replace AF_UNIX socket with network socket
+  - [ ] Add proper media fetching
+- [X] Mac support
+  - [X] Add CI builds
+  - [ ] Fix keypresses simulation
+  - [ ] Add permission requests
 
 ## Features progress
 

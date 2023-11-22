@@ -219,8 +219,8 @@ class Rotary(QObject):
 
         self.btn = prbutton
 
-        self.signals = [None] * 6
-        self.arguments = [None] * 6
+        self.signals = [None for _ in range(6)]
+        self.arguments = [None for _ in range(6)]
 
     def setupCallbacks(self, signals, arguments):
         """
@@ -250,13 +250,14 @@ class Rotary(QObject):
             Is the direction up
         """
         if i + 1 > len(self.signals):
+            self.logger.error("Could not call rotary event signal: no such index")
             return
         if up:
             if self.signals[i] is not None:
-                self.signals[i].emit(self.arguments[0])
+                self.signals[i].emit(self.arguments[i])
         else:
             if self.signals[i + 1] is not None:
-                self.signals[i + 1].emit(self.arguments[1])
+                self.signals[i + 1].emit(self.arguments[i + 1])
 
     def execRotate(self, up):
         """
@@ -279,7 +280,6 @@ class Rotary(QObject):
         up
             Is the direction up (up - clockwise)
         """
-        down = not up
         if self.btn is None:  # No linked btn
             self.logger.debug("rotary scrolled")
             self.callSignal(0, up)

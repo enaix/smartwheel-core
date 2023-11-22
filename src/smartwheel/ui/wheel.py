@@ -11,6 +11,8 @@ from PyQt6.QtGui import *
 from smartwheel import config, gui_tools
 from smartwheel.tools import merge_dicts
 from smartwheel.ui.base import BaseUIElem
+from smartwheel.api.app import Classes
+from smartwheel.api.action import Pulse
 
 
 class Section:
@@ -34,7 +36,7 @@ class Section:
         # mod = importlib.import_module(self.module["name"])
         # ui = mod.UIElem(self.module["config"], self.parent.conf)
         # self.module["class"] = ui
-        if self.module["class"] is None or self.module["class"].icon_path is None:
+        if self.module.get("class") is None or self.module["class"] is None or self.module["class"].icon_path is None:
             self.pixmap = None  # QImage(os.path.join(self.parent().conf["iconsFolder"], "folder.png"))
         else:
             self.pixmap = QPixmap(
@@ -42,6 +44,7 @@ class Section:
                     self.parent().conf["iconsFolder"], self.module["class"].icon_path
                 )
             )
+            self.pixmap.setDevicePixelRatio(Classes.MainWindow().devicePixelRatio())
 
     def draw_module(self, qp, opacity):
         if self.module is not None and self.module["class"] is not None:
@@ -53,7 +56,7 @@ class Section:
         self.delta = self.parent()._angle - self.init_angle
 
     def scale_pixmap(self):
-        w = self.parent().conf["pixmapScale"]
+        w = int(self.parent().conf["pixmapScale"] * Classes.MainWindow().devicePixelRatio())
         self.pixmap.width = w
         self.pixmap.height = w
         self.pixmap = self.pixmap.scaled(
@@ -113,10 +116,10 @@ class Section:
 
         self.draw_icon(
             (
-                ((xa1 + xa2) // 2 + (xb1 + xb2) // 2) // 2
-                - self.parent().conf["pixmapScale"] // 2,
-                ((ya1 + ya2) // 2 + (yb1 + yb2) // 2) // 2
-                - self.parent().conf["pixmapScale"] // 2,
+                ((xa1 + xa2) / 2 + (xb1 + xb2) / 2) / 2
+                - self.parent().conf["pixmapScale"] / 2,
+                ((ya1 + ya2) / 2 + (yb1 + yb2) / 2) / 2
+                - self.parent().conf["pixmapScale"] / 2,
             )
         )
 
@@ -137,6 +140,7 @@ class UIElem(BaseUIElem):
         self.initShadowAnimation()
         self.initSectionsAnimation()
         self._opacity = 0
+        self._angle = self.conf["selectionAngle"]
         self._sections_pos = 0
         self.global_shadow = False
         self.wheelUp = LifoQueue()
@@ -159,10 +163,10 @@ class UIElem(BaseUIElem):
         self.conf.loadConfig()
 
     def getX(self, a, w):
-        return math.cos(math.radians(a)) * w // 2 + self.conf["cx"]
+        return math.cos(math.radians(a)) * w / 2 + self.conf["cx"]
 
     def getY(self, a, h):
-        return math.sin(math.radians(a)) * h // 2 + self.conf["cy"]
+        return math.sin(math.radians(a)) * h / 2 + self.conf["cy"]
 
     def drawSelection(self, circleWidth, circleHeight):
         # Draw selection wheel
@@ -188,16 +192,21 @@ class UIElem(BaseUIElem):
         self.sections[self.cur_section].is_selected = True
         self.sections[old_selection].is_selected = False
 
-    def processKey(self, up):
-        # self.scrollModule(up)
+    def processKey(self, up: bool, pulse: Pulse):
+        if pulse.click:
+            self.wheelUp.put(up)
+            self.startShadowAnimation()
+            #self._angle += self.delta
 
-        self.wheelUp.put(up)
-        if self.is_scroll_anim_running:
-            self.updateAnimation(up)
-        else:
-            self.startAnimation(up)
+        if pulse.step is not None:
+            self._angle = pulse.step + self.conf["selectionAngle"] #(self._angle - self._angle % self.delta) % 360.0 + pulse.step * self.delta
 
-        self.startShadowAnimation()
+        #if self.is_scroll_anim_running:
+        #    self.updateAnimation(up)
+        #else:
+        #    self.startAnimation(up)
+
+        #self.startShadowAnimation()
 
         if self.sections_timer.isActive():
             self.sections_timer.start(self.conf["sectionsHideTimeout"])
@@ -218,7 +227,10 @@ class UIElem(BaseUIElem):
         self.sections_timer.stop()
         self.hideSections()
 
-    def quickSwitch(self, up):
+    def quickSwitch(self, up, pulse: Pulse):
+        if not pulse.click:
+            return
+        
         # self.scrollModule(up)
         self.wheelUp.put(up)
 
@@ -237,7 +249,7 @@ class UIElem(BaseUIElem):
 
     def initSections(self):
         self.delta = 360 // self.conf["selectionWheelEntries"]
-        self._angle = self.conf["selectionAngle"]
+        self._angle = float(self.conf["selectionAngle"])
         self.sections = [
             Section(
                 self.delta * i + self.conf["selectionAngle"] - self.delta // 4,
@@ -371,7 +383,7 @@ class UIElem(BaseUIElem):
 
     def startShadowAnimation(self, up=True):
         dur = self.conf["shadowAnimationDuration"]
-        if self.is_shadow_anim_running == True:
+        if self.is_shadow_anim_running:
             # if not self.wheelUp.empty():
             #    self.scrollModule(self.wheelUp.get())
             self.shadow_anim.stop()

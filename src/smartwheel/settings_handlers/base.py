@@ -1,4 +1,7 @@
+from typing import Union, Any
+
 from PyQt6.QtCore import QObject, pyqtSlot
+from PyQt6.QtWidgets import QWidget
 
 
 class BaseHandler(QObject):
@@ -6,25 +9,13 @@ class BaseHandler(QObject):
     Base settings handler class
     """
 
-    def __init__(self, value_getter, value_setter, parent_obj=None):
+    def __init__(self) -> None:
         """
         Initialize the handler
-
-        Parameters
-        ==========
-        value_getter
-            Property getter function (settings.SettingsWindow.getValue)
-        value_setter
-            Property setter function (settings.SettingsWindow.setValue)
-        parent_object
-            Weakref to the parent object
         """
         super(BaseHandler, self).__init__()
-        self.value_getter = value_getter
-        self.value_setter = value_setter
-        self.parent_obj = parent_obj
 
-    def initElem(self, elem):
+    def initElem(self, elem: dict) -> Union[QWidget, None]:
         """
         Initialize elem with specified type, must return QWidget
 
@@ -42,7 +33,7 @@ class BaseHandler(QObject):
         """
         pass
 
-    def fetchValue(self, wid):
+    def fetchValue(self, wid: QObject) -> Any:
         """
         (Presets) Get value of the widget, must return the value or None if not supported
 
@@ -53,9 +44,11 @@ class BaseHandler(QObject):
         """
         return None
 
-    def updateValue(self, wid, value):
+    def updateValue(self, wid: QObject, value) -> bool:
         """
         (Presets) Set the value of the widget, must return True if ok, False if not supported
+        All HandlersApi.setter calls should be executed with _user=False argument
+        Signals of the widget are blocked, so the setter should be called explicitly
 
         Parameters
         ==========
@@ -66,7 +59,7 @@ class BaseHandler(QObject):
         """
         return False
 
-    def linkElem(self, elem, registriesName):
+    def linkElem(self, elem: QObject, registriesName: str) -> bool:
         """
         (External settings registries) Link element to settings group "registriesName"
 

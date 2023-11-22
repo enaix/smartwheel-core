@@ -8,6 +8,7 @@ from PyQt6.QtGui import *
 from smartwheel import config, gui_tools
 from smartwheel.tools import merge_dicts
 from smartwheel.ui.base import BaseUIElem
+from smartwheel.api.app import Classes
 
 
 class ThreadWrapper(QObject):
@@ -126,8 +127,10 @@ class UIElem(BaseUIElem):
         self.pixmap = QPixmap(
             os.path.join(self.conf["iconsFolder"], self.conf["icons"][0])
         )
+        self.pixmap.setDevicePixelRatio(Classes.MainWindow().devicePixelRatio())
+        ratio = Classes.MainWindow().devicePixelRatio()
         self.pixmap = self.pixmap.scaled(
-            QSize(self.pix_width, self.pix_height),
+            QSize(int(self.pix_width * ratio), int(self.pix_height * ratio)),
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation,
         )
@@ -192,7 +195,7 @@ class UIElem(BaseUIElem):
             t1 + " / " + t2,
         )
 
-    def draw(self, qp, offset):
+    def draw(self, qp, offset=None):
         self.updateVars(offset)
         qp.drawPixmap(
             QPointF(

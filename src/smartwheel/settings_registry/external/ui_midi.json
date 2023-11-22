@@ -1,0 +1,11 @@
+{
+    "name": "ui.midi",
+    "items": [
+        {"name": "MIDI port", "type": "int", "min": 0, "max": 100, "module": "ui.midi", "prop": "port"},
+        {"name": "Enable virtual port", "type": "bool", "module": "ui.midi", "prop": "enableVirtualPort"},
+        {"name": "Virtual port name", "type": "string", "module": "ui.midi", "prop": "virtualPortName"},
+        {"name": "Encoder steps", "type": "int", "min": 1, "max": 100, "module": "ui.midi", "prop": "steps"},
+        {"name": "MIDI ControlChange type", "type": "int", "min": 0, "max": 128, "module": "ui.midi", "prop": "controlChangeType"},
+        {"name": "Indicator color", "type": "color", "module": "ui.midi", "prop": "indicatorColor"}
+    ]
+}

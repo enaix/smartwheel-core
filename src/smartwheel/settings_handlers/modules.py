@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (
 )
 
 from smartwheel.settings_handlers.base import BaseHandler
+from smartwheel.api.settings import HandlersApi
 
 
 class ModulesLoader(BaseHandler):
@@ -29,8 +30,8 @@ class ModulesLoader(BaseHandler):
     Common modules picker
     """
 
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(ModulesLoader, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(ModulesLoader, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
@@ -64,7 +65,7 @@ class ModulesLoader(BaseHandler):
             options = QPushButton("...")
 
             if mod.get("registry") is not None:
-                form = self.parent_obj().externalRegistries.get(mod["registry"])
+                form = HandlersApi.externalRegistries.get(mod["registry"])
                 if form is not None:
                     options.clicked.connect(form.show)
                 # handler = self.parent_obj().handlers.get(mod["handler"])
@@ -118,8 +119,8 @@ class SerialLoader(BaseHandler):
     Serial modules picker
     """
 
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(SerialLoader, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(SerialLoader, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
@@ -131,12 +132,12 @@ class SerialLoader(BaseHandler):
         elem
             Element from config
         """
-        ok, modules = self.value_getter("canvas", "serialModules")
+        ok, modules = HandlersApi.getter("canvas", "serialModules")
         if not ok:
             self.logger.error("Could not get serial modules")
             return None
 
-        ok, modulesLoad = self.value_getter("canvas", "serialModulesLoad")
+        ok, modulesLoad = HandlersApi.getter("canvas", "serialModulesLoad")
         if not ok:
             self.logger.error("Could not get loaded serial modules")
             return None
@@ -144,7 +145,7 @@ class SerialLoader(BaseHandler):
         elem["modules"] = modules
         elem["modulesLoad"] = modulesLoad
 
-        picker = self.parent_obj().handlers["modules"].initElem(elem)
+        picker = HandlersApi.handlers["modules"].initElem(elem)
         if picker is None:
             self.logger.error("Could not initialize modules picker")
             return None
@@ -166,12 +167,12 @@ class SerialLoader(BaseHandler):
 
         name = caller.property("name")
 
-        ok, modules = self.value_getter("canvas", "serialModules")
+        ok, modules = HandlersApi.getter("canvas", "serialModules")
         if not ok:
             self.logger.error("Could not get serial modules")
             return
 
-        ok, modulesLoad = self.value_getter("canvas", "serialModulesLoad")
+        ok, modulesLoad = HandlersApi.getter("canvas", "serialModulesLoad")
         if not ok:
             self.logger.error("Could not get loaded serial modules")
             return
@@ -193,7 +194,7 @@ class SerialLoader(BaseHandler):
         else:
             modulesLoad.remove(index)
 
-        self.value_setter(module="canvas", prop="serialModulesLoad", value=modulesLoad)
+        HandlersApi.setter(module="canvas", prop="serialModulesLoad", value=modulesLoad)
 
 
 class ListBox(QWidget):
@@ -217,8 +218,8 @@ class ListViewManager(BaseHandler):
     Common list widget manager, useful for dynamically adding/removing elements in groups
     """
 
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(ListViewManager, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(ListViewManager, self).__init__()
         self.logger = logging.getLogger(__name__)
         self.elems = []
 

@@ -1,0 +1,25 @@
+{
+    "icon_path": "disc.svg",
+    "indicatorColor": "#888888",
+    "port": 0,
+    "enableVirtualPort": false,
+    "virtualPortName": "wheel",
+    "controlChangeType": 1,
+    "steps": 3,
+    "actions": {
+        "scrollUp": [
+            {
+                "action": "custom",
+                "repeat": 0,
+                "comment": "ControlChange up"
+            }
+        ],
+        "scrollDown": [
+            {
+                "action": "custom",
+                "repeat": 0,
+                "comment": "ControlChange down"
+            }
+        ]
+    }
+}

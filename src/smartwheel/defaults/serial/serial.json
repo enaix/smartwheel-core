@@ -23,22 +23,28 @@
             "type": "encoder",
             "commands": [
                 {
-                    "string": "enc1_scroll up"
+                    "string": "enc1_scroll up",
+                    "up": true
                 },
                 {
-                    "string": "enc1_scroll down"
+                    "string": "enc1_scroll down",
+                    "up": false
                 },
                 {
-                    "string": "enc1_hold_scroll up"
+                    "string": "enc1_hold_scroll up",
+                    "up": true
                 },
                 {
-                    "string": "enc1_hold_scroll down"
+                    "string": "enc1_hold_scroll down",
+                    "up": false
                 },
                 {
-                    "string": "enc1_doubleclick_scroll up"
+                    "string": "enc1_doubleclick_scroll up",
+                    "up": true
                 },
                 {
-                    "string": "enc1_doubleclick_scroll down"
+                    "string": "enc1_doubleclick_scroll down",
+                    "up": false
                 }
             ]
         }

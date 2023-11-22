@@ -14,17 +14,18 @@ from PyQt6.QtWidgets import (
 )
 
 from smartwheel.settings_handlers.base import BaseHandler
+from smartwheel.api.settings import HandlersApi
 
 
 class PresetHandler(BaseHandler):
-    def __init__(self, value_getter, value_setter, parent_obj=None):
-        super(PresetHandler, self).__init__(value_getter, value_setter, parent_obj)
+    def __init__(self):
+        super(PresetHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
         layout = QHBoxLayout()
         wid = QComboBox()
-        ok, self.basedir = self.value_getter(module="canvas", prop="basedir")
+        ok, self.basedir = HandlersApi.getter(module="canvas", prop="basedir")
 
         wid.setProperty("presets_folder", elem["folder"])
 
@@ -50,8 +51,8 @@ class PresetHandler(BaseHandler):
 
         preset_names.append("Custom")
 
-        self.value_setter(
-            value=presets, module="settings", prop="presets." + str(elem["tab_index"])
+        HandlersApi.setter(
+            value=presets, module="settings", prop="presets." + str(elem["tab_index"]), _user=False
         )
 
         wid.insertItems(len(preset_names) - 1, preset_names)
@@ -61,7 +62,7 @@ class PresetHandler(BaseHandler):
 
         wid.currentIndexChanged.connect(self.setPreset)
 
-        ok, value = self.value_getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
         if not ok:
             value = "Custom"
 
@@ -145,13 +146,13 @@ class PresetHandler(BaseHandler):
                 caller().blockSignals(True)
                 caller().setCurrentIndex(new_ind)
                 caller().blockSignals(False)
-                self.value_setter(value=title, module=module, prop=prop)
+                HandlersApi.setter(value=title, module=module, prop=prop)
         else:
             title = preset
 
         name = self.parsePresetName(title)
 
-        self.parent_obj().savePreset(
+        HandlersApi._savePreset(
             ind,
             name,
             title,
@@ -181,12 +182,12 @@ class PresetHandler(BaseHandler):
 
         preset = caller.currentText()
 
-        self.value_setter(value=preset, module=module, prop=prop)
+        HandlersApi.setter(value=preset, module=module, prop=prop)
 
         if preset == "Custom":
             return
 
-        self.parent_obj().loadPreset(ind, self.parsePresetName(preset))
+        HandlersApi._loadPreset(ind, self.parsePresetName(preset))
 
 
 handlers = {"preset": PresetHandler}
