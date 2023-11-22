@@ -5,6 +5,7 @@ import weakref
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, Qt
 
 from smartwheel import common
+from smartwheel.api.app import Classes
 
 
 class Config(QObject):
@@ -90,7 +91,6 @@ class Config(QObject):
         # We assume that all configs are in the same thread as settings
         common.config_manager.defaults.connect(self.loadDefaults)
         common.config_manager.merge.connect(self.__merge)
-        common.config_manager.defaults.connect(self.__defaults)
 
     def __fetchParentMeta(self):
         # TODO fetch referrers using garbage collector
@@ -102,6 +102,15 @@ class Config(QObject):
         self.meta_name = name
         self.meta_desc = "--"
 
+    def __check(self, key):
+        """
+        Check if the key is present and repair the app if needed
+        """
+        if self.c.get(key) is None:
+            common.doctor.notifyOnError(self, key)
+            common.doctor.executeConfigFix(self, key)
+            Classes.MainWindow().close()
+
     def __fetchkey(self, key):
         """
         Get the updated value from the linked dicts. Do not use directly
@@ -112,11 +121,14 @@ class Config(QObject):
             Dictionary key
         """
         if len(self.links) == 0:
+            self.__check(key)
             return self.c[key]
 
         for i in range(len(self.links)):
             if self.links[i].get(key) is not None:
                 return self.links[i][key]
+
+        self.__check(key)
         return self.c[key]
 
     def update(self, other, include_only=None):
@@ -446,10 +458,18 @@ class Config(QObject):
             json.dump(defaults, f, indent=4)
 
     @pyqtSlot()
+    def __merge(self):
+        """
+        Execute merge with the defaults. Should be called from common module
+        """
+        self.mergeDefaults()
+
+    @pyqtSlot()
     def __defaults(self):
         """
         Reload defaults for this config. Should be called from common module
         """
+        self.loadDefaults()
 
     def loadDefaults(self):
         """

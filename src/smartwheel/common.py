@@ -180,9 +180,11 @@ class Doctor(QObject):
 
     def executeConfigFix(self, conf, key):
         if conf._fixStrategy == ConfigFixStrategy.Merge:
+            self.logger.warning("Merging config files...")
             conf.mergeDefaults()
 
         elif conf._fixStrategy == ConfigFixStrategy.MergeAll:
+            self.logger.warning("Merging all config files...")
             # Ensure that it is loaded
             conf.mergeDefaults()
             conf.blockSignals(True)
@@ -190,9 +192,11 @@ class Doctor(QObject):
             conf.blockSignals(False)
 
         elif conf._fixStrategy == ConfigFixStrategy.Defaults:
+            self.logger.warning("Restoring defaults for the config...")
             conf.loadDefaults()
 
         elif conf._fixStrategy == ConfigFixStrategy.DefaultsAll:
+            self.logger.warning("Restoring all defaults...")
             conf.loadDefaults()
             conf.blockSignals(True)
             config_manager.defaults.emit()
@@ -206,7 +210,7 @@ class Doctor(QObject):
         if conf._fixStrategy <= ConfigFixStrategy.DefaultsAll:
             # Configs have not been restored yet
             msg = QMessageBox()
-            msg.setTitle("Doctor")
+            msg.setWindowTitle("Doctor")
             defaults = msg.addButton("Restore defaults", QMessageBox.ButtonRole.AcceptRole)
             defaultsAll = msg.addButton("Restore all defaults", QMessageBox.ButtonRole.DestructiveRole)
             ignore = msg.addButton("Ignore", QMessageBox.ButtonRole.RejectRole)
@@ -232,8 +236,10 @@ class Doctor(QObject):
                 conf._fixStrategy = ConfigFixStrategy.Defaults
             elif msg.clickedButton() == defaultsAll:
                 conf._fixStrategy = ConfigFixStrategy.DefaultsAll
-            else:
+            elif msg.clickedButton() == ignore:
                 conf._fixStrategy = ConfigFixStrategy.Ignore
+            else:
+                conf._fixStrategy = ConfigFixStrategy.Defaults
             # Display message that asks the user to disable the module that throws errors
             # We ignore any errors caused by this module until the next restart
 
