@@ -2,7 +2,7 @@ import json
 import os
 import weakref
 
-from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, Qt
+from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, QEventLoop
 
 from smartwheel import common
 from smartwheel.api.app import Classes
@@ -22,6 +22,8 @@ class Config(QObject):
     """
 
     updated = pyqtSignal()
+
+    keyError = pyqtSignal(QObject, str)
 
     def __init__(
         self,
@@ -91,6 +93,7 @@ class Config(QObject):
         # We assume that all configs are in the same thread as settings
         common.config_manager.defaults.connect(self.loadDefaults)
         common.config_manager.merge.connect(self.__merge)
+        self.keyError.connect(common.doctor.configKeyError)
 
     def __fetchParentMeta(self):
         # TODO fetch referrers using garbage collector
@@ -107,9 +110,13 @@ class Config(QObject):
         Check if the key is present and repair the app if needed
         """
         if self.c.get(key) is None:
-            common.doctor.notifyOnError(self, key)
-            common.doctor.executeConfigFix(self, key)
-            Classes.MainWindow().close()
+            #Classes.MainWindow().setUpdatesEnabled(False)
+            #self.keyError.emit(self, key)
+            common.doctor.configKeyError(self, key)
+
+            #loop = QEventLoop()
+            #common.doctor.fixPerformed.connect(loop.quit)
+            #loop.exec()
 
     def __fetchkey(self, key):
         """

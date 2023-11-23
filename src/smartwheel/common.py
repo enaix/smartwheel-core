@@ -8,7 +8,7 @@ from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QMessageBox
 
 from smartwheel import config
-from smartwheel.api.app import Common
+from smartwheel.api.app import Classes, Common
 
 
 class ConfigManager(QObject):
@@ -142,16 +142,18 @@ class StartupMode(str, Enum):
     PostUpdate = auto()
     Defaults = auto()
     PostDefaults = auto()
+    Emergency = auto()
 
 
 class ConfigFixStrategy(IntEnum):
-    Merge = 0
-    MergeAll = 1
-    Defaults = 2
-    DefaultsAll = 3
-    HaltModule = 4
-    Halt = 5
-    Ignore = 6
+    Ignore = auto()
+    Merge = auto()
+    MergeAll = auto()
+    Defaults = auto()
+    DefaultsAll = auto()
+    HaltModule = auto()
+    Halt = auto()
+
 
 
 class Doctor(QObject):
@@ -164,6 +166,9 @@ class Doctor(QObject):
         self.file = None
         self.logger = logging.getLogger(__name__)
         self.defaultMergeStrategy = ConfigFixStrategy.MergeAll
+
+        self.broken_config = None
+        self.broken_key = None
 
     def saveStatus(self):
         """
@@ -178,10 +183,23 @@ class Doctor(QObject):
             with open(self.file, "w") as f:
                 json.dump(status, f, indent=4)
 
-    def executeConfigFix(self, conf, key):
+    @pyqtSlot(QObject, str)
+    def configKeyError(self, conf, key):
+        if conf is None:
+            return
+        self.logger.critical("KeyError has been handled")
+        self.broken_config = conf
+        self.broken_key = key
+        self.notifyOnError(conf, key)
+        if self.executeConfigFix(conf):
+            self.logger.critical("Performing emergency shutdown...")
+            Classes.MainWindow().close()
+
+    def executeConfigFix(self, conf):
         if conf._fixStrategy == ConfigFixStrategy.Merge:
             self.logger.warning("Merging config files...")
             conf.mergeDefaults()
+            return True
 
         elif conf._fixStrategy == ConfigFixStrategy.MergeAll:
             self.logger.warning("Merging all config files...")
@@ -190,10 +208,12 @@ class Doctor(QObject):
             conf.blockSignals(True)
             config_manager.merge.emit()
             conf.blockSignals(False)
+            return True
 
         elif conf._fixStrategy == ConfigFixStrategy.Defaults:
             self.logger.warning("Restoring defaults for the config...")
             conf.loadDefaults()
+            return True
 
         elif conf._fixStrategy == ConfigFixStrategy.DefaultsAll:
             self.logger.warning("Restoring all defaults...")
@@ -201,10 +221,12 @@ class Doctor(QObject):
             conf.blockSignals(True)
             config_manager.defaults.emit()
             conf.blockSignals(False)
+            return True
 
         elif conf._fixStrategy == ConfigFixStrategy.HaltModule:
             # TODO finish this
-            pass
+            return False
+        return False
         
     def notifyOnError(self, conf, key):
         if conf._fixStrategy <= ConfigFixStrategy.DefaultsAll:
@@ -214,7 +236,7 @@ class Doctor(QObject):
             defaults = msg.addButton("Restore defaults", QMessageBox.ButtonRole.AcceptRole)
             defaultsAll = msg.addButton("Restore all defaults", QMessageBox.ButtonRole.DestructiveRole)
             ignore = msg.addButton("Ignore", QMessageBox.ButtonRole.RejectRole)
-            
+
             if conf.meta_name == "unknown":
                 msg.setText("Doctor has reported an error in configuration file")
             else:
@@ -222,13 +244,13 @@ class Doctor(QObject):
 
             err = ""
             if key is not None:
-                err += "No such key " + str(key) + ". " 
+                err += "No such key " + str(key) + ". "
             if conf.config_file is not None:
                 err += "File: " + conf.config_file
-            
-            msg.setDetailedText(err)
 
+            msg.setDetailedText(err)
             msg.setInformativeText("Restoring defaults would delete your previous config")
+            msg.setModal(True)
 
             msg.exec()
 
@@ -239,7 +261,8 @@ class Doctor(QObject):
             elif msg.clickedButton() == ignore:
                 conf._fixStrategy = ConfigFixStrategy.Ignore
             else:
-                conf._fixStrategy = ConfigFixStrategy.Defaults
+                self.logger.error("No button has been pressed, perhaps the model failed to open")
+                conf._fixStrategy = ConfigFixStrategy.Ignore
             # Display message that asks the user to disable the module that throws errors
             # We ignore any errors caused by this module until the next restart
 

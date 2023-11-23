@@ -31,6 +31,7 @@ from smartwheel.canvas import RootCanvas
 from smartwheel.settings import SettingsWindow
 from smartwheel.api.app import Classes, Common
 
+
 class WConfig(config.Config):
     def __init__(self, config_file, launch_config):
         super(WConfig, self).__init__(

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import queue
+import sys
 import time
 import weakref
 import traceback
@@ -31,9 +32,12 @@ class MDict(dict):
 class RootCanvas(QObject):
     """Main canvas class, manages wheel modules"""
 
+    fixConfig = pyqtSignal(QObject, str)
+
     def __init__(self, WConfig, config_dir, update_func):
         super(RootCanvas, self).__init__()
         Classes.RootCanvas = weakref.ref(self)
+        self.fixConfig.connect(common.doctor.configKeyError, Qt.ConnectionType.QueuedConnection)
         self.common_config = None
         self.config_dir = config_dir
         self.conf = WConfig
@@ -392,6 +396,9 @@ class RootCanvas(QObject):
         """
         # for i in self.conf["modulesLoad"]:
         #    self.conf["modules"][i]["class"].draw(qp)
+        if common.doctor.startupMode == common.StartupMode.Emergency:
+            return
+
         if self.conf["stabilizeFPS"]:
             sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)
         else:
@@ -401,7 +408,14 @@ class RootCanvas(QObject):
 
         start_time = time.time_ns()
 
-        self.conf["modules"][0]["class"].draw(qp)  # render wheel
+        try:
+            self.conf["modules"][0]["class"].draw(qp)  # render wheel
+        except BaseException as e:
+            traceback.print_exc()
+
+            common.doctor.startupMode = common.StartupMode.Emergency
+            self.fixConfig.emit(common.doctor.broken_config, common.doctor.broken_key)
+            return
 
         e_time = (time.time_ns() - start_time) / 1000000000  # seconds
 
