@@ -513,19 +513,9 @@ class UIElem(BaseUIElem):
 
             for i in range(0, 360, 360 // 10):
                 self.qp.drawEllipse(
-                    QPoint(
-                        self.conf["cx"]
-                        + int(
-                            math.cos(math.radians(i + (self._angle - 225) / 4))
-                            * circleWidth
-                            // 3
-                        ),
-                        self.conf["cy"]
-                        + int(
-                            math.sin(math.radians(i + (self._angle - 225) / 4))
-                            * circleWidth
-                            // 3
-                        ),
+                    QPointF(
+                        self.conf["cx"] + math.cos(math.radians(i + (self._angle - 225.0) / 4.0)) * circleWidth / 3,
+                        self.conf["cy"] + math.sin(math.radians(i + (self._angle - 225.0) / 4.0)) * circleWidth / 3,
                     ),
                     self.conf["overlayCirclesWidth"],
                     self.conf["overlayCirclesWidth"],
