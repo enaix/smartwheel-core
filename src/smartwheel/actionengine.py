@@ -55,7 +55,7 @@ class ActionEngine(QObject):
         WConfig
             Canvas config
         """
-        super().__init__()
+        super(ActionEngine, self).__init__()
         self.logger = logging.getLogger(__name__)
         self.importConfig(config_file)
         tools.merge_dicts(self.conf, WConfig)
@@ -70,6 +70,7 @@ class ActionEngine(QObject):
         self.importActions()
         self.importWheelActions()
 
+        self.n_positions = 10
         self.accelMeta = {}
         self.accelTime = QTimer(self)
         self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
@@ -237,14 +238,23 @@ class ActionEngine(QObject):
             pulse._virtual = True
             pulse._click = False
 
-            # TODO add O(1) nearest angle calculation
-            nearest_angle = min(self.accelMeta[key].angles, key=lambda x: abs(x - self.accelMeta[key].step))
+            # calculate nearest angle among the sections (360 / n_positions)
+            nearest_angle = self.accelMeta[key].target
+            # upper bound
+            if abs(self.accelMeta[key].target + 360.0 / self.n_positions - self.accelMeta[key].step) < \
+                abs(self.accelMeta[key].target - self.accelMeta[key].step):
+                nearest_angle = self.accelMeta[key].target + 360.0 / self.n_positions
+
+            # lower bound
+            elif abs(self.accelMeta[key].target - 360.0 / self.n_positions - self.accelMeta[key].step) < \
+                abs(self.accelMeta[key].target - self.accelMeta[key].step):
+                nearest_angle = self.accelMeta[key].target - 360.0 / self.n_positions
 
             # calculate the direction towards the nearest fixed angle
             direction = 1 if nearest_angle > self.accelMeta[key].step else -1
 
             # calculate the normalized distance to the nearest angle
-            norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (180.0/self.accelMeta[key].n_pos)
+            norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (180.0 / self.accelMeta[key].n_pos)
 
             # calculate deltaTime
             delta = self.conf["acceleration"]["pulseRefreshTime"] / 1000
@@ -274,6 +284,10 @@ class ActionEngine(QObject):
             else:
                 # constantly adjust inertia based on the current direction
                 self.accelMeta[key].acceleration += self.conf["acceleration"]["gravity"] * direction * (0.5 + 0.5 * (1.0 - norm_dist)) * delta
+
+            # All variables theoretically should be in 0.0 - 360.0 range, but this should be done in modules
+            # to cover the edge cases (359.9 -> 0.0). In practice it would take insane amount of spins for the sin
+            # and cos functions to break due to precision errors
 
             self.callAction.emit(pulse)
             self.logger.debug("Step: " + str(self.accelMeta[key].step) + "; target: " + str(nearest_angle)
