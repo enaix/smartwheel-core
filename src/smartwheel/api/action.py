@@ -74,6 +74,11 @@ class Pulse:
     Pulse type, can either be a button or an encoder. Buttons pulses do not have any properties
     """
 
+    up: bool = None
+    """
+    True if the encoder has rotated up (clockwise). Only present if the pulse is not virtual or has changed its position (click=True)
+    """
+
     click: bool = True
     """
     Indicates if the encoder or button has changed its position. Module should not produce any action if it is false
@@ -99,9 +104,10 @@ class Pulse:
     False if this pulse is created by the hardware and not by action engine cycle
     """
 
-    def __init__(self, pulse_type=None, click=True, step=None, target=None, velocity=None):
+    def __init__(self, pulse_type=None, click=True, step=None, target=None, velocity=None, up=None):
         self.type = pulse_type
         self.click = click
         self.step = step
         self.target = target
         self.velocity = velocity
+        self.up = up

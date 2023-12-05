@@ -7,7 +7,6 @@ from enum import auto, IntEnum, Enum
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QMessageBox
 
-from smartwheel import config
 from smartwheel.api.app import Classes, Common
 
 

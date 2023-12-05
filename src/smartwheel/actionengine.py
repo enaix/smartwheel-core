@@ -6,6 +6,7 @@ import weakref
 from PyQt6.QtCore import *
 
 from smartwheel import config, tools
+from smartwheel.api.app import Classes
 from smartwheel.api.action import Pulse, DevicePulse, PulseTypes
 
 
@@ -13,6 +14,7 @@ class AccelerationMeta:
     """
     Internal acceleration metadata for each pulse
     """
+
     def __init__(self, step, target, velocity, accel, maxvel, n_positions=10):
         self.step = step
         self.target = target
@@ -21,7 +23,7 @@ class AccelerationMeta:
         self.maxVelocity = maxvel
 
         # TODO add n_positions fetch and move angles to ActionEngine
-        self.angles = [float(x) for x in range(0, 360, 360//n_positions)]
+        self.angles = [float(x) for x in range(0, 360, 360 // n_positions)]
         self.n_pos = n_positions
 
     step: float = None
@@ -70,8 +72,10 @@ class ActionEngine(QObject):
         self.importActions()
         self.importWheelActions()
 
+        self.last_state = "wheel"
         self.n_positions = 10
         self.accelMeta = {}
+        self.devicePulses = {}
         self.accelTime = QTimer(self)
         self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
         self.accelTime.timeout.connect(self.pulseCycle)
@@ -203,8 +207,9 @@ class ActionEngine(QObject):
         if not p_call._virtual:
             self.logger.debug("Incoming call: " + elem + "." + call)
 
-        pulse = self.generatePulse(p_call)
+        pulse = self.generatePulse(p_call, cur_state)
 
+        # TODO rewrite this in linear time
         i = self.conf["commandBind"].get(elem, None)
         if i is not None:
             c = list(j for j in i if j["command"] == call)
@@ -223,7 +228,7 @@ class ActionEngine(QObject):
                                 self.wheel_actions[cmd["type"]].run(
                                     cmd["name"], pulse
                                 )
-                self.canvas().update_func()
+                Classes.RootCanvas().update_func()
         else:
             self.logger.warning("actionengine could not find call with this name")
 
@@ -238,23 +243,28 @@ class ActionEngine(QObject):
             pulse._virtual = True
             pulse._click = False
 
+            # Not spinning
+            if self.accelMeta[key].target == self.accelMeta[key].step and self.accelMeta[key].acceleration == 0.0:
+                self.callAction.emit(pulse)
+                return
+
             # calculate nearest angle among the sections (360 / n_positions)
             nearest_angle = self.accelMeta[key].target
             # upper bound
             if abs(self.accelMeta[key].target + 360.0 / self.n_positions - self.accelMeta[key].step) < \
-                abs(self.accelMeta[key].target - self.accelMeta[key].step):
+                    abs(self.accelMeta[key].target - self.accelMeta[key].step):
                 nearest_angle = self.accelMeta[key].target + 360.0 / self.n_positions
 
             # lower bound
             elif abs(self.accelMeta[key].target - 360.0 / self.n_positions - self.accelMeta[key].step) < \
-                abs(self.accelMeta[key].target - self.accelMeta[key].step):
+                    abs(self.accelMeta[key].target - self.accelMeta[key].step):
                 nearest_angle = self.accelMeta[key].target - 360.0 / self.n_positions
 
             # calculate the direction towards the nearest fixed angle
             direction = 1 if nearest_angle > self.accelMeta[key].step else -1
 
             # calculate the normalized distance to the nearest angle
-            norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (180.0 / self.accelMeta[key].n_pos)
+            norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (180.0 / self.n_positions)
 
             # calculate deltaTime
             delta = self.conf["acceleration"]["pulseRefreshTime"] / 1000
@@ -266,7 +276,7 @@ class ActionEngine(QObject):
             if not self.accelMeta[key].target == nearest_angle:
                 pulse._click = True
                 # check the direction
-                if self.accelMeta[key].target < nearest_angle:
+                if self.accelMeta[key].target > nearest_angle:
                     pulse.up = False
                 else:
                     pulse.up = True
@@ -274,16 +284,18 @@ class ActionEngine(QObject):
                 self.accelMeta[key].target = nearest_angle
 
             # friction calculation
-            self.accelMeta[key].acceleration += (-self.accelMeta[key].acceleration) * ((1.0 - norm_dist) ** 2) * self.conf["acceleration"]["friction"] * delta
+            self.accelMeta[key].acceleration += (-self.accelMeta[key].acceleration) * ((1.0 - norm_dist) ** 2) * \
+                                                self.conf["acceleration"]["friction"] * delta
 
             # deadzone check: TODO enable it or rewrite
-            if False and abs(nearest_angle - self.accelMeta[key].step) < self.conf["acceleration"]["deadzone"] and\
+            if False and abs(nearest_angle - self.accelMeta[key].step) < self.conf["acceleration"]["deadzone"] and \
                     abs(self.accelMeta[key].acceleration) < self.conf["acceleration"]["maxStopAccel"]:
                 self.accelMeta[key].acceleration = 0
                 self.accelMeta[key].step = nearest_angle
             else:
                 # constantly adjust inertia based on the current direction
-                self.accelMeta[key].acceleration += self.conf["acceleration"]["gravity"] * direction * (0.5 + 0.5 * (1.0 - norm_dist)) * delta
+                self.accelMeta[key].acceleration += self.conf["acceleration"]["gravity"] * direction * (
+                            0.5 + 0.5 * (1.0 - norm_dist)) * delta
 
             # All variables theoretically should be in 0.0 - 360.0 range, but this should be done in modules
             # to cover the edge cases (359.9 -> 0.0). In practice it would take insane amount of spins for the sin
@@ -291,10 +303,14 @@ class ActionEngine(QObject):
 
             self.callAction.emit(pulse)
             self.logger.debug("Step: " + str(self.accelMeta[key].step) + "; target: " + str(nearest_angle)
-                              + "; vel: " + str(self.accelMeta[key].acceleration) + "; dist: " + str(norm_dist))
+                                  + "; vel: " + str(self.accelMeta[key].acceleration) + "; dist: " + str(norm_dist))
 
+    def resetPulse(self, dpulse: DevicePulse):
+        self.accelMeta[dpulse].velocity = 0.0
+        self.accelMeta[dpulse].acceleration = 0.0
+        self.accelMeta[dpulse].step = self.accelMeta[dpulse].target
 
-    def generatePulse(self, dpulse: DevicePulse):
+    def generatePulse(self, dpulse: DevicePulse, state: str):
         """
         Process device pulse and return new Pulse object
 
@@ -302,17 +318,26 @@ class ActionEngine(QObject):
         ==========
         dpulse
             Emitted device pulse
+        state
+            Application state, either wheel or module
         """
         pulse = Pulse()
         pulse.type = dpulse.type
 
         if dpulse._virtual:
             pulse.virtual = True
-            if dpulse._click:
-                pulse.click = True
+            pulse.click = dpulse._click
+            if dpulse.up is not None:
+                pulse.up = dpulse.up
+
             pulse.step = self.accelMeta[dpulse].step
             pulse.target = self.accelMeta[dpulse].target
             pulse.velocity = self.accelMeta[dpulse].acceleration
+
+            if not state == self.last_state:
+                self.resetPulse(dpulse)
+                self.last_state = state
+
             return pulse
 
         if pulse.type == PulseTypes.BUTTON:
@@ -329,6 +354,10 @@ class ActionEngine(QObject):
 
         # Rotary
         if self.accelMeta.get(dpulse) is None:
+
+            # Store DevicePulse instance by its name (__str__ returns device bind)
+            self.devicePulses[str(dpulse)] = dpulse
+
             if dpulse.up:
                 accel = self.conf["acceleration"]["clickAccel"]
             else:
@@ -337,6 +366,12 @@ class ActionEngine(QObject):
             self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel,
                                                       self.conf["acceleration"]["maxAccel"])
         else:
+            if not state == self.last_state:
+                self.resetPulse(dpulse)
+                self.last_state = state
+
+            self.devicePulses[str(dpulse)].command = dpulse.command
+
             if dpulse.up:
                 self.accelMeta[dpulse].acceleration += self.conf["acceleration"]["clickAccel"]
             else:
@@ -353,6 +388,7 @@ class ActionEngine(QObject):
         pulse.step = self.accelMeta[dpulse].step
         pulse.target = self.accelMeta[dpulse].target
         pulse.velocity = self.accelMeta[dpulse].acceleration
+        pulse.up = dpulse.up
 
         if not self.accelTime.isActive():
             self.accelTime.start()

@@ -192,21 +192,22 @@ class UIElem(BaseUIElem):
         self.sections[self.cur_section].is_selected = True
         self.sections[old_selection].is_selected = False
 
-    def processKey(self, up: bool, pulse: Pulse):
+    def processKey(self, pulse: Pulse):
         if pulse.click:
-            self.wheelUp.put(up)
+            self.wheelUp.put(pulse.up)
             self.startShadowAnimation()
-            #self._angle += self.delta
+            # self._angle += self.delta
 
         if pulse.step is not None:
-            self._angle = pulse.step + self.conf["selectionAngle"] #(self._angle - self._angle % self.delta) % 360.0 + pulse.step * self.delta
+            self._angle = pulse.step + self.conf["selectionAngle"]
+            # (self._angle - self._angle % self.delta) % 360.0 + pulse.step * self.delta
 
-        #if self.is_scroll_anim_running:
+        # if self.is_scroll_anim_running:
         #    self.updateAnimation(up)
-        #else:
+        # else:
         #    self.startAnimation(up)
 
-        #self.startShadowAnimation()
+        # self.startShadowAnimation()
 
         if self.sections_timer.isActive():
             self.sections_timer.start(self.conf["sectionsHideTimeout"])
@@ -227,17 +228,17 @@ class UIElem(BaseUIElem):
         self.sections_timer.stop()
         self.hideSections()
 
-    def quickSwitch(self, up, pulse: Pulse):
+    def quickSwitch(self, pulse: Pulse):
         if not pulse.click:
             return
-        
+
         # self.scrollModule(up)
-        self.wheelUp.put(up)
+        self.wheelUp.put(pulse.up)
 
         if self.is_scroll_anim_running:
-            self.updateAnimation(up)
+            self.updateAnimation(pulse.up)
         else:
-            self.startAnimation(up)
+            self.startAnimation(pulse.up)
         self.startShadowAnimation()
 
         self.sections_timer.stop()
@@ -556,16 +557,16 @@ class UIElem(BaseUIElem):
         if self.sections_anim.state() == QAbstractAnimation.State.Stopped:
             self.is_sections_anim_running = False
         self.is_anim_running = (
-            self.is_scroll_anim_running
-            or self.is_shadow_anim_running
-            or self.is_sections_anim_running
+                self.is_scroll_anim_running
+                or self.is_shadow_anim_running
+                or self.is_sections_anim_running
         )
         if self.conf["isWheelWidthFixed"]:
             circleWidth = (
-                self.conf["width"] - self.conf["fixedWheelWidth"] + self._sections_pos
+                    self.conf["width"] - self.conf["fixedWheelWidth"] + self._sections_pos
             )
             circleHeight = (
-                self.conf["height"] - self.conf["fixedWheelWidth"] + self._sections_pos
+                    self.conf["height"] - self.conf["fixedWheelWidth"] + self._sections_pos
             )
         else:
             circleWidth = (self.conf["width"] * 3) // 4 + self._sections_pos
