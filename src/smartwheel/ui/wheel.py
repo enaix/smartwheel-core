@@ -229,16 +229,16 @@ class UIElem(BaseUIElem):
         self.hideSections()
 
     def quickSwitch(self, pulse: Pulse):
-        if not pulse.click:
-            return
+        # if not pulse.click:
+        #     return
 
         # self.scrollModule(up)
         self.wheelUp.put(pulse.up)
 
-        if self.is_scroll_anim_running:
-            self.updateAnimation(pulse.up)
-        else:
-            self.startAnimation(pulse.up)
+        # if self.is_scroll_anim_running:
+        #     self.updateAnimation(pulse.up)
+        # else:
+        #     self.startAnimation(pulse.up)
         self.startShadowAnimation()
 
         self.sections_timer.stop()

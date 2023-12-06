@@ -15,16 +15,12 @@ class AccelerationMeta:
     Internal acceleration metadata for each pulse
     """
 
-    def __init__(self, step, target, velocity, accel, maxvel, n_positions=10):
+    def __init__(self, step, target, velocity, accel, maxvel):
         self.step = step
         self.target = target
         self.velocity = velocity
         self.acceleration = accel
         self.maxVelocity = maxvel
-
-        # TODO add n_positions fetch and move angles to ActionEngine
-        self.angles = [float(x) for x in range(0, 360, 360 // n_positions)]
-        self.n_pos = n_positions
 
     step: float = None
 
@@ -72,8 +68,11 @@ class ActionEngine(QObject):
         self.importActions()
         self.importWheelActions()
 
-        self.last_state = "wheel"
-        self.n_positions = 10
+        self.last_state = True  # wheel
+        self.angles = [0.0, 0.0]  # angles for wheel and module states
+        self.n_positions = Classes.RootCanvas().common_config["selectionWheelEntries"]
+        # self.n_positions = [Classes.RootCanvas().common_config["selectionWheelEntries"],
+        #                     self.conf["acceleration"]["moduleSections"]]
         self.accelMeta = {}
         self.devicePulses = {}
         self.accelTime = QTimer(self)
@@ -178,7 +177,7 @@ class ActionEngine(QObject):
         """
         Get current state (sections opened or closed)
         """
-        if self.canvas().conf["modules"][0]["class"].is_sections_hidden:
+        if Classes.RootCanvas().conf["modules"][0]["class"].is_sections_hidden:
             return "module"
         return "wheel"
 
@@ -205,11 +204,15 @@ class ActionEngine(QObject):
             self.logger.warning("actionengine could not parse the signal")
 
         if not p_call._virtual:
+            # All pulses are blocked while the sections are being opened/closed
+            if Classes.RootCanvas().conf["modules"][0]["class"].is_sections_anim_running:
+                return
+
             self.logger.debug("Incoming call: " + elem + "." + call)
 
-        pulse = self.generatePulse(p_call, cur_state)
+        pulse = self.generatePulse(p_call, cur_state == "wheel")
 
-        # TODO rewrite this in linear time
+        # TODO rewrite this in constant time
         i = self.conf["commandBind"].get(elem, None)
         if i is not None:
             c = list(j for j in i if j["command"] == call)
@@ -305,12 +308,52 @@ class ActionEngine(QObject):
             self.logger.debug("Step: " + str(self.accelMeta[key].step) + "; target: " + str(nearest_angle)
                                   + "; vel: " + str(self.accelMeta[key].acceleration) + "; dist: " + str(norm_dist))
 
-    def resetPulse(self, dpulse: DevicePulse):
+    def resetPulse(self, dpulse: DevicePulse, is_wheel_mode: bool):
+        """
+        Reset pulse to its previous values, sets acceleration to 0
+
+        Parameters
+        ==========
+        dpulse
+            DevicePulse to reset
+        is_wheel_mode
+            Application state, either wheel (True) or module
+        """
         self.accelMeta[dpulse].velocity = 0.0
         self.accelMeta[dpulse].acceleration = 0.0
-        self.accelMeta[dpulse].step = self.accelMeta[dpulse].target
 
-    def generatePulse(self, dpulse: DevicePulse, state: str):
+        # Right now the angle is saved for the modules globally. Perhaps it should be changed...
+        self.angles[int(not is_wheel_mode)] = self.accelMeta[dpulse].target  # save current angle
+
+        # reset current angle
+        self.accelMeta[dpulse].step = self.angles[int(is_wheel_mode)]
+        self.accelMeta[dpulse].target = self.accelMeta[dpulse].step
+
+    def angleChanged(self, up=True):
+        """
+        Increment/decrement the angle (wheel)
+
+        Parameters
+        ==========
+        up
+            Increment up (if True)
+        """
+        self.angles[0] += (1 if up else -1) * 360.0 / self.n_positions
+
+    def wheelStateChanged(self, is_wheel_mode: bool):
+        """
+        Update all device pulses on wheel state change
+
+        Parameters
+        ==========
+        is_wheel_mode
+            Application state, either wheel (True) or module
+        """
+        for key, _ in self.devicePulses.items():
+            self.resetPulse(self.devicePulses[key], is_wheel_mode)
+        self.pulseCycle()
+
+    def generatePulse(self, dpulse: DevicePulse, is_wheel_mode: bool):
         """
         Process device pulse and return new Pulse object
 
@@ -318,8 +361,8 @@ class ActionEngine(QObject):
         ==========
         dpulse
             Emitted device pulse
-        state
-            Application state, either wheel or module
+        is_wheel_mode
+            Application state, either wheel (True) or module
         """
         pulse = Pulse()
         pulse.type = dpulse.type
@@ -334,9 +377,9 @@ class ActionEngine(QObject):
             pulse.target = self.accelMeta[dpulse].target
             pulse.velocity = self.accelMeta[dpulse].acceleration
 
-            if not state == self.last_state:
-                self.resetPulse(dpulse)
-                self.last_state = state
+            #if not is_wheel_mode == self.last_state:
+            #    self.resetPulse(dpulse, is_wheel_mode)
+            #    self.last_state = is_wheel_mode
 
             return pulse
 
@@ -366,9 +409,9 @@ class ActionEngine(QObject):
             self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel,
                                                       self.conf["acceleration"]["maxAccel"])
         else:
-            if not state == self.last_state:
-                self.resetPulse(dpulse)
-                self.last_state = state
+            #if not is_wheel_mode == self.last_state:
+            #    self.resetPulse(dpulse, is_wheel_mode)
+            #    self.last_state = is_wheel_mode
 
             self.devicePulses[str(dpulse)].command = dpulse.command
 

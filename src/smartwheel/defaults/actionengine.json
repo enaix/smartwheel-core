@@ -456,6 +456,7 @@
         "friction": 5.0,
         "pulseRefreshTime": 50,
         "deadzone": 0.0001,
-        "maxStopAccel": 3.0
+        "maxStopAccel": 3.0,
+        "moduleSections": 20
     }
 }
