@@ -132,7 +132,7 @@ class RootWindow(QMainWindow):
             QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True
         )
         self.toolbar.setStyleSheet(
-            "background-color: " + self.rc.common_config["bgWheelColor"] + ";"
+            "background-color: " + self.rc.conf["toolsBackgroundColor"] + ";"
         )
         self.tools_layout = QVBoxLayout()
 

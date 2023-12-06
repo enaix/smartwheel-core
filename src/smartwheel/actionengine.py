@@ -70,9 +70,9 @@ class ActionEngine(QObject):
 
         self.last_state = True  # wheel
         self.angles = [0.0, 0.0]  # angles for wheel and module states
-        self.n_positions = Classes.RootCanvas().common_config["selectionWheelEntries"]
-        # self.n_positions = [Classes.RootCanvas().common_config["selectionWheelEntries"],
-        #                     self.conf["acceleration"]["moduleSections"]]
+        self.positions_list = [Classes.RootCanvas().common_config["selectionWheelEntries"],
+                            self.conf["acceleration"]["moduleSections"]]
+        self.n_positions = self.positions_list[0]  # Current number of sections
         self.accelMeta = {}
         self.devicePulses = {}
         self.accelTime = QTimer(self)
@@ -328,6 +328,9 @@ class ActionEngine(QObject):
         # reset current angle
         self.accelMeta[dpulse].step = self.angles[int(is_wheel_mode)]
         self.accelMeta[dpulse].target = self.accelMeta[dpulse].step
+
+        # update number of positions
+        self.n_positions = self.positions_list[int(not is_wheel_mode)]
 
     def angleChanged(self, up=True):
         """

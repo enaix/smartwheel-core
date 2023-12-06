@@ -63,7 +63,6 @@ class UIElem(BaseUIElem):
                 int(self.to_map(self.bri_selection)),
             )
             r, g, b, _ = color.getRgbF()
-            self.logger.debug(r, g, b)
             self.sendData(r, g, b)
             # print(self.hue_selection, self.sat_selection, self.bri_selection)
 

@@ -1,7 +1,8 @@
 {
   "items": [
     {"name": "Haptics engine", "options": [
-      {"name": "Refresh time (ms)", "type": "int", "min": 0, "max": 1000, "module": "actionengine", "prop": "acceleration.pulseRefreshTime"}
+      {"name": "Refresh time (ms)", "type": "int", "min": 0, "max": 1000, "module": "actionengine", "prop": "acceleration.pulseRefreshTime"},
+      {"name": "Default number of sections in modules", "type": "int", "min": 1, "max": 10000, "module": "actionengine", "prop": "acceleration.moduleSections"}
     ]},
     {"name": "Haptics engine tuning (advanced)", "options": [
       {"name": "Click velocity boost", "type": "float", "min": -200.0, "max": 200.0, "module": "actionengine", "prop": "acceleration.clickAccel"},
