@@ -183,7 +183,17 @@ class Doctor(QObject):
                 json.dump(status, f, indent=4)
 
     @pyqtSlot(QObject, str)
-    def configKeyError(self, conf, key):
+    def configKeyError(self, conf, key=None):
+        """
+        Call Doctor to notify the user and fix the config
+
+        Parameters
+        ==========
+        conf
+            Config object that caused an error
+        key
+            (Optional) Missing key
+        """
         if conf is None:
             return
         self.logger.critical("KeyError has been handled")
@@ -195,6 +205,14 @@ class Doctor(QObject):
             Classes.MainWindow().close()
 
     def executeConfigFix(self, conf):
+        """
+        Attempt to solve config error by following the strategy
+
+        Parameters
+        ==========
+        conf
+            Config object to fix
+        """
         if conf._fixStrategy == ConfigFixStrategy.Merge:
             self.logger.warning("Merging config files...")
             conf.mergeDefaults()
@@ -227,7 +245,19 @@ class Doctor(QObject):
             return False
         return False
         
-    def notifyOnError(self, conf, key):
+    def notifyOnError(self, conf, key=None):
+        """
+        Display error message on missing config key
+
+        Parameters
+        ==========
+        conf
+            Config object that caused an error
+        key
+            (Optional) Missing key
+        """
+        self.startupMode = StartupMode.Emergency
+
         if conf._fixStrategy <= ConfigFixStrategy.DefaultsAll:
             # Configs have not been restored yet
             msg = QMessageBox()

@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QSpinBox,
+    QLabel
 )
 from swcolorpicker import getColor, rgb2hex, useAlpha
 
@@ -93,14 +94,14 @@ class FloatHandler(BaseHandler):
 
 
 class StringHandler(BaseHandler):
-    def __init__(self,):
+    def __init__(self):
         super(StringHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
         wid = QLineEdit()
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
         if ok:
             wid.setText(value)
         else:
@@ -142,8 +143,9 @@ class ColorHandler(BaseHandler):
 
         wid.setProperty("module", elem["module"])
         wid.setProperty("prop", elem["prop"])
+        wid.setProperty("index", elem.get("index"))
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
         if ok:
             wid.setText(value)
         else:
@@ -177,6 +179,7 @@ class ColorHandler(BaseHandler):
     def updateValue(self, wid, value):
         module = wid.property("module")
         prop = wid.property("prop")
+        index = wid.property("index")
 
         if module is None or prop is None:
             self.logger.warning("Could not get color picker properties")
@@ -184,7 +187,7 @@ class ColorHandler(BaseHandler):
 
         wid.setText(value)
         self.setIcon(wid, QColor(value))
-        HandlersApi.setter(value=value, module=module, prop=prop, _user=False)
+        HandlersApi.setter(value=value, module=module, prop=prop, index=index, _user=False)
         return True
 
 
@@ -196,7 +199,7 @@ class BoolHandler(BaseHandler):
     def initElem(self, elem):
         wid = QCheckBox()
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
         if ok:
             wid.setChecked(value)
         else:
@@ -276,6 +279,53 @@ class ComboHandler(BaseHandler):
         return True
 
 
+class Watcher(QLabel):
+    def __init__(self, module: str, prop: str, index: int = None):
+        super(Watcher, self).__init__()
+        self.module = module
+        self.prop = prop
+        self.index = index
+
+    def fetch(self):
+        return HandlersApi.getter(self.module, self.prop, self.index)
+
+    def setVar(self, ok: bool, var):
+        # ok, var = HandlersApi.getter(self.module, self.prop, self.index)
+        if not ok and self.isEnabled():
+            var = "?"
+            self.setDisabled(True)
+        elif ok and not self.isEnabled():
+            self.setDisabled(False)
+
+        self.setText(str(var))
+        return ok
+
+
+class WatchHandler(BaseHandler):
+    def __init__(self):
+        super(WatchHandler, self).__init__()
+        self.logger = logging.getLogger(__name__)
+
+    def initElem(self, elem):
+        wid = Watcher(elem["module"], elem["prop"], elem.get("index"))
+
+        ok, val = wid.fetch()
+        wid.setVar(ok, val)
+
+        if not ok:
+            self.logger.warning("Could not enable variable watcher for " + elem["name"])
+
+        HandlersApi._addVariableWatch(wid, val)
+
+        return wid
+
+    def fetchValue(self, wid):
+        return None
+
+    def updateValue(self, wid, value):
+        return False
+
+
 handlers = {
     "int": IntHandler,
     "float": FloatHandler,
@@ -283,4 +333,5 @@ handlers = {
     "color": ColorHandler,
     "bool": BoolHandler,
     "combo": ComboHandler,
+    "watch": WatchHandler
 }

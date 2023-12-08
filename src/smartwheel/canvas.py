@@ -15,6 +15,7 @@ from smartwheel import common, config, gui_tools
 from smartwheel.actionengine import ActionEngine
 from smartwheel.tools import merge_dicts
 from smartwheel.api.app import Classes
+from smartwheel.api.settings import HandlersApi
 
 
 class MList(list):
@@ -64,6 +65,7 @@ class RootCanvas(QObject):
         self.exec_time = 0.01
         self.exec_window = 0
         self.exec_times = queue.Queue()
+        self.conf["real_fps"] = 0.0
 
         self.startThreads()
 
@@ -419,17 +421,21 @@ class RootCanvas(QObject):
 
         e_time = (time.time_ns() - start_time) / 1000000000  # seconds
 
+        HandlersApi.watch.emit()
+
         if self.conf["stabilizeFPS"]:
+            self.conf["real_fps"] = str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1))
             if self.conf["logFPS"]:
                 self.logger.info(
                     "FPS(AVG): "
-                    + str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1))
+                    + self.conf["real_fps"]
                 )
             self.calculateSmoothFPS(e_time)
 
         else:
+            self.conf["real_fps"] = str(round(1 / (sleep_time + e_time), 1))
             if self.conf["logFPS"]:
-                self.logger.info("FPS: " + str(round(1 / (sleep_time + e_time), 1)))
+                self.logger.info("FPS: " + self.conf["real_fps"])
 
         m = self.getWheelModule()
         cache = self.updateIconCache()

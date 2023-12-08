@@ -19,8 +19,8 @@ class Section:
     def __init__(self, start_angle, end_angle, parent, module=None):
         self.start_angle = start_angle
         self.end_angle = end_angle
-        self.angle = (start_angle + end_angle) // 2
-        self.delta = 0
+        self.angle = (start_angle + end_angle) / 2.0
+        self.delta = 0.0
         self.init_angle = parent()._angle
         self.is_selected = False
         self.module = module
@@ -116,10 +116,10 @@ class Section:
 
         self.draw_icon(
             (
-                ((xa1 + xa2) / 2 + (xb1 + xb2) / 2) / 2
-                - self.parent().conf["pixmapScale"] / 2,
-                ((ya1 + ya2) / 2 + (yb1 + yb2) / 2) / 2
-                - self.parent().conf["pixmapScale"] / 2,
+                ((xa1 + xa2) / 2.0 + (xb1 + xb2) / 2.0) / 2.0
+                - self.parent().conf["pixmapScale"] / 2.0,
+                ((ya1 + ya2) / 2.0 + (yb1 + yb2) / 2.0) / 2.0
+                - self.parent().conf["pixmapScale"] / 2.0,
             )
         )
 
@@ -140,7 +140,7 @@ class UIElem(BaseUIElem):
         self.initShadowAnimation()
         self.initSectionsAnimation()
         self._opacity = 0
-        self._angle = self.conf["selectionAngle"]
+        self._angle = float(self.conf["selectionAngle"])
         self._sections_pos = 0
         self.global_shadow = False
         self.wheelUp = LifoQueue()
@@ -163,10 +163,10 @@ class UIElem(BaseUIElem):
         self.conf.loadConfig()
 
     def getX(self, a, w):
-        return math.cos(math.radians(a)) * w / 2 + self.conf["cx"]
+        return math.cos(math.radians(a)) * w / 2.0 + self.conf["cx"]
 
     def getY(self, a, h):
-        return math.sin(math.radians(a)) * h / 2 + self.conf["cy"]
+        return math.sin(math.radians(a)) * h / 2.0 + self.conf["cy"]
 
     def drawSelection(self, circleWidth, circleHeight):
         # Draw selection wheel
@@ -253,11 +253,11 @@ class UIElem(BaseUIElem):
         self._angle = float(self.conf["selectionAngle"])
         self.sections = [
             Section(
-                self.delta * i + self.conf["selectionAngle"] - self.delta // 4,
-                self.delta * i
+                self.delta * float(i) + self.conf["selectionAngle"] - self.delta / 4.0,
+                self.delta * float(i)
                 + self.delta
                 + self.conf["selectionAngle"]
-                - self.delta // 4,
+                - self.delta / 4.0,
                 weakref.ref(self),
                 self.getModule(i),
             )
@@ -442,16 +442,6 @@ class UIElem(BaseUIElem):
     def drawSections(self, w, cw):
         for s in self.sections:
             s.draw(self.qp, w, cw)
-
-        """
-        self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-        color = QColor(self.conf["iconColor"])
-        self.qp.setBrush(color)
-        self.qp.setPen(color)
-        self.qp.drawRect(self.conf["corner_x"], self.conf["corner_y"], self.conf["width"], self.conf["height"])
-        for s in self.sections:
-            s.draw_icon()
-        """
 
         pen = QPen(QColor(self.conf["pointerColor"]), 3, Qt.PenStyle.SolidLine)
         self.qp.setPen(pen)

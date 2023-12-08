@@ -66,6 +66,16 @@ class _HandlersApi(QObject):
     Refresh all settings widgets with values from configs
     """
 
+    watch: pyqtSignal = pyqtSignal()
+    """
+    Watch for the changed variables and update them in settings
+    """
+
+    _addVariableWatch: Callable = None
+    """
+    Add a callback for the variable watch
+    """
+
     def __init__(self):
         super(_HandlersApi, self).__init__()
 

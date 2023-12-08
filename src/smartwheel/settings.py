@@ -82,6 +82,12 @@ class SettingsWindow(QWidget):
         # all weakrefs of the widgets
         self.settings_widgets = []
 
+        self.changed_variables = []
+        self.old_variables = []
+        self.watchers = []
+        HandlersApi.watch.connect(self.watchVariables)
+        HandlersApi._addVariableWatch = self.addVariableWatch
+
         HandlersApi.externalRegistries = self.externalRegistries
 
         self.initLayout()
@@ -649,6 +655,39 @@ class SettingsWindow(QWidget):
             scroll.setWidget(wrapper)
             scroll.setWindowTitle("Settings")
             self.externalRegistries[reg] = scroll
+
+    @pyqtSlot()
+    def watchVariables(self):
+        """
+        Iterate over variables to watch
+        """
+        for i in range(len(self.changed_variables)):
+            ok, val = self.watchers[i]().fetch()
+
+            self.old_variables[i] = self.changed_variables[i]
+
+            if ok:
+                self.changed_variables[i] = val
+            else:
+                self.changed_variables[i] = None
+
+            if not self.old_variables == self.changed_variables:
+                self.watchers[i]().setVar(ok, val)
+
+    def addVariableWatch(self, watcher, val):
+        """
+        Add a variable to the watchlist
+
+        Parameters
+        ==========
+        watcher
+            settings_handlers.basic.Watcher object
+        val
+            Initial variable value
+        """
+        self.watchers.append(weakref.ref(watcher))
+        self.old_variables.append(val)
+        self.changed_variables.append(val)
 
     def initTab(self, index):
         """
