@@ -216,7 +216,7 @@ class SettingsWindow(QWidget):
 
         HandlersApi.handlers = self.handlers
 
-    def getValue(self, module, prop, index=None):
+    def getValue(self, module, prop, index=None, silent=False):
         """
         Get property from the application
         Returns (True, value) if found, (False, None) otherwise
@@ -229,18 +229,22 @@ class SettingsWindow(QWidget):
             Property keys, separated by `.`
         index
             If not None, the index in the property array. If an array, then it's duplicated at specified indices
+        silent
+            (Optional) Do not write to the log
         """
         if self.settings.get(module) is None:
-            self.logger.error("Could not get value: no module " + module)
+            if not silent:
+                self.logger.error("Could not get value: no module " + module)
             return False, None
 
         props = prop.split(".")
         cur_prop = self.settings[module]
         for p in props:
             if cur_prop.get(p) is None:
-                self.logger.error(
-                    "Could not get value: no property " + module + "." + prop
-                )
+                if not silent:
+                    self.logger.error(
+                        "Could not get value: no property " + module + "." + prop
+                    )
                 return False, None
             else:
                 cur_prop = cur_prop[p]
@@ -661,6 +665,9 @@ class SettingsWindow(QWidget):
         """
         Iterate over variables to watch
         """
+        if self.isHidden():
+            return
+
         for i in range(len(self.changed_variables)):
             ok, val = self.watchers[i]().fetch()
 

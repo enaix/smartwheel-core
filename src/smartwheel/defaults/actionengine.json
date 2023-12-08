@@ -449,13 +449,14 @@
             }
         ]
     },
+    "logEngine": false,
     "acceleration": {
         "clickAccel": 30.0,
         "maxAccel": 100.0,
         "gravity": 27.0,
         "friction": 5.0,
         "pulseRefreshTime": 50,
-        "deadzone": 0.0001,
+        "deadzone": 1.0,
         "maxStopAccel": 3.0,
         "moduleSections": 20
     }

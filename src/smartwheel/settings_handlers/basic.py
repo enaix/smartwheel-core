@@ -1,6 +1,6 @@
 import logging
 
-from PyQt6.QtCore import Qt, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt6.QtGui import QColor, QIcon, QPixmap
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -223,13 +223,19 @@ class BoolHandler(BaseHandler):
         return True
 
 
+class CComboBox(QComboBox):
+    opened = pyqtSignal()
+    def showPopup(self) -> None:
+        self.opened.emit()
+
+
 class ComboHandler(BaseHandler):
     def __init__(self):
         super(ComboHandler, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def initElem(self, elem):
-        wid = QComboBox()
+        wid = CComboBox()
 
         if type(elem["options"]) == list:
             wid.insertItems(0, elem["options"])
@@ -248,7 +254,12 @@ class ComboHandler(BaseHandler):
                     + elem["options"]["prop"]
                 )
                 return None
+            wid.setProperty("options", {"module": elem["options"]["module"],
+                                        "prop": elem["options"]["prop"],
+                                        "index": elem["options"].get("index")})
+
             wid.insertItems(0, ops)
+            wid.opened.connect(self.getOps)
 
         ok, value = HandlersApi.getter(elem["module"], elem["prop"])
         if ok:
@@ -264,6 +275,22 @@ class ComboHandler(BaseHandler):
     def setStr(self, value):
         caller = self.sender()
         HandlersApi.setter(caller, value)
+
+    @pyqtSlot()
+    def getOps(self):
+        caller = self.sender()
+        ops = caller.property("options")
+        if ops is None:
+            self.logger.warning("Could not get combo options list")
+            return
+
+        ok, ops = HandlersApi.getter(module=ops["module"], prop=ops["prop"], index=ops.get("index"))
+        if not ok:
+            self.logger.warning("Could not update combo options list")
+            return
+
+        caller.clear()
+        caller.insertItems(0, ops)
 
     def fetchValue(self, wid):
         return wid.currentText()
@@ -287,10 +314,9 @@ class Watcher(QLabel):
         self.index = index
 
     def fetch(self):
-        return HandlersApi.getter(self.module, self.prop, self.index)
+        return HandlersApi.getter(self.module, self.prop, self.index, silent=True)
 
     def setVar(self, ok: bool, var):
-        # ok, var = HandlersApi.getter(self.module, self.prop, self.index)
         if not ok and self.isEnabled():
             var = "?"
             self.setDisabled(True)
@@ -312,10 +338,33 @@ class WatchHandler(BaseHandler):
         ok, val = wid.fetch()
         wid.setVar(ok, val)
 
-        if not ok:
+        if not ok and not elem.get("noWarn", False):
             self.logger.warning("Could not enable variable watcher for " + elem["name"])
 
         HandlersApi._addVariableWatch(wid, val)
+
+        return wid
+
+    def fetchValue(self, wid):
+        return None
+
+    def updateValue(self, wid, value):
+        return False
+
+
+class ExternalHandler(BaseHandler):
+    def __init__(self):
+        super(ExternalHandler, self).__init__()
+        self.logger = logging.getLogger(__name__)
+
+    def initElem(self, elem):
+        wid = QPushButton(elem.get("text", "..."))
+
+        registry = HandlersApi.externalRegistries.get(elem.get("registry"))
+        if registry is None:
+            self.logger.warning("Could not find external registry " + elem.get("registry", "None"))
+            return wid
+        wid.clicked.connect(registry.show)
 
         return wid
 
@@ -333,5 +382,6 @@ handlers = {
     "color": ColorHandler,
     "bool": BoolHandler,
     "combo": ComboHandler,
-    "watch": WatchHandler
+    "watch": WatchHandler,
+    "external": ExternalHandler
 }

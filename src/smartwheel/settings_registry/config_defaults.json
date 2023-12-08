@@ -7,7 +7,7 @@
     {"name": "Haptics", "config": "haptics.json"}
   ],
   "external":
-  {"contour": {"linkedCombo": "contour", "inPlace": true}, "pattern": {"linkedCombo": "pattern", "inPlace": true}, "serialmodule": {}, "ui_media": {}, "ui_midi": {}},
+  {"contour": {"linkedCombo": "contour", "inPlace": true}, "pattern": {"linkedCombo": "pattern", "inPlace": true}, "serialmodule": {}, "ui_media": {}, "ui_midi": {}, "actionengine_debug": {}},
   "groupMinimalHeight": 100,
   "fieldWidth": 200,
   "settings_handlers_dir": "settings_handlers"

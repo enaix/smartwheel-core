@@ -12,7 +12,7 @@
       {"name": "Stabilize FPS", "type": "bool", "module": "canvas", "prop": "stabilizeFPS"},
       {"name": "FPS stabilizer window", "type": "int", "min": 1, "max": 10000, "module": "canvas", "prop": "fpsFramesSmooth"},
       {"name": "Logging level", "type": "combo", "options": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], "module": "canvas", "prop": "logging"},
-      {"name": "FPS", "type": "watch", "module": "canvas", "prop": "real_fps"}
+      {"name": "Current FPS", "type": "watch", "module": "canvas", "prop": "real_fps"}
     ]}
   ]
 }
