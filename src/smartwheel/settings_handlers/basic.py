@@ -375,6 +375,25 @@ class ExternalHandler(BaseHandler):
         return False
 
 
+class TextHandler(BaseHandler):
+    def __init__(self):
+        super(TextHandler, self).__init__()
+        self.logger = logging.getLogger(__name__)
+
+    def initElem(self, elem):
+        wid = QLabel(elem["text"])
+
+        wid.setDisabled(True)
+
+        return wid
+
+    def fetchValue(self, wid):
+        return None
+
+    def updateValue(self, wid, value):
+        return False
+
+
 handlers = {
     "int": IntHandler,
     "float": FloatHandler,
@@ -383,5 +402,6 @@ handlers = {
     "bool": BoolHandler,
     "combo": ComboHandler,
     "watch": WatchHandler,
-    "external": ExternalHandler
+    "external": ExternalHandler,
+    "text": TextHandler
 }
