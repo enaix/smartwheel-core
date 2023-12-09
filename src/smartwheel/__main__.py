@@ -314,6 +314,7 @@ class RootWindow(QMainWindow):
         self.serialModules = {}
         self.serialModulesNames = []
 
+        # TODO (long) add support for multiple devices with same protocol
         for i in self.conf.c["canvas"]["serialModulesLoad"]:
             mod_name = self.conf.c["canvas"]["serialModules"][i]["name"]
             mod = importlib.import_module("smartwheel." + mod_name)

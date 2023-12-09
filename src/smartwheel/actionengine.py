@@ -40,7 +40,7 @@ class ActionEngine(QObject):
 
     callAction = pyqtSignal(DevicePulse, name="action_call")
 
-    def __init__(self, modules, config_file, WConfig):
+    def __init__(self, config_file, WConfig):
         """
         Initialize ActionEngine
 
@@ -57,12 +57,6 @@ class ActionEngine(QObject):
         self.logger = logging.getLogger(__name__)
         self.importConfig(config_file)
         tools.merge_dicts(self.conf, WConfig)
-        self.current_module = 0
-        self.current_module_getter = None
-        self.current_module_list_getter = None
-        self.canvas = None
-        self.wheel = None
-        self.modules = modules
         self.callAction.connect(self.processCall)
         self.actions = {}
         self.importActions()
@@ -94,6 +88,7 @@ class ActionEngine(QObject):
             Filename
 
         """
+        # TODO (long) add multiple encoders settings
         self.conf = config.Config(
             config_file=config_file, logger=self.logger, varsWhitelist=["commandBind", "acceleration", "logEngine", "debugLookupKey"]
         )
@@ -120,18 +115,16 @@ class ActionEngine(QObject):
             ).WheelAction()
             self.wheel_actions[mod_class.type] = mod_class
 
-    def getModule(self, i):
+    def initModulesHaptics(self):
         """
-        Get i-th module
-
-        Parameters
-        ----------
-        i
-            Index of module
+        Iterate over loaded canvas modules and load haptics
         """
-        if i >= len(self.modules):
-            return None
-        return self.modules[i]
+        self.mod_haptics = {}
+        for mod in Classes.RootCanvas().wheel_modules:
+            if mod.get("class") is not None:
+                # We assume that all modules load config by conf attribute
+                if hasattr(mod["class"], "conf") and mod["class"].conf.get("haptics"):
+                    self.mod_haptics[mod["name"]] = mod["class"].conf["haptics"]
 
     def action(self, call: str, pulse: Pulse = None):
         """
@@ -147,23 +140,21 @@ class ActionEngine(QObject):
         if pulse is None:
             pulse = Pulse(pulse_type=PulseTypes.BUTTON)
 
-        self.modules = self.current_module_list_getter()
-        self.current_module = self.current_module_getter()
-        if self.getModule(self.current_module) is None:
+        modules = Classes.RootCanvas().cur_wheel_modules
+        current_module = Classes.RootCanvas().conf["modules"][0]["class"].getCurModule()
+        if modules[current_module] is None or modules[current_module].get("class") is None:
             return
 
-        if self.modules[self.current_module]["class"].conf.get("actions") is None:
+        if modules[current_module]["class"].conf.get("actions") is None:
             return
 
         context = (
-            self.modules[self.current_module]["class"].conf["actions"].get(call, None)
+            modules[current_module]["class"].conf["actions"].get(call, None)
         )
         if context is None:
             return
         for i in context:
-            i["canvas"] = self.canvas
-            i["wheel"] = self.wheel
-            i["module"] = weakref.ref(self.modules[self.current_module]["class"])
+            i["module"] = weakref.ref(modules[current_module]["class"])
             i["call"] = call
             self.actions[i["action"].lower()].run(i, pulse)
 
@@ -171,7 +162,7 @@ class ActionEngine(QObject):
         """
         Find wheel action
         a
-           TODO understand this
+           Action to find
         """
         for i in self.conf["commandActions"]:
             if i["type"] == a["mode"] and i["name"] == a["action"]:
@@ -461,5 +452,3 @@ class ActionEngine(QObject):
 
         return pulse
 
-    def loadModulesConf(self, conf):
-        self.modules.append(conf)

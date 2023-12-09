@@ -1,7 +1,7 @@
 {
   "name": "actionengine_debug",
   "items": [
-    {"name": "Note:", "type": "text", "text": "Spin the wheel and select the device"},
+    {"type": "text", "text": "Spin the wheel and select the device"},
     {"name": "Rotary device to monitor", "type": "combo", "options": {"module": "actionengine", "prop": "debugPulses"},
       "module": "actionengine", "prop": "debugLookupKey"},
     {"name": "Current angle", "type": "watch", "module": "actionengine", "prop": "debug.step", "noWarn": true},

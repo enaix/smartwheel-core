@@ -330,12 +330,9 @@ class RootCanvas(QObject):
     def loadActionEngine(self):
         common.app_manager.updateState(common.AppState.ActionsInit)
         self.ae = ActionEngine(
-            self.wheel_modules,
             os.path.join(self.config_dir, self.conf["actionEngineConfig"]),
             self.conf,
         )
-        self.ae.current_module_list_getter = self.getCurModList
-        self.ae.current_module_getter = self.conf["modules"][0]["class"].getCurModule
         self.ae.canvas = weakref.ref(self)
         self.ae.wheel = weakref.ref(self.conf["modules"][0]["class"])
         Classes.ActionEngine = weakref.ref(self.ae)
