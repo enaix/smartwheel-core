@@ -6,6 +6,7 @@ from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, QEventLoop
 
 from smartwheel import common
 from smartwheel.api.app import Classes
+from smartwheel.api.settings import HandlersApi
 
 
 class Config(QObject):
@@ -110,13 +111,7 @@ class Config(QObject):
         Check if the key is present and repair the app if needed
         """
         if self.c.get(key) is None:
-            #Classes.MainWindow().setUpdatesEnabled(False)
-            #self.keyError.emit(self, key)
             common.doctor.configKeyError(self, key)
-
-            #loop = QEventLoop()
-            #common.doctor.fixPerformed.connect(loop.quit)
-            #loop.exec()
 
     def __fetchkey(self, key):
         """
@@ -184,37 +179,37 @@ class Config(QObject):
         """
         self.c[key] = newvalue
 
-    @pyqtSlot(str)
-    def __updated(self, key):
+    @pyqtSlot(list)
+    def __updated(self, key: list[str]):
         """
         Call the update signal if the property is updated
 
         Parameters
         ==========
         key
-            Updated key
+            Updated nested key (["a"]["b"] -> ["a", "b"])
         """
-        if self.get(key) is not None:
+        if HandlersApi.getter(prop=key, silent=True, inplace_dict=self.c) is not None:
             if self.updateFunc is not None:
                 self.updateFunc()
             self.updated.emit()
+            return True
+        return False
 
     @pyqtSlot(list)
-    def __batchUpdate(self, keys):
+    def __batchUpdate(self, keys: list[list[str]]):
         """
         Call the update signal if multiple properties may be updated
 
         Parameters
         ==========
         keys
-            Updated keys
+            Updated nested keys (see __updated)
         """
         for key in keys:
-            if self.get(key) is not None:
-                if self.updateFunc is not None:
-                    self.updateFunc()
-                self.updated.emit()
-                break
+            if self.__updated(key):
+                return True
+        return False
 
     def __len__(self):
         return len(self.c)

@@ -17,7 +17,7 @@ class ConfigManager(QObject):
 
     save = pyqtSignal()
     defaults = pyqtSignal()
-    updated = pyqtSignal(str)
+    updated = pyqtSignal(list)
     batchUpdate = pyqtSignal(list)
     merge = pyqtSignal()
 
@@ -152,7 +152,6 @@ class ConfigFixStrategy(IntEnum):
     DefaultsAll = auto()
     HaltModule = auto()
     Halt = auto()
-
 
 
 class Doctor(QObject):

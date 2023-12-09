@@ -225,9 +225,10 @@ class BoolHandler(BaseHandler):
 
 class CComboBox(QComboBox):
     opened = pyqtSignal()
+
     def showPopup(self) -> None:
         self.opened.emit()
-
+        super(CComboBox, self).showPopup()
 
 class ComboHandler(BaseHandler):
     def __init__(self):
@@ -259,7 +260,8 @@ class ComboHandler(BaseHandler):
                                         "index": elem["options"].get("index")})
 
             wid.insertItems(0, ops)
-            wid.opened.connect(self.getOps)
+            if elem.get("dynamic", False):
+                wid.opened.connect(self.getOps, Qt.ConnectionType.QueuedConnection)
 
         ok, value = HandlersApi.getter(elem["module"], elem["prop"])
         if ok:

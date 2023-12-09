@@ -216,7 +216,7 @@ class SettingsWindow(QWidget):
 
         HandlersApi.handlers = self.handlers
 
-    def getValue(self, module, prop, index=None, silent=False):
+    def getValue(self, module=None, prop=None, index=None, silent=False, inplace_dict=None):
         """
         Get property from the application
         Returns (True, value) if found, (False, None) otherwise
@@ -226,19 +226,28 @@ class SettingsWindow(QWidget):
         module
             Module name (in self.settings)
         prop
-            Property keys, separated by `.`
+            Property keys, either separated by `.` or a list of keys
         index
             If not None, the index in the property array. If an array, then it's duplicated at specified indices
         silent
             (Optional) Do not write to the log
+        inplace_dict
+            (Optional) Iterate over the given dict. Overrides module option
         """
-        if self.settings.get(module) is None:
+        if inplace_dict is None and self.settings.get(module) is None:
             if not silent:
                 self.logger.error("Could not get value: no module " + module)
             return False, None
 
-        props = prop.split(".")
-        cur_prop = self.settings[module]
+        if type(prop) == str:
+            props = prop.split(".")
+        else:
+            props = prop
+        if inplace_dict is not None:
+            cur_prop = inplace_dict
+        else:
+            cur_prop = self.settings[module]
+
         for p in props:
             if cur_prop.get(p) is None:
                 if not silent:
@@ -348,10 +357,10 @@ class SettingsWindow(QWidget):
             self.setCustom(name)
 
             if self.isLoaded:
-                common.config_manager.updated.emit(props[-1:][0])
+                common.config_manager.updated.emit(props)
                 self.main_class().update()
             else:
-                self.presets_update_queue.append(props[-1:][0])
+                self.presets_update_queue.append(props)
 
             if _user:
                 # TODO check if it's equal to default

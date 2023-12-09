@@ -62,6 +62,8 @@ class ActionEngine(QObject):
         self.importActions()
         self.importWheelActions()
 
+        self.haptics = {}
+        self.updateModuleHaptics(True)
         self.last_state = True  # wheel
         self.angles = [0.0, 0.0]  # angles for wheel and module states
         self.positions_list = [Classes.RootCanvas().common_config["selectionWheelEntries"],
@@ -90,9 +92,11 @@ class ActionEngine(QObject):
         """
         # TODO (long) add multiple encoders settings
         self.conf = config.Config(
-            config_file=config_file, logger=self.logger, varsWhitelist=["commandBind", "acceleration", "logEngine", "debugLookupKey"]
+            config_file=config_file, logger=self.logger,
+            varsWhitelist=["commandBind", "acceleration", "logEngine", "debugLookupKey"]
         )
         self.conf.loadConfig()
+        self.conf.updated.connect(self.updateHapticsConf)
 
     def importActions(self):
         """
@@ -114,17 +118,6 @@ class ActionEngine(QObject):
                 "smartwheel." + self.conf["wheelActionModules"][mod]["name"]
             ).WheelAction()
             self.wheel_actions[mod_class.type] = mod_class
-
-    def initModulesHaptics(self):
-        """
-        Iterate over loaded canvas modules and load haptics
-        """
-        self.mod_haptics = {}
-        for mod in Classes.RootCanvas().wheel_modules:
-            if mod.get("class") is not None:
-                # We assume that all modules load config by conf attribute
-                if hasattr(mod["class"], "conf") and mod["class"].conf.get("haptics"):
-                    self.mod_haptics[mod["name"]] = mod["class"].conf["haptics"]
 
     def action(self, call: str, pulse: Pulse = None):
         """
@@ -269,7 +262,7 @@ class ActionEngine(QObject):
             norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (180.0 / self.n_positions)
 
             # calculate deltaTime
-            delta = self.conf["acceleration"]["pulseRefreshTime"] / 1000
+            delta = self.haptics["pulseRefreshTime"] / 1000
 
             # update the position with inertia
             self.accelMeta[key].step += self.accelMeta[key].acceleration * delta
@@ -289,18 +282,18 @@ class ActionEngine(QObject):
 
             # friction calculation
             self.accelMeta[key].acceleration += (-self.accelMeta[key].acceleration) * ((1.0 - norm_dist) ** 2) * \
-                                                 self.conf["acceleration"]["friction"] * delta
+                                                self.haptics["friction"] * delta
 
             # constantly adjust inertia based on the current direction
-            self.accelMeta[key].acceleration += self.conf["acceleration"]["gravity"] * direction * (
+            self.accelMeta[key].acceleration += self.haptics["gravity"] * direction * (
                     0.5 + 0.5 * (1.0 - norm_dist)) * delta
 
             # change of velocity
             dir_change = self.accelMeta[key].acceleration * old_accel < 0
 
             stopped = False
-            if dir_change and abs(nearest_angle - self.accelMeta[key].step) < self.conf["acceleration"]["deadzone"] and \
-                    abs(self.accelMeta[key].acceleration) < self.conf["acceleration"]["maxStopAccel"]:
+            if dir_change and abs(nearest_angle - self.accelMeta[key].step) < self.haptics["deadzone"] and \
+                    abs(self.accelMeta[key].acceleration) < self.haptics["maxStopAccel"]:
                 self.accelMeta[key].acceleration = 0.0
                 self.accelMeta[key].step = nearest_angle
                 self.accelTime.stop()
@@ -353,6 +346,7 @@ class ActionEngine(QObject):
             Increment up (if True)
         """
         self.angles[0] += (1 if up else -1) * 360.0 / self.n_positions
+        self.updateModuleHaptics(self.getState() == "wheel")
 
     def wheelStateChanged(self, is_wheel_mode: bool):
         """
@@ -366,8 +360,45 @@ class ActionEngine(QObject):
         for key, _ in self.devicePulses.items():
             self.resetPulse(self.devicePulses[key], is_wheel_mode)
 
+        self.updateModuleHaptics(is_wheel_mode)
+
         # execute force update
         self.pulseCycle(True)
+
+    def updateModuleHaptics(self, is_wheel_mode: bool):
+        """
+        Load haptics parameters associated with wheel/current module
+
+        Parameters
+        ==========
+        is_wheel_mode
+            Application state, either wheel (True) or module
+        """
+        if is_wheel_mode:
+            for key, value in self.conf["acceleration"].items():
+                self.haptics[key] = value
+            self.haptics["clickAccelCoeff"] = 1.0
+        else:
+            modules = Classes.RootCanvas().cur_wheel_modules
+            current_module = Classes.RootCanvas().conf["modules"][0]["class"].getCurModule()
+
+            if modules[current_module] is None or modules[current_module].get("class") is None or \
+                    modules[current_module]["class"].conf.get("haptics") is None:
+                # Load default params
+                self.updateModuleHaptics(True)
+                return
+
+            for key, value in modules[current_module]["class"].conf["haptics"].items():
+                if value is None:
+                    continue
+                self.haptics[key] = value
+
+    @pyqtSlot()
+    def updateHapticsConf(self):
+        """
+        Update haptics config on settings change
+        """
+        self.updateModuleHaptics(self.getState() == "wheel")
 
     def generatePulse(self, dpulse: DevicePulse, is_wheel_mode: bool):
         """
@@ -393,10 +424,6 @@ class ActionEngine(QObject):
             pulse.target = self.accelMeta[dpulse].target
             pulse.velocity = self.accelMeta[dpulse].acceleration
 
-            #if not is_wheel_mode == self.last_state:
-            #    self.resetPulse(dpulse, is_wheel_mode)
-            #    self.last_state = is_wheel_mode
-
             return pulse
 
         if pulse.type == PulseTypes.BUTTON:
@@ -419,26 +446,25 @@ class ActionEngine(QObject):
             self.conf["debugPulses"] = [str(x) for x, _ in self.devicePulses.items()]
 
             if dpulse.up:
-                accel = self.conf["acceleration"]["clickAccel"]
+                accel = self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
             else:
-                accel = -self.conf["acceleration"]["clickAccel"]
+                accel = -self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
 
-            self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel,
-                                                      self.conf["acceleration"]["maxAccel"])
+            self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel, self.haptics["maxAccel"])
         else:
             # Update pulse parameters (dpulse as a key does not represent all unique parameters)
             self.devicePulses[str(dpulse)].command = dpulse.command
 
             if dpulse.up:
-                self.accelMeta[dpulse].acceleration += self.conf["acceleration"]["clickAccel"]
+                self.accelMeta[dpulse].acceleration += self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
             else:
-                self.accelMeta[dpulse].acceleration -= self.conf["acceleration"]["clickAccel"]
+                self.accelMeta[dpulse].acceleration -= self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
 
-            if abs(self.accelMeta[dpulse].acceleration) >= self.conf["acceleration"]["maxAccel"]:
+            if abs(self.accelMeta[dpulse].acceleration) >= self.haptics["maxAccel"]:
                 if self.accelMeta[dpulse].acceleration > 0:
-                    self.accelMeta[dpulse].acceleration = self.conf["acceleration"]["maxAccel"]
+                    self.accelMeta[dpulse].acceleration = self.haptics["maxAccel"]
                 else:
-                    self.accelMeta[dpulse].acceleration = -self.conf["acceleration"]["maxAccel"]
+                    self.accelMeta[dpulse].acceleration = -self.haptics["maxAccel"]
 
         pulse.virtual = False
         pulse.click = False
@@ -451,4 +477,3 @@ class ActionEngine(QObject):
             self.accelTime.start()
 
         return pulse
-
