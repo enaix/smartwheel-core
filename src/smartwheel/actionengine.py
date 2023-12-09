@@ -62,13 +62,11 @@ class ActionEngine(QObject):
         self.importActions()
         self.importWheelActions()
 
+        self.n_positions = Classes.RootCanvas().common_config["selectionWheelEntries"]  # Current number of sections
         self.haptics = {}
         self.updateModuleHaptics(True)
         self.last_state = True  # wheel
         self.angles = [0.0, 0.0]  # angles for wheel and module states
-        self.positions_list = [Classes.RootCanvas().common_config["selectionWheelEntries"],
-                               self.conf["acceleration"]["moduleSections"]]
-        self.n_positions = self.positions_list[0]  # Current number of sections
         self.accelMeta = {}
         self.devicePulses = {}
         self.accelTime = QTimer(self)
@@ -243,23 +241,28 @@ class ActionEngine(QObject):
                 self.callAction.emit(pulse)
                 return
 
+            # calculate section angle
+            section_angle = 360.0 / self.haptics["moduleSections"]
+
             # calculate nearest angle among the sections (360 / n_positions)
             nearest_angle = self.accelMeta[key].target
             # upper bound
-            if abs(self.accelMeta[key].target + 360.0 / self.n_positions - self.accelMeta[key].step) < \
+            if abs(self.accelMeta[key].target + section_angle - self.accelMeta[key].step) < \
                     abs(self.accelMeta[key].target - self.accelMeta[key].step):
-                nearest_angle = self.accelMeta[key].target + 360.0 / self.n_positions
+                nearest_angle = self.accelMeta[key].target + section_angle * \
+                                ((self.accelMeta[key].step - self.accelMeta[key].target) // section_angle + 1)
 
             # lower bound
-            elif abs(self.accelMeta[key].target - 360.0 / self.n_positions - self.accelMeta[key].step) < \
+            elif abs(self.accelMeta[key].target - section_angle - self.accelMeta[key].step) < \
                     abs(self.accelMeta[key].target - self.accelMeta[key].step):
-                nearest_angle = self.accelMeta[key].target - 360.0 / self.n_positions
+                nearest_angle = self.accelMeta[key].target - section_angle * \
+                                ((self.accelMeta[key].target - self.accelMeta[key].step) // section_angle + 1)
 
             # calculate the direction towards the nearest fixed angle
             direction = 1 if nearest_angle > self.accelMeta[key].step else -1
 
             # calculate the normalized distance to the nearest angle
-            norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (180.0 / self.n_positions)
+            norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (section_angle / 2.0)
 
             # calculate deltaTime
             delta = self.haptics["pulseRefreshTime"] / 1000
@@ -305,7 +308,7 @@ class ActionEngine(QObject):
 
             if self.conf["debugLookupKey"] == str(key):
                 self.conf["debug"] = {"step": self.accelMeta[key].step, "target": self.accelMeta[key].target,
-                                      "velocity": self.accelMeta[key].velocity, "distance": norm_dist, "stop": stopped}
+                                      "velocity": self.accelMeta[key].acceleration, "distance": norm_dist, "stop": stopped}
 
             self.callAction.emit(pulse)
             if self.conf["logEngine"]:
@@ -333,9 +336,6 @@ class ActionEngine(QObject):
         self.accelMeta[dpulse].step = self.angles[int(is_wheel_mode)]
         self.accelMeta[dpulse].target = self.accelMeta[dpulse].step
 
-        # update number of positions
-        self.n_positions = self.positions_list[int(not is_wheel_mode)]
-
     def angleChanged(self, up=True):
         """
         Increment/decrement the angle (wheel)
@@ -345,7 +345,7 @@ class ActionEngine(QObject):
         up
             Increment up (if True)
         """
-        self.angles[0] += (1 if up else -1) * 360.0 / self.n_positions
+        self.angles[0] += (1 if up else -1) * 360.0 / self.haptics["moduleSections"]
         self.updateModuleHaptics(self.getState() == "wheel")
 
     def wheelStateChanged(self, is_wheel_mode: bool):
@@ -378,6 +378,7 @@ class ActionEngine(QObject):
             for key, value in self.conf["acceleration"].items():
                 self.haptics[key] = value
             self.haptics["clickAccelCoeff"] = 1.0
+            self.haptics["moduleSections"] = self.n_positions
         else:
             modules = Classes.RootCanvas().cur_wheel_modules
             current_module = Classes.RootCanvas().conf["modules"][0]["class"].getCurModule()
