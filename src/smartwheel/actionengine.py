@@ -263,7 +263,7 @@ class ActionEngine(QObject):
             if singleShot and \
                     self.accelMeta[key].target == self.accelMeta[key].step and self.accelMeta[key].acceleration == 0.0:
                 self.callAction.emit(pulse)
-                return
+                continue
 
             # calculate section angle
             section_angle = 360.0 / self.haptics["moduleSections"]

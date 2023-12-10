@@ -37,7 +37,7 @@ class SConn(ConnPipe):
         """
         # l = string.split()
         string = string.decode("utf-8").strip()
-        print(string)
+        self.logger.debug(string)
         if string == "":
             return
         cmd = []
@@ -53,14 +53,15 @@ class SConn(ConnPipe):
                     else:
                         pulse.type = PulseTypes.ENCODER
 
-                    if c["up"]:
-                        pulse.up = True
-                    else:
-                        pulse.up = False
+                    if c.get("up") is not None:
+                        if c["up"]:
+                            pulse.up = True
+                        else:
+                            pulse.up = False
 
                     cmd.append(pulse)
 
-        if cmd != []:
+        if cmd:
             for c in cmd:
                 self.call.emit(c)
 
