@@ -13,6 +13,15 @@
       {"name": "Deadzone (degrees)", "type": "float", "min": 0.0, "max": 100.0, "module": "actionengine", "prop": "acceleration.deadzone"},
       {"name": "Maximum deadzone acceleration", "type": "float", "min": 0.0, "max": 100.0, "module": "actionengine", "prop": "acceleration.maxStopAccel"},
       {"name": "Debugging menu", "type": "external", "text": "Go", "registry": "actionengine_debug"}
+    ]},
+    {"name": "Module parameters tuning", "options": [
+      {"name": "Module name", "type": "combo", "options": {"module": "actionengine", "prop": "modulesList"}, "module": "actionengine",
+      "prop": "modulesListPicker"},
+      {"name": "Gravity", "type": "float", "min": -200.0, "max": 200.0, "module": "actionengine", "prop": "haptics.gravity"},
+      {"name": "Maximum acceleration", "type": "float", "min": 0.0, "max": 1000.0, "module": "actionengine", "prop": "haptics.maxAccel"},
+      {"name": "Friction", "type": "float", "min": -200.0, "max": 200.0, "module": "actionengine", "prop": "haptics.friction"},
+      {"name": "Deadzone (degrees)", "type": "float", "min": 0.0, "max": 100.0, "module": "actionengine", "prop": "haptics.deadzone"},
+      {"name": "Maximum deadzone acceleration", "type": "float", "min": 0.0, "max": 100.0, "module": "actionengine", "prop": "haptics.maxStopAccel"}
     ]}
   ]
 }

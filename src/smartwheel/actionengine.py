@@ -63,12 +63,17 @@ class ActionEngine(QObject):
         self.importWheelActions()
 
         self.n_positions = Classes.RootCanvas().common_config["selectionWheelEntries"]  # Current number of sections
-        self.haptics = {}
+        self.haptics = config.Config(logger=self.logger, ignoreNewVars=False, config_dict={}, disableSaving=True)
+        self.haptics.updated.connect(self.onHapticsUpdate)
         self.updateModuleHaptics(True)
         self.last_state = True  # wheel
         self.angles = [0.0, 0.0]  # angles for wheel and module states
         self.accelMeta = {}
         self.devicePulses = {}
+
+        self.modules_bind = {}
+        self.loadModulesNames()
+
         self.accelTime = QTimer(self)
         self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
         self.accelTime.timeout.connect(self.pulseCycle)
@@ -95,6 +100,21 @@ class ActionEngine(QObject):
         )
         self.conf.loadConfig()
         self.conf.updated.connect(self.updateHapticsConf)
+
+    def loadModulesNames(self):
+        """
+        Register modules names bind (for settings)
+        """
+        modules = Classes.RootCanvas().cur_wheel_modules
+        self.conf["modulesList"] = []
+        self.conf["modulesListPicker"] = ""
+        for i in range(len(modules)):
+            if modules[i].get("title") is not None:
+                self.modules_bind[modules[i]["title"]] = i
+                self.conf["modulesList"].append(modules[i]["title"])
+            else:
+                self.modules_bind[modules[i]["name"]] = i
+                self.conf["modulesList"].append(modules[i]["name"])
 
     def importActions(self):
         """
@@ -133,7 +153,8 @@ class ActionEngine(QObject):
 
         modules = Classes.RootCanvas().cur_wheel_modules
         current_module = Classes.RootCanvas().conf["modules"][0]["class"].getCurModule()
-        if modules[current_module] is None or modules[current_module].get("class") is None:
+        if current_module >= len(modules) or modules[current_module] is None \
+                or modules[current_module].get("class") is None:
             return
 
         if modules[current_module]["class"].conf.get("actions") is None:
@@ -383,8 +404,8 @@ class ActionEngine(QObject):
             modules = Classes.RootCanvas().cur_wheel_modules
             current_module = Classes.RootCanvas().conf["modules"][0]["class"].getCurModule()
 
-            if modules[current_module] is None or modules[current_module].get("class") is None or \
-                    modules[current_module]["class"].conf.get("haptics") is None:
+            if current_module >= len(modules) or modules[current_module] is None or modules[current_module].get("class")\
+                    is None or modules[current_module]["class"].conf.get("haptics") is None:
                 # Load default params
                 self.updateModuleHaptics(True)
                 return
@@ -393,6 +414,10 @@ class ActionEngine(QObject):
                 if value is None:
                     continue
                 self.haptics[key] = value
+
+    @pyqtSlot()
+    def onHapticsUpdate(self):
+        pass
 
     @pyqtSlot()
     def updateHapticsConf(self):

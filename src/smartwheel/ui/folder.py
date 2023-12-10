@@ -1,5 +1,7 @@
 from smartwheel import config
 from smartwheel.ui.base import BaseUIElem
+from smartwheel.api.action import PulseTypes
+from smartwheel.api.app import Classes
 
 
 class UIElem(BaseUIElem):
@@ -17,8 +19,11 @@ class UIElem(BaseUIElem):
         self.conf = config.Config(config_file=self.config_file)
         self.conf.loadConfig()
 
-    def processKey(self, event):
-        event["canvas"]().reloadWheelModules(
+    def processKey(self, event, pulse):
+        if not pulse.click and not pulse.type == PulseTypes.BUTTON:
+            return
+
+        Classes.RootCanvas().reloadWheelModules(
             False, self.wrapper_pointer()
         )  # call canvas module
 

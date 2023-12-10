@@ -54,7 +54,7 @@ class UIElem(BaseUIElem):
 
         self.midiout.send_message([CONTROL_CHANGE, self.conf["controlChangeType"], self.cur])
 
-    def draw(self, qp, offset):
+    def draw(self, qp, offset=None):
         pen = QPen(QColor(self.conf["indicatorColor"]))
         brush = QBrush(QColor(self.conf["indicatorColor"]))
         qp.setPen(pen)
