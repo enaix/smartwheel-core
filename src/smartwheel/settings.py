@@ -5,6 +5,7 @@ import logging
 import os
 import time
 import weakref
+import copy
 from queue import LifoQueue
 
 from PyQt6.QtCore import Qt, pyqtSlot
@@ -26,6 +27,7 @@ from PyQt6.QtWidgets import (
 
 from smartwheel import common, config
 from smartwheel.api.settings import HandlersApi
+from smartwheel.api.app import Classes
 
 
 class SettingsWindow(QWidget):
@@ -148,10 +150,10 @@ class SettingsWindow(QWidget):
         self.main_class = main_class  # weakref to the main class
         self.confClass = conf  # weakref to wconfig
         self.settings["main"] = conf().c
-        self.settings["canvas"] = main_class().rc.conf
-        self.settings["common"] = main_class().rc.common_config
+        self.settings["canvas"] = Classes.RootCanvas().conf
+        self.settings["common"] = Classes.RootCanvas().common_config
         self.settings["settings"] = self.conf
-        self.settings["actionengine"] = main_class().rc.ae.conf
+        self.settings["actionengine"] = Classes.ActionEngine().conf
 
         # Parsing serial modules
         self.settings["serial"] = {}
@@ -485,7 +487,14 @@ class SettingsWindow(QWidget):
                 else:
                     p[0]().setRowVisible(p[1], False)
 
-    def processItem(self, elem, index, form, tab, registriesName=None):
+    @staticmethod
+    def parseTemplate(template: str, variable: str):
+        """
+        Insert variable into template ($ symbol)
+        """
+        return template.replace("$", variable)
+
+    def processItem(self, elem, index, form, tab, registriesName=None, template=None):
         if elem.get("name") is not None:
             label = QLabel(elem["name"])
         else:
@@ -494,6 +503,17 @@ class SettingsWindow(QWidget):
         wid = None
 
         elem["tab_index"] = index  # storing the index of the current tab
+
+        # Init template
+        if template is not None:
+            if elem.get("module") is not None:
+                elem["module"] = self.parseTemplate(elem["module"], template)
+
+            if elem.get("prop") is not None:
+                elem["prop"] = self.parseTemplate(elem["prop"], template)
+
+            if elem.get("index") is not None:
+                elem["index"] = self.parseTemplate(elem["index"], template)
 
         if self.handlers.get(elem["type"]) is None:
             self.logger.error(
@@ -735,6 +755,8 @@ class SettingsWindow(QWidget):
 
             for i, elem in enumerate(items):
                 if elem.get("external") is not None:
+
+                    # START OF EXTERNAL REGISTRIES CODE
                     if type(elem["external"]) == dict:
                         ok, ex_registries = self.getValue(
                             module=elem["external"]["module"],
@@ -768,6 +790,14 @@ class SettingsWindow(QWidget):
                     self.linked_widgets[registries_name] = {}
 
                     for reg_name in ex_registries:
+                        template_enabled = False
+                        # Get template registry name and use reg_name as template variables
+                        if elem.get("external_template_name") is not None:
+                            template_var = reg_name
+                            reg_name = elem["external_template_name"]
+                            templateCombo = template_var  # reg_name + "." + template_var
+                            template_enabled = True
+
                         if self.external_reg.get(reg_name) is None:
                             self.logger.warning(
                                 "No such external registry: " + reg_name
@@ -788,18 +818,47 @@ class SettingsWindow(QWidget):
                             )
                             continue
 
-                        self.linked_widgets[registries_name][
-                            exr["extra"]["linkedCombo"]
-                        ] = []
-
-                        for reg in exr["items"]:
-                            form_row, _ = self.processItem(reg, index, form, tab)
+                        if not template_enabled:
                             self.linked_widgets[registries_name][
                                 exr["extra"]["linkedCombo"]
-                            ].append((weakref.ref(form), form_row))
+                            ] = []
+                        else:
+                            self.linked_widgets[registries_name][
+                                templateCombo
+                            ] = []
+
+                        """
+                        template_vars = [None]
+                        # Get controller element values to iterate over for templating
+                        if elem.get("template_module") is not None:
+                            ok, value = self.getValue(module=elem["template_module"], prop=elem["template_prop"], index=elem.get("template_index"))
+                            if not ok:
+                                self.logger.warning("Could not get template parameter for " + elem["name"])
+                            else:
+                                template_vars = value
+                        """
+
+                        for reg in exr["items"]:
+                            if template_enabled:
+                                form_row, _ = self.processItem(copy.deepcopy(reg), index, form, tab, template=template_var)
+                                if form_row is None:
+                                    continue
+
+                                self.linked_widgets[registries_name][
+                                    templateCombo
+                                ].append((weakref.ref(form), form_row))
+                            else:
+                                form_row, _ = self.processItem(reg, index, form, tab)
+                                if form_row is None:
+                                    continue
+
+                                self.linked_widgets[registries_name][
+                                    exr["extra"]["linkedCombo"]
+                                ].append((weakref.ref(form), form_row))
 
                         self._showWidgets(registries_name, controller.currentText())
 
+                        # END OF EXTERNAL REGISTRIES CODE
                 else:
                     self.processItem(elem, index, form, tab)
 

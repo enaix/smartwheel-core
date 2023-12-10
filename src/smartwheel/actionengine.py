@@ -108,6 +108,7 @@ class ActionEngine(QObject):
         modules = Classes.RootCanvas().cur_wheel_modules
         self.conf["modulesList"] = []
         self.conf["modulesListPicker"] = ""
+        self.conf["moduleNamesList"] = []
         for i in range(len(modules)):
             if modules[i].get("title") is not None:
                 self.modules_bind[modules[i]["title"]] = i
@@ -115,6 +116,8 @@ class ActionEngine(QObject):
             else:
                 self.modules_bind[modules[i]["name"]] = i
                 self.conf["modulesList"].append(modules[i]["name"])
+
+            self.conf["moduleNamesList"].append(modules[i]["name"])
 
     def importActions(self):
         """

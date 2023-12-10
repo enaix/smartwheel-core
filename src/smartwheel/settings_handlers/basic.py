@@ -29,11 +29,13 @@ class IntHandler(BaseHandler):
         if elem.get("max") is not None:
             wid.setMaximum(elem["max"])
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"), silent=elem.get("noWarn", False))
         if ok:
             wid.setValue(value)
-        else:
+        elif not elem.get("noWarn", False):
             self.logger.warning("Could not get value for " + elem["name"])
+        if not ok:
+            wid.setDisabled(True)
 
         wid.valueChanged.connect(self.setInt)
 
@@ -69,11 +71,13 @@ class FloatHandler(BaseHandler):
         if elem.get("max") is not None:
             wid.setMaximum(elem["max"])
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"), silent=elem.get("noWarn", False))
         if ok:
             wid.setValue(value)
-        else:
+        elif not elem.get("noWarn", False):
             self.logger.warning("Could not get value for " + elem["name"])
+        if not ok:
+            wid.setDisabled(True)
 
         wid.valueChanged.connect(self.setFloat)
 
@@ -101,11 +105,13 @@ class StringHandler(BaseHandler):
     def initElem(self, elem):
         wid = QLineEdit()
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"), silent=elem.get("noWarn", False))
         if ok:
             wid.setText(value)
-        else:
+        elif not elem.get("noWarn", False):
             self.logger.warning("Could not get value for " + elem["name"])
+        if not ok:
+            wid.setDisabled(True)
 
         wid.textChanged.connect(self.setStr)
 
@@ -145,11 +151,13 @@ class ColorHandler(BaseHandler):
         wid.setProperty("prop", elem["prop"])
         wid.setProperty("index", elem.get("index"))
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"), silent=elem.get("noWarn", False))
         if ok:
             wid.setText(value)
-        else:
+        elif not elem.get("noWarn", False):
             self.logger.warning("Could not get value for " + elem["name"])
+        if not ok:
+            wid.setDisabled(True)
 
         if value is None:
             value = "#000000"
@@ -199,11 +207,13 @@ class BoolHandler(BaseHandler):
     def initElem(self, elem):
         wid = QCheckBox()
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"))
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"), silent=elem.get("noWarn", False))
         if ok:
             wid.setChecked(value)
-        else:
+        elif not elem.get("noWarn", False):
             self.logger.warning("Could not get value for " + elem["name"])
+        if not ok:
+            wid.setDisabled(True)
 
         wid.toggled.connect(self.setBool)
 
@@ -230,6 +240,7 @@ class CComboBox(QComboBox):
         self.opened.emit()
         super(CComboBox, self).showPopup()
 
+
 class ComboHandler(BaseHandler):
     def __init__(self):
         super(ComboHandler, self).__init__()
@@ -246,6 +257,7 @@ class ComboHandler(BaseHandler):
                 module=elem["options"]["module"],
                 prop=elem["options"]["prop"],
                 index=elem["options"].get("index"),
+                silent=elem.get("noWarn", False)
             )
             if not ok:
                 self.logger.error(
@@ -254,7 +266,6 @@ class ComboHandler(BaseHandler):
                     + "."
                     + elem["options"]["prop"]
                 )
-                return None
             wid.setProperty("options", {"module": elem["options"]["module"],
                                         "prop": elem["options"]["prop"],
                                         "index": elem["options"].get("index")})
@@ -263,10 +274,10 @@ class ComboHandler(BaseHandler):
             if elem.get("dynamic", False):
                 wid.opened.connect(self.getOps, Qt.ConnectionType.QueuedConnection)
 
-        ok, value = HandlersApi.getter(elem["module"], elem["prop"])
+        ok, value = HandlersApi.getter(elem["module"], elem["prop"], elem.get("index"), silent=elem.get("noWarn", False))
         if ok:
             wid.setCurrentText(value)
-        else:
+        elif not elem.get("noWarn", False):
             self.logger.warning("Could not get value for " + elem["name"])
 
         wid.currentTextChanged.connect(self.setStr)

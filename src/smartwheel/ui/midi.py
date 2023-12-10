@@ -28,7 +28,7 @@ class UIElem(BaseUIElem):
         del self.midiout
 
     def loadConfig(self):
-        self.conf = config.Config(self.config_file)
+        self.conf = config.Config(self.config_file, varsWhitelist=["haptics"])
         self.conf.loadConfig()
 
     def initGUI(self):
