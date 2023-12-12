@@ -1,4 +1,3 @@
-from PyQt6.QtCore import QObject
 from enum import Enum
 
 
@@ -7,16 +6,10 @@ class PulseTypes(Enum):
     ENCODER = 1
 
 
-class DevicePulse(QObject):
+class DevicePulse:
     """
     Pulse that is processed by action engine (must be used in serial modules)
     """
-
-    def __init__(self, bind=None, command=None, pulse_type=None):
-        super(DevicePulse, self).__init__()
-        self.bind = bind
-        self.command = command
-        self.type = pulse_type
 
     bind: str = None
     """
@@ -33,23 +26,57 @@ class DevicePulse(QObject):
     Pulse type, can either be a button or an encoder. Buttons pulses do not have any properties
     """
 
+    up: bool = None
+    """
+    Scroll direction (only for the encoder)
+    """
 
-class Pulse(QObject):
+    _virtual: bool = False
+    """
+    (Internal) True if executed by action engine cycle
+    """
+
+    _click: bool = False
+    """
+    (Internal) True if virtual pulse produces a click
+    """
+
+    def __init__(self, bind=None, command=None, pulse_type=None, up=None):
+        self.bind = bind
+        self.command = command
+        self.type = pulse_type
+        self.up = up
+
+    def copy(self):
+        """
+        Copy constructor of DevicePusle
+        Note that it doesn't copy _virtual and _click properties
+        """
+        return DevicePulse(bind=self.bind, command=self.command, pulse_type=self.type, up=self.up)
+
+    def __str__(self):
+        return self.bind
+
+    def __hash__(self):
+        return hash(self.bind)
+
+    def __eq__(self, rhs):
+        return self.bind == rhs.bind
+
+
+class Pulse:
     """
     Pulse that is sent by actionengine, is used by modules
     """
 
-    def __init__(self, pulse_type=None, click=True, step=None, target=None, velocity=None):
-        super(Pulse, self).__init__()
-        self.type = pulse_type
-        self.click = click
-        self.step = step
-        self.target = target
-        self.velocity = velocity
-
     type: PulseTypes = None
     """
     Pulse type, can either be a button or an encoder. Buttons pulses do not have any properties
+    """
+
+    up: bool = None
+    """
+    True if the encoder has rotated up (clockwise). Only present if the pulse is not virtual or has changed its position (click=True)
     """
 
     click: bool = True
@@ -59,15 +86,28 @@ class Pulse(QObject):
 
     step: float = None
     """
-    Accumulated encoder steps (from 0.0 to 1.0)
+    Accumulated encoder steps (from 0.0 to 360.0)
     """
 
     target: float = None
     """
-    Encoder target position (either 0.0 or 1.0)
+    Encoder target position (one of the fixed angles in 0-360 range)
     """
 
     velocity: float = None
     """
     Current encoder velocity
     """
+
+    virtual: bool = None
+    """
+    False if this pulse is created by the hardware and not by action engine cycle
+    """
+
+    def __init__(self, pulse_type=None, click=True, step=None, target=None, velocity=None, up=None):
+        self.type = pulse_type
+        self.click = click
+        self.step = step
+        self.target = target
+        self.velocity = velocity
+        self.up = up

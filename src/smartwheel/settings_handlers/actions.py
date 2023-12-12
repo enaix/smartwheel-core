@@ -167,21 +167,21 @@ class ActionList(BaseHandler):
             state.insertItems(0, ["Wheel", "Module", "Anywhere"])
             # anyState = QCheckBox()
 
-            if a.get("default") is not None:
-                if a["default"] == "any":
-                    state.setCurrentIndex(2)
-                elif a["default"] == "wheel":
-                    if bind["mode"] == "module":
-                        state.setCurrentIndex(1)
-                    else:
-                        state.setCurrentIndex(0)
-                elif a["default"] == "module":
-                    if bind["mode"] == "wheel":
-                        state.setCurrentIndex(0)
-                    else:
-                        state.setCurrentIndex(1)
-
             for j, bind in enumerate(elem_actions):
+                if a.get("default") is not None:
+                    if a["default"] == "any":
+                        state.setCurrentIndex(2)
+                    elif a["default"] == "wheel":
+                        if bind["mode"] == "module":
+                            state.setCurrentIndex(1)
+                        else:
+                            state.setCurrentIndex(0)
+                    elif a["default"] == "module":
+                        if bind["mode"] == "wheel":
+                            state.setCurrentIndex(0)
+                        else:
+                            state.setCurrentIndex(1)
+
                 if bind["action"] == a["name"]:
                     enabled.setChecked(True)
                 else:

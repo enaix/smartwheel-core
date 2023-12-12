@@ -5,8 +5,9 @@ import time
 from enum import auto, IntEnum, Enum
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt6.QtWidgets import QMessageBox
 
-from smartwheel import config
+from smartwheel.api.app import Classes, Common
 
 
 class ConfigManager(QObject):
@@ -15,8 +16,10 @@ class ConfigManager(QObject):
     """
 
     save = pyqtSignal()
-    updated = pyqtSignal(str)
+    defaults = pyqtSignal()
+    updated = pyqtSignal(list)
     batchUpdate = pyqtSignal(list)
+    merge = pyqtSignal()
 
     def __init__(self):
         super(ConfigManager, self).__init__()
@@ -35,6 +38,14 @@ class ConfigManager(QObject):
         Slot function that executes the saving of all Config objects, must be called from settings module
         """
         self.save.emit()
+        defaults_manager.save()
+
+    @pyqtSlot()
+    def setDefaults(self):
+        """
+        Slot function that sets defaults for all Config objects
+        """
+        self.defaults.emit()
 
 
 class AppState(IntEnum):
@@ -130,6 +141,17 @@ class StartupMode(str, Enum):
     PostUpdate = auto()
     Defaults = auto()
     PostDefaults = auto()
+    Emergency = auto()
+
+
+class ConfigFixStrategy(IntEnum):
+    Ignore = auto()
+    Merge = auto()
+    MergeAll = auto()
+    Defaults = auto()
+    DefaultsAll = auto()
+    HaltModule = auto()
+    Halt = auto()
 
 
 class Doctor(QObject):
@@ -141,6 +163,10 @@ class Doctor(QObject):
         self.startupMode = StartupMode.Normal
         self.file = None
         self.logger = logging.getLogger(__name__)
+        self.defaultMergeStrategy = ConfigFixStrategy.MergeAll
+
+        self.broken_config = None
+        self.broken_key = None
 
     def saveStatus(self):
         """
@@ -154,6 +180,139 @@ class Doctor(QObject):
             status = {"startupMode": self.startupMode.value, "update": False}
             with open(self.file, "w") as f:
                 json.dump(status, f, indent=4)
+
+    @pyqtSlot(QObject, str)
+    def configKeyError(self, conf, key=None):
+        """
+        Call Doctor to notify the user and fix the config
+
+        Parameters
+        ==========
+        conf
+            Config object that caused an error
+        key
+            (Optional) Missing key
+        """
+        if conf is None:
+            return
+        self.logger.critical("KeyError has been handled")
+        self.broken_config = conf
+        self.broken_key = key
+        self.notifyOnError(conf, key)
+        if self.executeConfigFix(conf):
+            self.logger.critical("Performing emergency shutdown...")
+            Classes.MainWindow().close()
+
+    def executeConfigFix(self, conf):
+        """
+        Attempt to solve config error by following the strategy
+
+        Parameters
+        ==========
+        conf
+            Config object to fix
+        """
+        if conf._fixStrategy == ConfigFixStrategy.Merge:
+            self.logger.warning("Merging config files...")
+            conf.mergeDefaults()
+            return True
+
+        elif conf._fixStrategy == ConfigFixStrategy.MergeAll:
+            self.logger.warning("Merging all config files...")
+            # Ensure that it is loaded
+            conf.mergeDefaults()
+            conf.blockSignals(True)
+            config_manager.merge.emit()
+            conf.blockSignals(False)
+            return True
+
+        elif conf._fixStrategy == ConfigFixStrategy.Defaults:
+            self.logger.warning("Restoring defaults for the config...")
+            conf.loadDefaults()
+            return True
+
+        elif conf._fixStrategy == ConfigFixStrategy.DefaultsAll:
+            self.logger.warning("Restoring all defaults...")
+            conf.loadDefaults()
+            conf.blockSignals(True)
+            config_manager.defaults.emit()
+            conf.blockSignals(False)
+            return True
+
+        elif conf._fixStrategy == ConfigFixStrategy.HaltModule:
+            # TODO finish this
+            return False
+        return False
+        
+    def notifyOnError(self, conf, key=None):
+        """
+        Display error message on missing config key
+
+        Parameters
+        ==========
+        conf
+            Config object that caused an error
+        key
+            (Optional) Missing key
+        """
+        self.startupMode = StartupMode.Emergency
+
+        if conf._fixStrategy <= ConfigFixStrategy.DefaultsAll:
+            # Configs have not been restored yet
+            msg = QMessageBox()
+            msg.setWindowTitle("Doctor")
+            defaults = msg.addButton("Restore defaults", QMessageBox.ButtonRole.AcceptRole)
+            defaultsAll = msg.addButton("Restore all defaults", QMessageBox.ButtonRole.DestructiveRole)
+            ignore = msg.addButton("Ignore", QMessageBox.ButtonRole.RejectRole)
+
+            if conf.meta_name == "unknown":
+                msg.setText("Doctor has reported an error in configuration file")
+            else:
+                msg.setText("Doctor has reported an error in " + conf.meta_name + " (" + conf.meta_desc + ")")
+
+            err = ""
+            if key is not None:
+                err += "No such key " + str(key) + ". "
+            if conf.config_file is not None:
+                err += "File: " + conf.config_file
+
+            msg.setDetailedText(err)
+            msg.setInformativeText("Restoring defaults would delete your previous config")
+            msg.setModal(True)
+
+            msg.exec()
+
+            if msg.clickedButton() == defaults:
+                conf._fixStrategy = ConfigFixStrategy.Defaults
+            elif msg.clickedButton() == defaultsAll:
+                conf._fixStrategy = ConfigFixStrategy.DefaultsAll
+            elif msg.clickedButton() == ignore:
+                conf._fixStrategy = ConfigFixStrategy.Ignore
+            else:
+                self.logger.error("No button has been pressed, perhaps the model failed to open")
+                conf._fixStrategy = ConfigFixStrategy.Ignore
+            # Display message that asks the user to disable the module that throws errors
+            # We ignore any errors caused by this module until the next restart
+
+    def handleConfigError(self, conf, key=None):
+        """
+        Manage config KeyError. Will attempt to recover the state on-the-fly if possible
+
+        Parameters
+        ==========
+        conf
+            config.Config object that caused an error
+        key
+            (Optional) The key that is missing from the config
+        """
+
+        # files are already merged
+        if not self.startupMode == StartupMode.Normal:
+            if conf._fixStrategy <= ConfigFixStrategy.MergeAll:
+                conf._fixStrategy = ConfigFixStrategy.Defaults
+
+        self.executeConfigFix(conf, key)
+
 
     def loadStatus(self, file):
         """
@@ -208,6 +367,7 @@ class DefaultsManager(QObject):
 
     def __init__(self):
         super(DefaultsManager, self).__init__()
+        self.modified = set()
 
     def postInit(self, config_dir, defaults_config_dir):
         """
@@ -221,6 +381,18 @@ class DefaultsManager(QObject):
         self.config_dir = config_dir
         self.defaults_config_dir = defaults_config_dir
 
+        self.modified_file = os.path.join(Common.Basedir, self.config_dir, "modified.json")
+        if os.path.exists(self.modified_file):
+            with open(self.modified_file, 'r') as f:
+                self.modified = set(json.load(f).get("modified", []))
+
+    def save(self):
+        """
+        Save the list of modified properties
+        """
+        with open(self.modified_file, 'w') as f:
+            json.dump({"modified": list(self.modified)}, f)
+
     def __new__(cls):
         """
         Singleton implementation
@@ -232,7 +404,7 @@ class DefaultsManager(QObject):
 
 class CacheManager(QObject):
     """
-    Global class that manages cache access. Not inteded to be called from other threads
+    Global class that manages cache access. Not intended to be called from other threads
     """
 
     def __init__(self):
@@ -321,8 +493,8 @@ class CacheManager(QObject):
         return cachepath
 
 
-config_manager = ConfigManager()
 defaults_manager = DefaultsManager()
+config_manager = ConfigManager()
 app_manager = ApplicationManager()
 cache_manager = CacheManager()
 doctor = Doctor()

@@ -52,7 +52,7 @@ class PresetHandler(BaseHandler):
         preset_names.append("Custom")
 
         HandlersApi.setter(
-            value=presets, module="settings", prop="presets." + str(elem["tab_index"])
+            value=presets, module="settings", prop="presets." + str(elem["tab_index"]), _user=False
         )
 
         wid.insertItems(len(preset_names) - 1, preset_names)
@@ -146,7 +146,7 @@ class PresetHandler(BaseHandler):
                 caller().blockSignals(True)
                 caller().setCurrentIndex(new_ind)
                 caller().blockSignals(False)
-                self.value_setter(value=title, module=module, prop=prop)
+                HandlersApi.setter(value=title, module=module, prop=prop)
         else:
             title = preset
 

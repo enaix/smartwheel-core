@@ -1,5 +1,5 @@
 from typing import Callable
-from PyQt6.QtCore import QObject
+from PyQt6.QtCore import QObject, pyqtSignal
 
 
 class _HandlersApi(QObject):
@@ -59,6 +59,21 @@ class _HandlersApi(QObject):
     _hooks: dict = None
     """
     Settings application hooks. Should not be used directly, see getter/setter functions instead
+    """
+
+    refresh: pyqtSignal = pyqtSignal()
+    """
+    Refresh all settings widgets with values from configs
+    """
+
+    watch: pyqtSignal = pyqtSignal()
+    """
+    Watch for the changed variables and update them in settings
+    """
+
+    _addVariableWatch: Callable = None
+    """
+    Add a callback for the variable watch
     """
 
     def __init__(self):

@@ -28,7 +28,7 @@ class UIElem(BaseUIElem):
         del self.midiout
 
     def loadConfig(self):
-        self.conf = config.Config(self.config_file)
+        self.conf = config.Config(self.config_file, varsWhitelist=["haptics"])
         self.conf.loadConfig()
 
     def initGUI(self):
@@ -54,7 +54,7 @@ class UIElem(BaseUIElem):
 
         self.midiout.send_message([CONTROL_CHANGE, self.conf["controlChangeType"], self.cur])
 
-    def draw(self, qp, offset):
+    def draw(self, qp, offset=None):
         pen = QPen(QColor(self.conf["indicatorColor"]))
         brush = QBrush(QColor(self.conf["indicatorColor"]))
         qp.setPen(pen)

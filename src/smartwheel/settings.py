@@ -3,7 +3,9 @@ import importlib
 import json
 import logging
 import os
+import time
 import weakref
+import copy
 from queue import LifoQueue
 
 from PyQt6.QtCore import Qt, pyqtSlot
@@ -20,10 +22,12 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QComboBox,
+    QMessageBox,
 )
 
 from smartwheel import common, config
 from smartwheel.api.settings import HandlersApi
+from smartwheel.api.app import Classes
 
 
 class SettingsWindow(QWidget):
@@ -61,6 +65,7 @@ class SettingsWindow(QWidget):
         HandlersApi._loadPreset = self.loadPreset
         HandlersApi._setCustomPreset = self.setCustom
         HandlersApi._showLinkedWidgets = self.showLinkedWidgets
+        HandlersApi.refresh.connect(self.refreshAll)
 
         self.loadConfig(config_file, defaults_file)
         self.setConfigHook(main_class, conf_class)
@@ -76,6 +81,14 @@ class SettingsWindow(QWidget):
         self.presets_update_queue = []
         self.isLoaded = False
         self.externalRegistries = {}
+        # all weakrefs of the widgets
+        self.settings_widgets = []
+
+        self.changed_variables = []
+        self.old_variables = []
+        self.watchers = []
+        HandlersApi.watch.connect(self.watchVariables)
+        HandlersApi._addVariableWatch = self.addVariableWatch
 
         HandlersApi.externalRegistries = self.externalRegistries
 
@@ -137,10 +150,10 @@ class SettingsWindow(QWidget):
         self.main_class = main_class  # weakref to the main class
         self.confClass = conf  # weakref to wconfig
         self.settings["main"] = conf().c
-        self.settings["canvas"] = main_class().rc.conf
-        self.settings["common"] = main_class().rc.common_config
+        self.settings["canvas"] = Classes.RootCanvas().conf
+        self.settings["common"] = Classes.RootCanvas().common_config
         self.settings["settings"] = self.conf
-        self.settings["actionengine"] = main_class().rc.ae.conf
+        self.settings["actionengine"] = Classes.ActionEngine().conf
 
         # Parsing serial modules
         self.settings["serial"] = {}
@@ -205,7 +218,7 @@ class SettingsWindow(QWidget):
 
         HandlersApi.handlers = self.handlers
 
-    def getValue(self, module, prop, index=None):
+    def getValue(self, module=None, prop=None, index=None, silent=False, inplace_dict=None):
         """
         Get property from the application
         Returns (True, value) if found, (False, None) otherwise
@@ -215,21 +228,34 @@ class SettingsWindow(QWidget):
         module
             Module name (in self.settings)
         prop
-            Property keys, separated by `.`
+            Property keys, either separated by `.` or a list of keys
         index
             If not None, the index in the property array. If an array, then it's duplicated at specified indices
+        silent
+            (Optional) Do not write to the log
+        inplace_dict
+            (Optional) Iterate over the given dict. Overrides module option
         """
-        if self.settings.get(module) is None:
-            self.logger.error("Could not get value: no module " + module)
+        if inplace_dict is None and self.settings.get(module) is None:
+            if not silent:
+                self.logger.error("Could not get value: no module " + module)
             return False, None
 
-        props = prop.split(".")
-        cur_prop = self.settings[module]
+        if type(prop) == str:
+            props = prop.split(".")
+        else:
+            props = prop
+        if inplace_dict is not None:
+            cur_prop = inplace_dict
+        else:
+            cur_prop = self.settings[module]
+
         for p in props:
             if cur_prop.get(p) is None:
-                self.logger.error(
-                    "Could not get value: no property " + module + "." + prop
-                )
+                if not silent:
+                    self.logger.error(
+                        "Could not get value: no property " + module + "." + prop
+                    )
                 return False, None
             else:
                 cur_prop = cur_prop[p]
@@ -291,7 +317,7 @@ class SettingsWindow(QWidget):
 
         return self.dictWalk(wrapper, props[1:], value, index, _i + 1)
 
-    def setValue(self, obj=None, value=None, module=None, prop=None, index=None):
+    def setValue(self, obj=None, value=None, module=None, prop=None, index=None, _user=True):
         """
         Set property from the application.
         Module, prop and index arguments may be fetched from the object properties (passing only obj and value) or passed directly (module, prop, index (optional) and value)
@@ -308,6 +334,8 @@ class SettingsWindow(QWidget):
             (Optional) Property keys, separated by `.`
         index
             (Optional) If not None, the index in the property array. If an array, then it's duplicated at specified indices
+        _user
+            (Optional) True if this action has been called by the user (the key should be marked as modified)
         """
 
         if obj is not None:
@@ -331,10 +359,14 @@ class SettingsWindow(QWidget):
             self.setCustom(name)
 
             if self.isLoaded:
-                common.config_manager.updated.emit(props[-1:][0])
+                common.config_manager.updated.emit(props)
                 self.main_class().update()
             else:
-                self.presets_update_queue.append(props[-1:][0])
+                self.presets_update_queue.append(props)
+
+            if _user:
+                # TODO check if it's equal to default
+                common.defaults_manager.modified.add(props[-1:][0])
 
     def savePreset(self, index, name, title, filepath):
         """
@@ -397,7 +429,11 @@ class SettingsWindow(QWidget):
 
             elem, handler = p_elem
 
+            # We need to block signals in order to prevent config update
+            elem().blockSignals(True)
             ok = handler.updateValue(elem(), value)
+            elem().blockSignals(False)
+
             if not ok:
                 self.logger.warning(
                     "Could not set "
@@ -451,7 +487,14 @@ class SettingsWindow(QWidget):
                 else:
                     p[0]().setRowVisible(p[1], False)
 
-    def processItem(self, elem, index, form, tab, registriesName=None):
+    @staticmethod
+    def parseTemplate(template: str, variable: str):
+        """
+        Insert variable into template ($ symbol)
+        """
+        return template.replace("$", variable)
+
+    def processItem(self, elem, index, form, tab, registriesName=None, template=None):
         if elem.get("name") is not None:
             label = QLabel(elem["name"])
         else:
@@ -460,6 +503,17 @@ class SettingsWindow(QWidget):
         wid = None
 
         elem["tab_index"] = index  # storing the index of the current tab
+
+        # Init template
+        if template is not None:
+            if elem.get("module") is not None:
+                elem["module"] = self.parseTemplate(elem["module"], template)
+
+            if elem.get("prop") is not None:
+                elem["prop"] = self.parseTemplate(elem["prop"], template)
+
+            if elem.get("index") is not None:
+                elem["index"] = self.parseTemplate(elem["index"], template)
 
         if self.handlers.get(elem["type"]) is None:
             self.logger.error(
@@ -488,6 +542,9 @@ class SettingsWindow(QWidget):
             if elem.get("index") is not None:
                 wid.setProperty("index", elem["index"])
                 prop_preset += "." + str(elem["index"])
+
+            # set handler name property
+            wid.setProperty("elem_type", elem["type"])
 
             if elem["type"] == "preset":
                 self.preset_controllers[index] = weakref.ref(wid.findChild(QComboBox))
@@ -535,12 +592,77 @@ class SettingsWindow(QWidget):
 
             widWrapper.addWidget(wid)
 
+            self.settings_widgets.append(weakref.ref(wid))
+
             if label is not None:
                 form.addRow(label, widWrapper)
             else:
                 form.addRow(widWrapper)
 
         return form.rowCount() - 1, wid
+
+    @pyqtSlot()
+    def setDefaults(self):
+        """
+        Open confirmation dialog and restore all defaults
+        Note: it seems that automatic signal connection prevents race conditions. Need more testing
+        """
+        ok = QMessageBox.question(self, "Defaults", "This will restore all defaults.\nWould you like to proceed?")
+        if ok == QMessageBox.StandardButton.Yes:
+            self.logger.info("Resetting defaults..")
+
+            # execute the update and wait
+            start_time = time.time_ns()
+            common.config_manager.defaults.emit()
+            self.logger.info("Reset took " + str((time.time_ns() - start_time) / 1000000) + " ms")
+
+            # time.sleep(3.0)
+
+            self.refreshAll()
+
+    def refreshElem(self, elem):
+        """
+        Update element value from config
+
+        Parameters
+        ==========
+        elem
+            Element to update
+        """
+        module = elem.property("widmodule")
+        prop = elem.property("prop")
+        index = elem.property("index")
+        handler = elem.property("elem_type")
+
+        if module is None or prop is None:
+            self.logger.info("Found some ghost widget with no module or property")
+            return
+
+        if handler is None:
+            self.logger.error("Could not get element type of " + str(module) + "." + str(prop))
+            return
+
+        ok, value = self.getValue(module, prop, index=index)
+        if not ok:
+            self.logger.warning("Could not get value for the element " + str(module) + "." + str(prop))
+            return
+
+        if self.handlers.get(handler) is None:
+            self.logger.error("Could not get handler of element type " + handler)
+            return
+
+        ok = self.handlers[handler].updateValue(elem, value)
+        if not ok:
+            self.logger.info("Could not set value for element " + str(module) + "." + str(prop) +
+                             ". May be intended behavior")
+
+    @pyqtSlot()
+    def refreshAll(self):
+        """
+        Updates all settings widgets from config
+        """
+        for elem in self.settings_widgets:
+            self.refreshElem(elem())
 
     def initExtraRegistries(self):
         for reg, value in self.external_reg.items():
@@ -566,6 +688,42 @@ class SettingsWindow(QWidget):
             scroll.setWidget(wrapper)
             scroll.setWindowTitle("Settings")
             self.externalRegistries[reg] = scroll
+
+    @pyqtSlot()
+    def watchVariables(self):
+        """
+        Iterate over variables to watch
+        """
+        if self.isHidden():
+            return
+
+        for i in range(len(self.changed_variables)):
+            ok, val = self.watchers[i]().fetch()
+
+            self.old_variables[i] = self.changed_variables[i]
+
+            if ok:
+                self.changed_variables[i] = val
+            else:
+                self.changed_variables[i] = None
+
+            if not self.old_variables == self.changed_variables:
+                self.watchers[i]().setVar(ok, val)
+
+    def addVariableWatch(self, watcher, val):
+        """
+        Add a variable to the watchlist
+
+        Parameters
+        ==========
+        watcher
+            settings_handlers.basic.Watcher object
+        val
+            Initial variable value
+        """
+        self.watchers.append(weakref.ref(watcher))
+        self.old_variables.append(val)
+        self.changed_variables.append(val)
 
     def initTab(self, index):
         """
@@ -597,6 +755,8 @@ class SettingsWindow(QWidget):
 
             for i, elem in enumerate(items):
                 if elem.get("external") is not None:
+
+                    # START OF EXTERNAL REGISTRIES CODE
                     if type(elem["external"]) == dict:
                         ok, ex_registries = self.getValue(
                             module=elem["external"]["module"],
@@ -630,6 +790,14 @@ class SettingsWindow(QWidget):
                     self.linked_widgets[registries_name] = {}
 
                     for reg_name in ex_registries:
+                        template_enabled = False
+                        # Get template registry name and use reg_name as template variables
+                        if elem.get("external_template_name") is not None:
+                            template_var = reg_name
+                            reg_name = elem["external_template_name"]
+                            templateCombo = template_var  # reg_name + "." + template_var
+                            template_enabled = True
+
                         if self.external_reg.get(reg_name) is None:
                             self.logger.warning(
                                 "No such external registry: " + reg_name
@@ -650,18 +818,47 @@ class SettingsWindow(QWidget):
                             )
                             continue
 
-                        self.linked_widgets[registries_name][
-                            exr["extra"]["linkedCombo"]
-                        ] = []
-
-                        for reg in exr["items"]:
-                            form_row, _ = self.processItem(reg, index, form, tab)
+                        if not template_enabled:
                             self.linked_widgets[registries_name][
                                 exr["extra"]["linkedCombo"]
-                            ].append((weakref.ref(form), form_row))
+                            ] = []
+                        else:
+                            self.linked_widgets[registries_name][
+                                templateCombo
+                            ] = []
+
+                        """
+                        template_vars = [None]
+                        # Get controller element values to iterate over for templating
+                        if elem.get("template_module") is not None:
+                            ok, value = self.getValue(module=elem["template_module"], prop=elem["template_prop"], index=elem.get("template_index"))
+                            if not ok:
+                                self.logger.warning("Could not get template parameter for " + elem["name"])
+                            else:
+                                template_vars = value
+                        """
+
+                        for reg in exr["items"]:
+                            if template_enabled:
+                                form_row, _ = self.processItem(copy.deepcopy(reg), index, form, tab, template=template_var)
+                                if form_row is None:
+                                    continue
+
+                                self.linked_widgets[registries_name][
+                                    templateCombo
+                                ].append((weakref.ref(form), form_row))
+                            else:
+                                form_row, _ = self.processItem(reg, index, form, tab)
+                                if form_row is None:
+                                    continue
+
+                                self.linked_widgets[registries_name][
+                                    exr["extra"]["linkedCombo"]
+                                ].append((weakref.ref(form), form_row))
 
                         self._showWidgets(registries_name, controller.currentText())
 
+                        # END OF EXTERNAL REGISTRIES CODE
                 else:
                     self.processItem(elem, index, form, tab)
 
@@ -700,9 +897,14 @@ class SettingsWindow(QWidget):
 
         cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(self.close)
+
+        defaultsButton = QPushButton("Defaults")
+        defaultsButton.clicked.connect(self.setDefaults)
+
         spacer = QSpacerItem(
             40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
         )
+        bottomPanel.addWidget(defaultsButton)
         bottomPanel.addSpacerItem(spacer)
         bottomPanel.addWidget(cancelButton)
         bottomPanel.addWidget(applyButton)

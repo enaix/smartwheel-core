@@ -1,7 +1,7 @@
 pyserial
 pynput
 pyqt6
-python-rtmidi==1.4.9
+python-rtmidi
 numpydoc
 pyqtdarktheme
 swcolorpicker

@@ -39,5 +39,12 @@
                 "comment": "Switch current HSL value"
             }
         ]
+    },
+    "haptics": {
+        "moduleSections": 360,
+        "clickAccelCoeff": 15.0,
+        "gravity": 50.0,
+        "friction": 20.0,
+        "maxAccel": 300.0
     }
 }

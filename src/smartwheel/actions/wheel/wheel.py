@@ -9,15 +9,26 @@ class WheelAction(BaseWheelAction):
 
     def run(self, action: str, pulse: Pulse):
         wheel = Classes.RootCanvas().conf["modules"][0]["class"]
-        if action == "wheelUp":
-            wheel.processKey(True, pulse)
-        elif action == "wheelDown":
-            wheel.processKey(False, pulse)
+        if action == "wheelUp" or action == "wheelDown":
+            wheel.processKey(pulse)
         elif action == "wheelSelect":
             wheel.selectModule()
+            Classes.ActionEngine().wheelStateChanged(False)
         elif action == "wheelOpen":
             wheel.openWheel()
+            Classes.ActionEngine().wheelStateChanged(True)
         elif action == "wheelQuickUp":
-            wheel.quickSwitch(True, pulse)
+            pulse.click = True
+            if Classes.ActionEngine().getState() == "module":
+                wheel.quickSwitch(pulse)
+                Classes.ActionEngine().angleChanged(True)
+            else:
+                wheel.processKey(pulse)
+
         elif action == "wheelQuickDown":
-            wheel.quickSwitch(False, pulse)
+            pulse.click = False
+            if Classes.ActionEngine().getState() == "module":
+                wheel.quickSwitch(pulse)
+                Classes.ActionEngine().angleChanged(False)
+            else:
+                wheel.processKey(pulse)

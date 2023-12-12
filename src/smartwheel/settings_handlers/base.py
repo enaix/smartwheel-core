@@ -47,6 +47,8 @@ class BaseHandler(QObject):
     def updateValue(self, wid: QObject, value) -> bool:
         """
         (Presets) Set the value of the widget, must return True if ok, False if not supported
+        All HandlersApi.setter calls should be executed with _user=False argument
+        Signals of the widget are blocked, so the setter should be called explicitly
 
         Parameters
         ==========

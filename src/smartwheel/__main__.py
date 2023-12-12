@@ -29,7 +29,8 @@ from PyQt6.QtWidgets import (
 from smartwheel import common, config, gui_tools
 from smartwheel.canvas import RootCanvas
 from smartwheel.settings import SettingsWindow
-from smartwheel.api.app import Classes
+from smartwheel.api.app import Classes, Common
+
 
 class WConfig(config.Config):
     def __init__(self, config_file, launch_config):
@@ -131,7 +132,7 @@ class RootWindow(QMainWindow):
             QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True
         )
         self.toolbar.setStyleSheet(
-            "background-color: " + self.rc.common_config["bgWheelColor"] + ";"
+            "background-color: " + self.rc.conf["toolsBackgroundColor"] + ";"
         )
         self.tools_layout = QVBoxLayout()
 
@@ -313,6 +314,7 @@ class RootWindow(QMainWindow):
         self.serialModules = {}
         self.serialModulesNames = []
 
+        # TODO (long) add support for multiple devices with same protocol
         for i in self.conf.c["canvas"]["serialModulesLoad"]:
             mod_name = self.conf.c["canvas"]["serialModules"][i]["name"]
             mod = importlib.import_module("smartwheel." + mod_name)
@@ -354,6 +356,8 @@ def main():
 
     with open(launch, "r") as f:
         launch_config = json.load(f)
+
+    Common.Basedir = dirpath
 
     common.defaults_manager.postInit(
         launch_config["config_dir"], launch_config["defaults_config_dir"]

@@ -87,17 +87,17 @@ class SConn(ConnPipe):
 
             self.encoders[enc["name"]] = Rotary(self.prbuttons[enc["linkedButton"]])
             self.encoders[enc["name"]].setupCallbacks(
-                [self.call] * 6,
+                [self.call] * 6,  # Classes.ActionEngine().callAction
                 [
-                    DevicePulse(bind=enc["name"], command=x, pulse_type=PulseTypes.ENCODER)
-                    for x in [
+                    DevicePulse(bind=enc["name"], command=x, pulse_type=PulseTypes.ENCODER, up=(i % 2 == 0))
+                    for i, x in enumerate([
                         "up",
                         "down",
                         "click up",
                         "click down",
                         "double up",
                         "double down",
-                    ]
+                    ])
                 ],
             )
 
@@ -110,7 +110,7 @@ class SConn(ConnPipe):
         key
             Key object
         """
-        k = str(key).strip("'")
+        k = str(key).strip("\'")
 
         if self.keys["keyboards"].get(k) is not None:
             self.call.emit(self.keys["keyboards"][k])

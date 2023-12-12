@@ -1,0 +1,12 @@
+{
+  "name": "module_haptics",
+  "items": [
+    {"name": "Click acceleration multiplier", "type": "float", "min": 0.0001, "max": 10000.0, "module": "$", "prop": "haptics.clickAccelCoeff", "noWarn": true
+    },
+    {"name": "Gravity", "type": "float", "min": -200.0, "max": 200.0, "module": "$", "prop": "haptics.gravity", "noWarn": true},
+    {"name": "Maximum acceleration", "type": "float", "min": 0.0, "max": 1000.0, "module": "$", "prop": "haptics.maxAccel", "noWarn": true},
+    {"name": "Friction", "type": "float", "min": -200.0, "max": 200.0, "module": "$", "prop": "haptics.friction", "noWarn": true},
+    {"name": "Deadzone (degrees)", "type": "float", "min": 0.0, "max": 100.0, "module": "$", "prop": "haptics.deadzone", "noWarn": true},
+    {"name": "Maximum deadzone acceleration", "type": "float", "min": 0.0, "max": 100.0, "module": "$", "prop": "haptics.maxStopAccel", "noWarn": true}
+  ]
+}

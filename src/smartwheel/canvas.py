@@ -3,8 +3,10 @@ import json
 import logging
 import os
 import queue
+import sys
 import time
 import weakref
+import traceback
 
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
@@ -13,6 +15,7 @@ from smartwheel import common, config, gui_tools
 from smartwheel.actionengine import ActionEngine
 from smartwheel.tools import merge_dicts
 from smartwheel.api.app import Classes
+from smartwheel.api.settings import HandlersApi
 
 
 class MList(list):
@@ -30,9 +33,12 @@ class MDict(dict):
 class RootCanvas(QObject):
     """Main canvas class, manages wheel modules"""
 
+    fixConfig = pyqtSignal(QObject, str)
+
     def __init__(self, WConfig, config_dir, update_func):
         super(RootCanvas, self).__init__()
         Classes.RootCanvas = weakref.ref(self)
+        self.fixConfig.connect(common.doctor.configKeyError, Qt.ConnectionType.QueuedConnection)
         self.common_config = None
         self.config_dir = config_dir
         self.conf = WConfig
@@ -59,6 +65,7 @@ class RootCanvas(QObject):
         self.exec_time = 0.01
         self.exec_window = 0
         self.exec_times = queue.Queue()
+        self.conf["real_fps"] = 0.0
 
         self.startThreads()
 
@@ -94,14 +101,19 @@ class RootCanvas(QObject):
         meta
             Configuration of the module
         """
-        mod = importlib.import_module("smartwheel." + meta["name"])
-        ui = mod.UIElem(
-            os.path.join(self.config_dir, meta["config"]),
-            self.conf,
-            self.wheel_modules,
-            self.update_func,
-            weakref.ref(self),
-        )
+        try:
+            mod = importlib.import_module("smartwheel." + meta["name"])
+            ui = mod.UIElem(
+                os.path.join(self.config_dir, meta["config"]),
+                self.conf,
+                self.wheel_modules,
+                self.update_func,
+                weakref.ref(self),
+                )
+        except BaseException:
+            self.logger.error("Failed to initialize module " + meta["name"])
+            traceback.print_exc()
+            return None
         return ui
 
     def loadSections(self, modules_list, parent_mod=None):
@@ -183,11 +195,15 @@ class RootCanvas(QObject):
                 )
                 self.conf["brush_configs"][k].loadConfig()
 
-                self.brushes[k] = b_dict[k](
-                    weakref.ref(self.conf),
-                    self.conf["brush_configs"][k],
-                    weakref.ref(self),
-                )
+                try:
+                    self.brushes[k] = b_dict[k](
+                        weakref.ref(self.conf),
+                        self.conf["brush_configs"][k],
+                        weakref.ref(self),
+                    )
+                except BaseException:
+                    self.logger.error("Could not load brush " + k)
+                    traceback.print_exc()
 
         self.conf["brushesTypes"] = list(self.brushes.keys())
 
@@ -213,7 +229,12 @@ class RootCanvas(QObject):
 
         mod = importlib.import_module("smartwheel." + module["name"])
         if module.get("config", None) is not None:
-            ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)
+            try:
+                ui = mod.UIElem(os.path.join(self.config_dir, module["config"]), self.conf)
+            except BaseException:
+                self.logger.error("Module has crashed! Could not initialize " + module["name"])
+                traceback.print_exc()
+                return module
 
             if hasattr(ui, "updateSignal"):
                 ui.updateSignal.connect(self.updateCanvas)
@@ -221,7 +242,13 @@ class RootCanvas(QObject):
             if hasattr(ui, "thread"):
                 self.threads.append(ui.thread)
         else:
-            ui = mod.UIElem("", module)
+            try:
+                ui = mod.UIElem("", module)
+            except BaseException:
+                self.logger.error("Module has crashed! Could not initialize " + module["name"])
+                traceback.print_exc()
+                return module
+
         module["class"] = ui
         # self.pixmap = QImage(self.module["class"].icon_path)
         return module
@@ -265,9 +292,16 @@ class RootCanvas(QObject):
                 cnf = os.path.join(self.config_dir, mod["config"])
             else:
                 cnf = None
-            mod_class = importlib.import_module("smartwheel." + mod["name"]).Internal(
-                self.conf, cnf
-            )
+
+            try:
+                mod_class = importlib.import_module("smartwheel." + mod["name"]).Internal(
+                    self.conf, cnf
+                )
+            except BaseException:
+                self.logger.error("Failed to initialize internal module " + mod["name"])
+                traceback.print_exc()
+                return
+
             self.conf["internal"][mod_class.name] = {
                 "class": mod_class,
                 "signals": mod_class.getSignals(),
@@ -275,7 +309,11 @@ class RootCanvas(QObject):
 
     def startInternalModules(self):
         for i in self.conf["internal"]:
-            self.conf["internal"][i]["class"].start()
+            try:
+                self.conf["internal"][i]["class"].start()
+            except BaseException:
+                self.logger.error("Failed to start internal module " + self.conf["internal"][i].name)
+                traceback.print_exc()
 
     def getCurModList(self):
         """
@@ -292,12 +330,9 @@ class RootCanvas(QObject):
     def loadActionEngine(self):
         common.app_manager.updateState(common.AppState.ActionsInit)
         self.ae = ActionEngine(
-            self.wheel_modules,
             os.path.join(self.config_dir, self.conf["actionEngineConfig"]),
             self.conf,
         )
-        self.ae.current_module_list_getter = self.getCurModList
-        self.ae.current_module_getter = self.conf["modules"][0]["class"].getCurModule
         self.ae.canvas = weakref.ref(self)
         self.ae.wheel = weakref.ref(self.conf["modules"][0]["class"])
         Classes.ActionEngine = weakref.ref(self.ae)
@@ -360,6 +395,9 @@ class RootCanvas(QObject):
         """
         # for i in self.conf["modulesLoad"]:
         #    self.conf["modules"][i]["class"].draw(qp)
+        if common.doctor.startupMode == common.StartupMode.Emergency:
+            return
+
         if self.conf["stabilizeFPS"]:
             sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)
         else:
@@ -369,21 +407,32 @@ class RootCanvas(QObject):
 
         start_time = time.time_ns()
 
-        self.conf["modules"][0]["class"].draw(qp)  # render wheel
+        try:
+            self.conf["modules"][0]["class"].draw(qp)  # render wheel
+        except BaseException as e:
+            traceback.print_exc()
+
+            common.doctor.startupMode = common.StartupMode.Emergency
+            self.fixConfig.emit(common.doctor.broken_config, common.doctor.broken_key)
+            return
 
         e_time = (time.time_ns() - start_time) / 1000000000  # seconds
 
+        HandlersApi.watch.emit()
+
         if self.conf["stabilizeFPS"]:
+            self.conf["real_fps"] = str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1))
             if self.conf["logFPS"]:
                 self.logger.info(
                     "FPS(AVG): "
-                    + str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1))
+                    + self.conf["real_fps"]
                 )
             self.calculateSmoothFPS(e_time)
 
         else:
+            self.conf["real_fps"] = str(round(1 / (sleep_time + e_time), 1))
             if self.conf["logFPS"]:
-                self.logger.info("FPS: " + str(round(1 / (sleep_time + e_time), 1)))
+                self.logger.info("FPS: " + self.conf["real_fps"])
 
         m = self.getWheelModule()
         cache = self.updateIconCache()

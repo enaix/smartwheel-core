@@ -21,7 +21,7 @@ class UIElem(BaseUIElem):
         self.initWidthAnimation()
 
     def loadConfig(self):
-        self.conf = config.Config(self.config_file)
+        self.conf = config.Config(self.config_file, varsWhitelist=["haptics"])
         self.conf.loadConfig()
 
     def checkOverflow(self, val):
@@ -63,7 +63,6 @@ class UIElem(BaseUIElem):
                 int(self.to_map(self.bri_selection)),
             )
             r, g, b, _ = color.getRgbF()
-            self.logger.debug(r, g, b)
             self.sendData(r, g, b)
             # print(self.hue_selection, self.sat_selection, self.bri_selection)
 

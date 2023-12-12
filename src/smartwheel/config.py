@@ -2,9 +2,11 @@ import json
 import os
 import weakref
 
-from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, QEventLoop
 
 from smartwheel import common
+from smartwheel.api.app import Classes
+from smartwheel.api.settings import HandlersApi
 
 
 class Config(QObject):
@@ -22,6 +24,8 @@ class Config(QObject):
 
     updated = pyqtSignal()
 
+    keyError = pyqtSignal(QObject, str)
+
     def __init__(
         self,
         config_file=None,
@@ -37,6 +41,7 @@ class Config(QObject):
         """
         Initialize Config object
         Note: the config file needs to be loaded manually by calling loadConfig()
+        Warning: do not initialize it in another thread
 
         Parameters
         ==========
@@ -80,9 +85,33 @@ class Config(QObject):
         self.disableSaving = disableSaving
         self.links = []  # Storing source dicts to allow updating the variables
 
+        self.__fetchParentMeta()
+
+        self._fixStrategy = common.doctor.defaultMergeStrategy
         common.config_manager.save.connect(self.saveConfig)
         common.config_manager.updated.connect(self.__updated)
         common.config_manager.batchUpdate.connect(self.__batchUpdate)
+        # We assume that all configs are in the same thread as settings
+        common.config_manager.defaults.connect(self.loadDefaults)
+        common.config_manager.merge.connect(self.__merge)
+        self.keyError.connect(common.doctor.configKeyError)
+
+    def __fetchParentMeta(self):
+        # TODO fetch referrers using garbage collector
+
+        self.meta_name = "unknown"
+        self.meta_desc = "--"
+
+    def configureMetadata(self, name, description):
+        self.meta_name = name
+        self.meta_desc = "--"
+
+    def __check(self, key):
+        """
+        Check if the key is present and repair the app if needed
+        """
+        if self.c.get(key) is None:
+            common.doctor.configKeyError(self, key)
 
     def __fetchkey(self, key):
         """
@@ -94,11 +123,14 @@ class Config(QObject):
             Dictionary key
         """
         if len(self.links) == 0:
+            self.__check(key)
             return self.c[key]
 
         for i in range(len(self.links)):
             if self.links[i].get(key) is not None:
                 return self.links[i][key]
+
+        self.__check(key)
         return self.c[key]
 
     def update(self, other, include_only=None):
@@ -147,37 +179,37 @@ class Config(QObject):
         """
         self.c[key] = newvalue
 
-    @pyqtSlot(str)
-    def __updated(self, key):
+    @pyqtSlot(list)
+    def __updated(self, key: list[str]):
         """
         Call the update signal if the property is updated
 
         Parameters
         ==========
         key
-            Updated key
+            Updated nested key (["a"]["b"] -> ["a", "b"])
         """
-        if self.get(key) is not None:
+        if HandlersApi.getter(prop=key, silent=True, inplace_dict=self.c) is not None:
             if self.updateFunc is not None:
                 self.updateFunc()
             self.updated.emit()
+            return True
+        return False
 
     @pyqtSlot(list)
-    def __batchUpdate(self, keys):
+    def __batchUpdate(self, keys: list[list[str]]):
         """
         Call the update signal if multiple properties may be updated
 
         Parameters
         ==========
         keys
-            Updated keys
+            Updated nested keys (see __updated)
         """
         for key in keys:
-            if self.get(key) is not None:
-                if self.updateFunc is not None:
-                    self.updateFunc()
-                self.updated.emit()
-                break
+            if self.__updated(key):
+                return True
+        return False
 
     def __len__(self):
         return len(self.c)
@@ -299,7 +331,7 @@ class Config(QObject):
 
         return True
 
-    def listIter(self, new, old, dropNew=True, preserveOld=False):
+    def listIter(self, new, old, dropNew=True, preserveOld=False, checkModified=False, _key=None):
         """
         Recursively iterate through the list and update old config value iff it is present in config file
 
@@ -313,6 +345,10 @@ class Config(QObject):
             (Optional) Drop new variables
         preserveOld
             (Optional) Preserve old variables (update only missing)
+        checkModified
+            (Optional) Ignore preserveOld if the key has not been modified
+        _key
+            (Internal) The key of the list in the config file
         """
         if dropNew and not len(new) == len(old):
             return
@@ -326,18 +362,19 @@ class Config(QObject):
             if i < len(old):
                 if type(new[i]) == type(old[i]):
                     if type(new[i]) == dict:
-                        self.dictIter(new[i], old[i], dropNew, preserveOld)
+                        self.dictIter(new[i], old[i], dropNew, preserveOld, checkModified)
                     elif type(new[i]) == list:
-                        self.listIter(new[i], old[i], dropNew, preserveOld)
+                        self.listIter(new[i], old[i], dropNew, preserveOld, checkModified)
                     else:
-                        if not preserveOld:
+                        if not preserveOld or (checkModified and _key is not None
+                                               and _key not in common.defaults_manager.modified):
                             old[i] = new[i]
             elif not dropNew:
                 old.append(new[i])
             else:
                 return
 
-    def dictIter(self, new, old, dropNew=True, preserveOld=False):
+    def dictIter(self, new, old, dropNew=True, preserveOld=False, checkModified=False):
         """
         Recursively iterate through the dict and update old config value iff it is present in config file
 
@@ -351,6 +388,8 @@ class Config(QObject):
             (Optional) Drop new variables
         preserveOld
             (Optional) Preserve old variables (update only missing)
+        checkModified
+            (Optional) Ignore preserveOld if the key has not been modified
         """
         for key, val in new.items():
             if old.get(key) is not None and type(val) == type(old[key]):
@@ -361,11 +400,11 @@ class Config(QObject):
                     drop = True
 
                 if type(val) == dict:
-                    self.dictIter(new[key], old[key], drop, preserveOld)
+                    self.dictIter(new[key], old[key], drop, preserveOld, checkModified)
                 elif type(val) == list:
-                    self.listIter(val, old[key], drop, preserveOld)
+                    self.listIter(val, old[key], drop, preserveOld, checkModified, _key=key)
                 else:
-                    if not preserveOld:
+                    if not preserveOld or (checkModified and key not in common.defaults_manager.modified):
                         old[key] = val
                     # print(key)
             elif not dropNew:
@@ -414,11 +453,25 @@ class Config(QObject):
             return
 
         # Default refresh strategy
-        self.dictIter(defaults, self.c, dropNew=False, preserveOld=True)
+        self.dictIter(defaults, self.c, dropNew=False, preserveOld=True, checkModified=True)
         self.dictIter(self.c, defaults, dropNew=self.ignoreNew)
 
         with open(self.config_file, "w") as f:
             json.dump(defaults, f, indent=4)
+
+    @pyqtSlot()
+    def __merge(self):
+        """
+        Execute merge with the defaults. Should be called from common module
+        """
+        self.mergeDefaults()
+
+    @pyqtSlot()
+    def __defaults(self):
+        """
+        Reload defaults for this config. Should be called from common module
+        """
+        self.loadDefaults()
 
     def loadDefaults(self):
         """
@@ -436,5 +489,8 @@ class Config(QObject):
                 print("Failed to merge defaults")
             return
 
+        self.dictIter(defaults, self.c)
+
         with open(self.config_file, "w") as f:
             json.dump(defaults, f, indent=4)
+
