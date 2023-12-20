@@ -91,6 +91,7 @@ class RootCanvas(QObject):
             self.conf["modules"][0]["class"] = self.importModule(
                 self.conf["modules"][0]
             )
+            Classes.WheelUi = weakref.ref(self.conf["modules"][0]["class"])
 
     def importModule(self, meta):
         """

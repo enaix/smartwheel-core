@@ -8,7 +8,7 @@ class WheelAction(BaseWheelAction):
     type = "wheel"
 
     def run(self, action: str, pulse: Pulse):
-        wheel = Classes.RootCanvas().conf["modules"][0]["class"]
+        wheel = Classes.WheelUi()
         if action == "wheelUp" or action == "wheelDown":
             wheel.processKey(pulse)
         elif action == "wheelSelect":

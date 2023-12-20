@@ -96,7 +96,7 @@ Docs are available at readthedocs: https://smartwheel-core.readthedocs.io/en/lat
 - [ ] Packaging
   - [X] Configure setup.py
   - [X] Add update feature
-  - [ ] Hire core doctor!
+  - [X] Hire core doctor!
 - [X] Windows support
   - [X] (Platform) Replace AF_UNIX socket with network socket
   - [ ] Add proper media fetching

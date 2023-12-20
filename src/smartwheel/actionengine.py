@@ -155,7 +155,7 @@ class ActionEngine(QObject):
             pulse = Pulse(pulse_type=PulseTypes.BUTTON)
 
         modules = Classes.RootCanvas().cur_wheel_modules
-        current_module = Classes.RootCanvas().conf["modules"][0]["class"].getCurModule()
+        current_module = Classes.WheelUi().getCurModule()
         if current_module >= len(modules) or modules[current_module] is None \
                 or modules[current_module].get("class") is None:
             return
@@ -188,7 +188,7 @@ class ActionEngine(QObject):
         """
         Get current state (sections opened or closed)
         """
-        if Classes.RootCanvas().conf["modules"][0]["class"].is_sections_hidden:
+        if Classes.WheelUi().is_sections_hidden:
             return "module"
         return "wheel"
 
@@ -216,7 +216,7 @@ class ActionEngine(QObject):
 
         if not p_call._virtual:
             # All pulses are blocked while the sections are being opened/closed
-            if Classes.RootCanvas().conf["modules"][0]["class"].is_sections_anim_running:
+            if Classes.WheelUi().is_sections_anim_running:
                 return
 
             self.logger.debug("Incoming call: " + elem + "." + call)
@@ -405,7 +405,7 @@ class ActionEngine(QObject):
             self.haptics["moduleSections"] = self.n_positions
         else:
             modules = Classes.RootCanvas().cur_wheel_modules
-            current_module = Classes.RootCanvas().conf["modules"][0]["class"].getCurModule()
+            current_module = Classes.WheelUi().getCurModule()
 
             if current_module >= len(modules) or modules[current_module] is None or modules[current_module].get("class")\
                     is None or modules[current_module]["class"].conf.get("haptics") is None:

@@ -5,13 +5,33 @@ from PyQt6.QtCore import QObject
 
 class _Classes(QObject):
     """
-    Access common application classes. Each class is referenced with weakref
+    Access common application classes. Each class is referenced with weakref (you need to call it to get the object)
     Not guaranteed that some classes will be present during init
     """
     MainWindow: weakref.ref = None
+    """
+    MainWindow instance. Contains launch config and initializes main classes
+    """
+
     RootCanvas: weakref.ref = None
+    """
+    The main class that initializes all modules, handles the wheel drawing and contains core configs
+    """
+
     Settings: weakref.ref = None
+    """
+    Settings object that initializes the settings window, parses the registry, loads and executes handlers and much more
+    """
+
     ActionEngine: weakref.ref = None
+    """
+    Object that processes pulses from the hardware, runs the haptics engine and calls modules
+    """
+
+    WheelUi: weakref.ref = None
+    """
+    Main UI element that renders the wheel, initializes sections and displays modules
+    """
 
     # TODO add warning about import styles
 
