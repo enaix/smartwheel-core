@@ -12,8 +12,8 @@ from smartwheel.backgrounds.base import Background
 
 
 class ContourBackground(Background):
-    def __init__(self, common_config, conf, canvas):
-        super(ContourBackground, self).__init__(common_config, conf, canvas)
+    def __init__(self, common_config, conf):
+        super(ContourBackground, self).__init__(common_config, conf)
         tools.merge_dicts(
             self.conf, self.common_config(), include_only=["wheelTextureColor"]
         )

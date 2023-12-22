@@ -1,10 +1,10 @@
 {
   "name": "contour",
   "items": [
-    {"name": "Use cache", "type": "bool", "module": "canvas", "prop": "brush_configs.contour.useCache"},
-    {"name": "Random seed", "type": "bool", "module": "canvas", "prop": "brush_configs.contour.randomSeed"},
-    {"name": "Background color", "type": "color", "module": "canvas", "prop": "brush_configs.contour.backgroundColor", "preset": true},
-    {"name": "Seed", "type": "int", "min": 0, "max": 10000000, "module": "canvas", "prop": "brush_configs.contour.seed", "preset": true},
-    {"name": "Terrain generator", "type": "combo", "options": ["Trigonometric", "Perlin"], "module": "canvas", "prop": "brush_configs.contour.generator", "preset": true}
+    {"name": "Use cache", "type": "bool", "module": "brushes.contour", "prop": "useCache"},
+    {"name": "Random seed", "type": "bool", "module": "brushes.contour", "prop": "randomSeed"},
+    {"name": "Background color", "type": "color", "module": "brushes.contour", "prop": "backgroundColor", "preset": true},
+    {"name": "Seed", "type": "int", "min": 0, "max": 10000000, "module": "brushes.contour", "prop": "seed", "preset": true},
+    {"name": "Terrain generator", "type": "combo", "options": ["Trigonometric", "Perlin"], "module": "brushes.contour", "prop": "generator", "preset": true}
   ]
 }

@@ -9,6 +9,7 @@ class PulseTypes(Enum):
 class DevicePulse:
     """
     Pulse that is processed by action engine (must be used in serial modules)
+    Note that they are stored and compared by the bind property, not by the object itself.
     """
 
     bind: str = None

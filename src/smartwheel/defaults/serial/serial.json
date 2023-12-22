@@ -1,5 +1,5 @@
 {
-    "device": "/dev/ttyACM0",
+    "device": "/dev/ttyUSB0",
     "baudRate": 9600,
     "useTimeout": false,
     "timeout": 1,

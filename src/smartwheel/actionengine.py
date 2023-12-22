@@ -217,7 +217,9 @@ class ActionEngine(QObject):
         if not p_call._virtual:
             # All pulses are blocked while the sections are being opened/closed
             if Classes.WheelUi().is_sections_anim_running:
+                self.conf["debug_input_blocked"] = True
                 return
+            self.conf["debug_input_blocked"] = False
 
             self.logger.debug("Incoming call: " + elem + "." + call)
 
@@ -469,6 +471,9 @@ class ActionEngine(QObject):
 
         # Rotary
         if self.accelMeta.get(dpulse) is None:
+            # Clear all DevicePulse instances; TODO clear only conflicting pulses
+            # self.devicePulses = {}
+            # self.accelMeta = {}
 
             # Store DevicePulse instance by its name (__str__ returns device bind)
             self.devicePulses[str(dpulse)] = dpulse

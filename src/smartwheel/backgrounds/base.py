@@ -8,11 +8,10 @@ class Background(QBrush):
     Must contain brushes dict at the end of the file
     """
 
-    def __init__(self, common_config=None, config=None, canvas=None, *args, **kwargs):
+    def __init__(self, common_config=None, config=None, *args, **kwargs):
         super(Background, self).__init__(*args, **kwargs)
         self.common_config = common_config
         self.conf = config
-        self.canvas = canvas
 
 
 # Needs to be at the end of the file

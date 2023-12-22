@@ -200,7 +200,6 @@ class RootCanvas(QObject):
                     self.brushes[k] = b_dict[k](
                         weakref.ref(self.conf),
                         self.conf["brush_configs"][k],
-                        weakref.ref(self),
                     )
                 except BaseException:
                     self.logger.error("Could not load brush " + k)

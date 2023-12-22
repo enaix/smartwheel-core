@@ -420,12 +420,12 @@ class CacheManager(QObject):
 
     def initManager(self, conf):
         self.conf = conf
-        self.conf["cacheDir"] = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), self.conf["cacheDir"]
+        self.dir = os.path.join(
+            Common.Basedir, self.conf["cacheDir"]
         )
 
-        if not os.path.exists(self.conf["cacheDir"]):
-            os.mkdir(self.conf["cacheDir"])
+        if not os.path.exists(self.dir):
+            os.mkdir(self.dir)
 
     def load(self, app_name, filename):
         """
@@ -442,7 +442,7 @@ class CacheManager(QObject):
             print("Cache manager is not initialized")
             return False, None, None
 
-        appdir = os.path.join(self.conf["cacheDir"], app_name)
+        appdir = os.path.join(self.dir, app_name)
         if not os.path.exists(appdir):
             os.mkdir(appdir)
 
@@ -476,7 +476,7 @@ class CacheManager(QObject):
             print("Cache manager is not initialized")
             return None
 
-        appdir = os.path.join(self.conf["cacheDir"], app_name)
+        appdir = os.path.join(self.dir, app_name)
         if not os.path.exists(appdir):
             os.mkdir(appdir)
 

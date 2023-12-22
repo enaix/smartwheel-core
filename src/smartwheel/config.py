@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import weakref
 
@@ -52,7 +53,7 @@ class Config(QObject):
         config_dict
             (Optional) Dict containing initial values. Overwritten if config_file is specified
         logger
-            logger.Logger instance (recommended, will print to stdout if not given)
+            logger.Logger instance (recommended, will print to its own logger if not given)
         ignoreNewVars
             (Optional) Drop new variables while saving (in order not to write runtime variables to config)
         varsWhitelist
@@ -77,7 +78,10 @@ class Config(QObject):
 
         # self.c = self.loadConfig()
         self.c = config_dict
-        self.logger = logger
+        if logger is not None:
+            self.logger = logger
+        else:
+            self.logger = logging.getLogger(__name__)
         self.ignoreNew = ignoreNewVars
         self.whitelist = varsWhitelist
         self.blacklist = varsBlacklist
@@ -127,8 +131,8 @@ class Config(QObject):
             return self.c[key]
 
         for i in range(len(self.links)):
-            if self.links[i].get(key) is not None:
-                return self.links[i][key]
+            if self.links[i]().get(key) is not None:
+                return self.links[i]()[key]
 
         self.__check(key)
         return self.c[key]
@@ -153,7 +157,7 @@ class Config(QObject):
                 if other.get(key) is not None:
                     self.c[key] = other[key]
 
-        self.links.append(other)
+        self.links.append(weakref.ref(other))
 
     def __getitem__(self, key):
         """
@@ -189,7 +193,9 @@ class Config(QObject):
         key
             Updated nested key (["a"]["b"] -> ["a", "b"])
         """
-        if HandlersApi.getter(prop=key, silent=True, inplace_dict=self.c) is not None:
+        ok, _ = HandlersApi.getter(prop=key, silent=True, inplace_dict=self.c)
+        if ok:
+            self.logger.debug("Updated property " + '.'.join(key) + " for " + str(self.config_file))
             if self.updateFunc is not None:
                 self.updateFunc()
             self.updated.emit()
@@ -247,8 +253,8 @@ class Config(QObject):
             return self.c.get(key, default)
 
         for i in range(len(self.links)):
-            if self.links[i].get(key) is not None:
-                return self.links[i].get(key)
+            if self.links[i]().get(key) is not None:
+                return self.links[i]().get(key)
 
         return self.c.get(key, default)
 

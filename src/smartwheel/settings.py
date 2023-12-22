@@ -182,6 +182,10 @@ class SettingsWindow(QWidget):
                     if i == 1:
                         self.logger.error(mod["name"] + " has no class attribute")
 
+        # Parsing brushes
+        for key, _ in Classes.RootCanvas().conf["brush_configs"].items():
+            self.settings["brushes." + key] = Classes.RootCanvas().conf["brush_configs"][key]
+
         HandlersApi._hooks = self.settings
 
     def loadSettingsHandlers(self, handlers_dir):
@@ -616,7 +620,9 @@ class SettingsWindow(QWidget):
             common.config_manager.defaults.emit()
             self.logger.info("Reset took " + str((time.time_ns() - start_time) / 1000000) + " ms")
 
-            # time.sleep(3.0)
+            # Remove all modified variables
+            common.defaults_manager.modified.clear()
+            common.defaults_manager.save()
 
             self.refreshAll()
 
@@ -826,17 +832,6 @@ class SettingsWindow(QWidget):
                             self.linked_widgets[registries_name][
                                 templateCombo
                             ] = []
-
-                        """
-                        template_vars = [None]
-                        # Get controller element values to iterate over for templating
-                        if elem.get("template_module") is not None:
-                            ok, value = self.getValue(module=elem["template_module"], prop=elem["template_prop"], index=elem.get("template_index"))
-                            if not ok:
-                                self.logger.warning("Could not get template parameter for " + elem["name"])
-                            else:
-                                template_vars = value
-                        """
 
                         for reg in exr["items"]:
                             if template_enabled:

@@ -6,8 +6,8 @@ from smartwheel.backgrounds.base import Background
 
 
 class PatternBackground(Background):
-    def __init__(self, common_config, conf, canvas):
-        super(PatternBackground, self).__init__(common_config, conf, canvas)
+    def __init__(self, common_config, conf):
+        super(PatternBackground, self).__init__(common_config, conf)
         tools.merge_dicts(
             self.conf, self.common_config(), include_only=["wheelTextureColor"]
         )
