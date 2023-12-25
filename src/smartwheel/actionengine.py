@@ -125,7 +125,7 @@ class ActionEngine(QObject):
         """
         for mod in self.conf["actionModulesLoad"]:
             name = self.conf["actionModules"][mod]["name"]
-            self.actions[name.split(".")[-1:][0]] = importlib.import_module(
+            self.actions[name.split(".")[-1]] = importlib.import_module(
                 "smartwheel." + name
             ).Action()
 

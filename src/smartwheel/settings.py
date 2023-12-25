@@ -8,7 +8,7 @@ import weakref
 import copy
 from queue import LifoQueue
 
-from PyQt6.QtCore import Qt, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSlot, QSize
 from PyQt6.QtWidgets import (
     QFormLayout,
     QGroupBox,
@@ -24,10 +24,11 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QMessageBox,
 )
+from PyQt6.QtGui import QIcon, QPixmap
 
 from smartwheel import common, config
 from smartwheel.api.settings import HandlersApi
-from smartwheel.api.app import Classes
+from smartwheel.api.app import Classes, Common
 
 
 class SettingsWindow(QWidget):
@@ -72,6 +73,8 @@ class SettingsWindow(QWidget):
         self.loadSettingsHandlers(
             os.path.join(self.basedir, self.conf["settings_handlers_dir"])
         )
+        self.icons = {}
+        self.loadIcons()
         self.preset_tabs = {}
         self.preset_controllers = {}
         self.presets_index_mapping = {}
@@ -160,7 +163,7 @@ class SettingsWindow(QWidget):
         serial = main_class().serialModules
 
         for name in main_class().serialModulesNames:
-            key = name.split(".")[-1:][0]
+            key = name.split(".")[-1]
             if hasattr(serial[name], "conf"):
                 self.settings["serial"][key] = serial[name].conf
             else:
@@ -221,6 +224,24 @@ class SettingsWindow(QWidget):
                 self.handlers[k] = h_dict[k]()
 
         HandlersApi.handlers = self.handlers
+
+    def loadIcons(self):
+        """
+        Load settings icons from icons/settings
+        """
+        fpath = os.path.join(Common.Basedir, "icons/settings")
+        for file in os.listdir(fpath):
+            base, ext = os.path.basename(file).split('.')
+            if ext == "png":
+                pix = QPixmap(str(os.path.join(fpath, file)), format="png")
+                if pix.isNull():
+                    self.logger.error("Pixmap " + str(base) + " is null")
+                    self.icons[str(base)] = QIcon()
+                    continue
+
+                self.icons[str(base)] = QIcon(pix)
+                if self.icons[str(base)].isNull():
+                    self.logger.error("Icon " + str(base) + " is null")
 
     def getValue(self, module=None, prop=None, index=None, silent=False, inplace_dict=None):
         """
@@ -321,7 +342,7 @@ class SettingsWindow(QWidget):
 
         return self.dictWalk(wrapper, props[1:], value, index, _i + 1)
 
-    def setValue(self, obj=None, value=None, module=None, prop=None, index=None, _user=True):
+    def setValue(self, obj=None, value=None, module=None, prop=None, index=None, inplace_dict=None, _user=True):
         """
         Set property from the application.
         Module, prop and index arguments may be fetched from the object properties (passing only obj and value) or passed directly (module, prop, index (optional) and value)
@@ -335,9 +356,11 @@ class SettingsWindow(QWidget):
         module
             (Optional) Module name (in self.settings)
         prop
-            (Optional) Property keys, separated by `.`
+            (Optional) Property keys, either a string separated by `.` or a list of keys
         index
             (Optional) If not None, the index in the property array. If an array, then it's duplicated at specified indices
+        inplace_dict
+            (Optional) Apply changes to the given dict. Overrides module option
         _user
             (Optional) True if this action has been called by the user (the key should be marked as modified)
         """
@@ -347,20 +370,30 @@ class SettingsWindow(QWidget):
             prop = obj.property("prop")
             index = obj.property("index")
 
-        if module is None:
-            self.logger.error("Could not obtain module value")
+        if module is None and inplace_dict is None:
+            self.logger.error("Could not get module value")
 
-        if self.settings.get(module) is None:
+        if self.settings.get(module) is None and inplace_dict is None:
             self.logger.error("Could not get value: no module " + str(module))
             return
 
-        props = prop.split(".")
+        if type(prop) is str:
+            props = prop.split(".")
+        else:
+            props = prop
 
-        if self.dictWalk(self.settings[module], props, value, index):
-            name = module + "." + prop
-            if index is not None:
-                name += "." + str(index)
-            self.setCustom(name)
+        if inplace_dict is not None:
+            ok = self.dictWalk(inplace_dict, props, value, index)
+        else:
+            ok = self.dictWalk(self.settings[module], props, value, index)
+
+        # New value is different
+        if ok:
+            if module is not None:
+                name = module + "." + prop
+                if index is not None:
+                    name += "." + str(index)
+                self.setCustom(name)
 
             if self.isLoaded:
                 common.config_manager.updated.emit(props)
@@ -370,7 +403,9 @@ class SettingsWindow(QWidget):
 
             if _user:
                 # TODO check if it's equal to default
-                common.defaults_manager.modified.add(props[-1:][0])
+                common.defaults_manager.modified.add(props[-1])
+        else:
+            self.logger.debug("The value " + '.'.join(props) + " has not changed")
 
     def savePreset(self, index, name, title, filepath):
         """
@@ -498,7 +533,7 @@ class SettingsWindow(QWidget):
         """
         return template.replace("$", variable)
 
-    def processItem(self, elem, index, form, tab, registriesName=None, template=None):
+    def processItem(self, elem, index, form, tab, registriesName=None, template=None, widgets=None):
         if elem.get("name") is not None:
             label = QLabel(elem["name"])
         else:
@@ -597,6 +632,8 @@ class SettingsWindow(QWidget):
             widWrapper.addWidget(wid)
 
             self.settings_widgets.append(weakref.ref(wid))
+            if widgets is not None:
+                widgets.append(weakref.ref(wid))
 
             if label is not None:
                 form.addRow(label, widWrapper)
@@ -670,6 +707,55 @@ class SettingsWindow(QWidget):
         for elem in self.settings_widgets:
             self.refreshElem(elem())
 
+    @pyqtSlot()
+    def setGroupDefaults(self):
+        """
+        Set all elements in group to defaults
+        """
+        caller = self.sender()
+        widgets = caller.property("elements")
+        if widgets is None:
+            self.logger.error("Could not get widgets in group")
+            return
+
+        default_keys = []
+        for elem in widgets:
+            prop = elem().property("prop")
+
+            if prop is None:
+                self.logger.info("Found some ghost widget with no property")
+                continue
+
+            props = prop.split('.')
+
+            default_keys.append(props)
+
+            # Remove key from defaults
+            if props[-1] in common.defaults_manager.modified:
+                common.defaults_manager.modified.remove(props[-1])
+
+        # Set all specified keys to defaults
+        common.config_manager.batchDefaults.emit(default_keys)
+
+        for elem in widgets:
+            self.refreshElem(elem())
+
+    def createDefaultsButton(self, widgets):
+        defaults = QPushButton()
+        # defaults.setFixedWidth(100)
+        defaults.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        defaults.setIcon(self.icons["refresh-circle"])
+        defaults.setIconSize(QSize(20, 20))
+        defaults.setFlat(True)
+        defaults.setProperty("elements", widgets)
+        defaults.clicked.connect(self.setGroupDefaults)
+
+        container = QVBoxLayout()
+        container.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        container.addWidget(defaults)
+        container.setAlignment(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight)
+        return container
+
     def initExtraRegistries(self):
         for reg, value in self.external_reg.items():
             if value.get("inPlace", False):
@@ -685,10 +771,14 @@ class SettingsWindow(QWidget):
             )
             form = QFormLayout()
 
+            widgets_weakref = []
+
             for elem in value["items"]:
                 tab = {"conf": {"enable_presets": False}}
                 index = None
-                self.processItem(elem, index, form, tab)
+                self.processItem(elem, index, form, tab, widgets=widgets_weakref)
+
+            form.addRow(self.createDefaultsButton(widgets_weakref))
 
             wrapper.setLayout(form)
             scroll.setWidget(wrapper)
@@ -754,6 +844,8 @@ class SettingsWindow(QWidget):
         wrapper.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         for elem_group in tab["conf"]["items"]:
+            widgets_weakref = []
+
             form = QFormLayout()
             group = QGroupBox(elem_group["name"])
 
@@ -835,7 +927,8 @@ class SettingsWindow(QWidget):
 
                         for reg in exr["items"]:
                             if template_enabled:
-                                form_row, _ = self.processItem(copy.deepcopy(reg), index, form, tab, template=template_var)
+                                form_row, _ = self.processItem(copy.deepcopy(reg), index, form, tab,
+                                                               template=template_var, widgets=widgets_weakref)
                                 if form_row is None:
                                     continue
 
@@ -843,7 +936,7 @@ class SettingsWindow(QWidget):
                                     templateCombo
                                 ].append((weakref.ref(form), form_row))
                             else:
-                                form_row, _ = self.processItem(reg, index, form, tab)
+                                form_row, _ = self.processItem(reg, index, form, tab, widgets=widgets_weakref)
                                 if form_row is None:
                                     continue
 
@@ -855,7 +948,9 @@ class SettingsWindow(QWidget):
 
                         # END OF EXTERNAL REGISTRIES CODE
                 else:
-                    self.processItem(elem, index, form, tab)
+                    self.processItem(elem, index, form, tab, widgets=widgets_weakref)
+
+            form.addRow(self.createDefaultsButton(widgets_weakref))
 
             group.setLayout(form)
             layout.addWidget(group)

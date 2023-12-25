@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import weakref
+import copy
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, QEventLoop
 
@@ -76,12 +77,18 @@ class Config(QObject):
                 1,
             )
 
-        # self.c = self.loadConfig()
+        # Initialize defaults if there is no file
         self.c = config_dict
+        self.defaults = copy.deepcopy(self.c)
+
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = logging.getLogger(__name__)
+            if self.config_file is not None:
+                self.logger = logging.getLogger(__name__ + '_' + os.path.basename(self.config_file).split('.')[0])
+            else:
+                self.logger = logging.getLogger(__name__)
+
         self.ignoreNew = ignoreNewVars
         self.whitelist = varsWhitelist
         self.blacklist = varsBlacklist
@@ -98,6 +105,7 @@ class Config(QObject):
         # We assume that all configs are in the same thread as settings
         common.config_manager.defaults.connect(self.loadDefaults)
         common.config_manager.merge.connect(self.__merge)
+        common.config_manager.batchDefaults.connect(self.__batchDefaults)
         self.keyError.connect(common.doctor.configKeyError)
 
     def __fetchParentMeta(self):
@@ -216,6 +224,46 @@ class Config(QObject):
             if self.__updated(key):
                 return True
         return False
+
+    @pyqtSlot(list)
+    def __batchDefaults(self, keys: list[list[str]]):
+        """
+        Set specified keys to their defaults
+        """
+        if (self.default_config_file is None or self.config_file is None) and self.defaults is None:
+            return
+
+        # Workaround for configs initialized from dictionary
+        defaults = self.defaults
+        for key in keys:
+            ok, _ = HandlersApi.getter(prop=key, silent=True, inplace_dict=self.c)
+
+            if not ok:
+                if len(key) == 1:
+                    continue
+                # Attempt to drop the first key if we are in a module
+                key = key[1:]
+                ok, _ = HandlersApi.getter(prop=key, silent=True, inplace_dict=self.c)
+                if not ok:
+                    continue
+
+            if defaults is None:
+                # Get the defaults to update
+                ok, defaults = self.loadConfig(immediate=True, override=self.default_config_file)
+
+                if not ok:
+                    self.logger.error("Failed to reset to defaults: could not load config " + self.default_config_file)
+                    return
+
+            # Get this key from defaults
+            ok, default_key = HandlersApi.getter(prop=key, silent=True, inplace_dict=defaults)
+            if not ok:
+                self.logger.debug("Could not find key " + '.'.join(key) + " in defaults")
+                continue
+
+            self.logger.debug("Key " + '.'.join(key) + " is set to defaults")
+
+            HandlersApi.setter(prop=key, value=default_key, inplace_dict=self.c, _user=False)
 
     def __len__(self):
         return len(self.c)

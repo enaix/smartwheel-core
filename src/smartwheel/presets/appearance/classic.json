@@ -22,10 +22,10 @@
         "canvas.toolsIconColor": "#ffffff",
         "canvas.toolsBackgroundColor": "#161616",
         "ui.wheel.backgroundStyle": "pattern",
-        "canvas.brush_configs.pattern.patternType": "Diagonal (right)",
-        "canvas.brush_configs.pattern.patternScale": 1.0,
-        "canvas.brush_configs.contour.backgroundColor": "#ffffff",
-        "canvas.brush_configs.contour.seed": 42,
-        "canvas.brush_configs.contour.generator": "Trigonometric"
+        "brushes.pattern.patternType": "Diagonal (right)",
+        "brushes.pattern.patternScale": 1.0,
+        "brushes.contour.backgroundColor": "#ffffff",
+        "brushes.contour.seed": 42,
+        "brushes.contour.generator": "Trigonometric"
     }
 }

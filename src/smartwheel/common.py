@@ -17,6 +17,7 @@ class ConfigManager(QObject):
 
     save = pyqtSignal()
     defaults = pyqtSignal()
+    batchDefaults = pyqtSignal(list)
     updated = pyqtSignal(list)
     batchUpdate = pyqtSignal(list)
     merge = pyqtSignal()
