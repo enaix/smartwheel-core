@@ -1,7 +1,7 @@
 import logging
 import weakref
 
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot, QSize
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QAbstractItemView,
@@ -62,7 +62,10 @@ class ModulesLoader(BaseHandler):
 
         for i, mod in enumerate(elem["modules"]):
             check = QCheckBox()
-            options = QPushButton("...")
+            options = QPushButton()
+            options.setIcon(HandlersApi.icons["settings-outline"])
+            options.setIconSize(QSize(20, 20))
+            options.setFlat(True)
 
             if mod.get("registry") is not None:
                 form = HandlersApi.externalRegistries.get(mod["registry"])
@@ -238,7 +241,9 @@ class ListViewManager(BaseHandler):
         layout = QVBoxLayout()
         baseLayout = QVBoxLayout()
         buttons = QHBoxLayout()
-        addButton = QPushButton("+")
+        addButton = QPushButton()
+        addButton.setIcon(HandlersApi.icons["add-outline"])
+        addButton.setIconSize(QSize(20, 20))
 
         addButton.setProperty("linkedWidget", weakref.ref(wrapper))
         addButton.clicked.connect(self.appendGroup)
@@ -276,8 +281,13 @@ class ListViewManager(BaseHandler):
         else:
             label = QLineEdit(elem["string"])
         layout = QHBoxLayout()
-        confButton = QPushButton("...")
-        delButton = QPushButton("x")
+        confButton = QPushButton()
+        confButton.setIcon(HandlersApi.icons["settings-outline"])
+        confButton.setIconSize(QSize(20, 20))
+
+        delButton = QPushButton()
+        delButton.setIcon(HandlersApi.icons["close-outline"])
+        delButton.setIconSize(QSize(20, 20))
 
         wrapper.setProperty("linkedWidget", weakref.ref(baseWidget))
         wrapper.setProperty("linkedLabel", weakref.ref(label))
@@ -429,8 +439,15 @@ class ListViewManager(BaseHandler):
         layout = QVBoxLayout()
         listWid = QListWidget()
         buttons = QHBoxLayout()
-        addButton = QPushButton("Add command")
-        delButton = QPushButton("x")
+        addButton = QPushButton()
+        addButton.setIcon(HandlersApi.icons["add-outline"])
+        addButton.setIconSize(QSize(20, 20))
+        addButton.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        delButton = QPushButton()
+        delButton.setIcon(HandlersApi.icons["close-outline"])
+        delButton.setIconSize(QSize(20, 20))
+
         addButton.setProperty("linkedWidget", weakref.ref(baseWidget))
         delButton.setProperty("linkedWidget", weakref.ref(baseWidget))
         delButton.setProperty("linkedGroup", weakref.ref(group))

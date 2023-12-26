@@ -1,5 +1,6 @@
 from typing import Callable
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtGui import QIcon
 
 
 class _HandlersApi(QObject):
@@ -69,6 +70,11 @@ class _HandlersApi(QObject):
     watch: pyqtSignal = pyqtSignal()
     """
     Watch for the changed variables and update them in settings
+    """
+
+    icons: dict[str, QIcon] = None
+    """
+    Dictionary of icons for settings. Check icons/settings for the list of icons (filename without an extension)
     """
 
     _addVariableWatch: Callable = None

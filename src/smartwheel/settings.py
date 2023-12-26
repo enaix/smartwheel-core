@@ -243,6 +243,8 @@ class SettingsWindow(QWidget):
                 if self.icons[str(base)].isNull():
                     self.logger.error("Icon " + str(base) + " is null")
 
+        HandlersApi.icons = self.icons
+
     def getValue(self, module=None, prop=None, index=None, silent=False, inplace_dict=None):
         """
         Get property from the application

@@ -3,14 +3,14 @@ import logging
 import os
 import weakref
 
-from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtCore import pyqtSlot, QSize
 from PyQt6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
     QInputDialog,
     QLineEdit,
     QPushButton,
-    QWidget,
+    QWidget, QSizePolicy,
 )
 
 from smartwheel.settings_handlers.base import BaseHandler
@@ -71,7 +71,9 @@ class PresetHandler(BaseHandler):
         wid.blockSignals(False)
         wid.currentIndexChanged.emit(wid.currentIndex())
 
-        save = QPushButton("Save")
+        save = QPushButton()
+        save.setIcon(HandlersApi.icons["save-outline"])
+        save.setIconSize(QSize(20, 20))
         save.setProperty("combo", weakref.ref(wid))
         save.clicked.connect(self.savePreset)
 
