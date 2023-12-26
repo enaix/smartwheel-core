@@ -62,7 +62,11 @@ class DevicePulse:
         return hash(self.bind)
 
     def __eq__(self, rhs):
-        return self.bind == rhs.bind
+        if type(rhs) is DevicePulse:
+            return self.bind == rhs.bind
+        elif type(rhs) is str:
+            return self.bind == str(rhs)
+        return self.bind == rhs
 
 
 class Pulse:

@@ -254,6 +254,14 @@ class ActionEngine(QObject):
 
     @pyqtSlot()
     def pulseCycle(self, singleShot=False):
+        """
+        Calculate virtual pulses using fancy formulas
+
+        Parameters
+        ==========
+        singleShot
+            Emit the pulse once and return
+        """
         self.conf["debug"] = {}
 
         for key, _ in self.accelMeta.items():
@@ -276,13 +284,15 @@ class ActionEngine(QObject):
             if abs(self.accelMeta[key].target + section_angle - self.accelMeta[key].step) < \
                     abs(self.accelMeta[key].target - self.accelMeta[key].step):
                 nearest_angle = self.accelMeta[key].target + section_angle * \
-                                ((self.accelMeta[key].step - self.accelMeta[key].target) // section_angle + 1)
+                                max((self.accelMeta[key].step - self.accelMeta[key].target) // section_angle, 1)
 
             # lower bound
             elif abs(self.accelMeta[key].target - section_angle - self.accelMeta[key].step) < \
                     abs(self.accelMeta[key].target - self.accelMeta[key].step):
                 nearest_angle = self.accelMeta[key].target - section_angle * \
-                                ((self.accelMeta[key].target - self.accelMeta[key].step) // section_angle + 1)
+                                max((self.accelMeta[key].target - self.accelMeta[key].step) // section_angle, 1)
+
+            # assert "Nearest angle too far", abs(self.accelMeta[key].step - nearest_angle) <= (section_angle / 2.0 + 0.01)
 
             # calculate the direction towards the nearest fixed angle
             direction = 1 if nearest_angle > self.accelMeta[key].step else -1
@@ -341,7 +351,7 @@ class ActionEngine(QObject):
                 self.logger.debug("Step: " + str(self.accelMeta[key].step) + "; target: " + str(nearest_angle)
                                   + "; vel: " + str(self.accelMeta[key].acceleration) + "; dist: " + str(norm_dist))
 
-    def resetPulse(self, dpulse: DevicePulse, is_wheel_mode: bool):
+    def resetPulse(self, dpulse: DevicePulse, is_wheel_mode: bool, state_change=True):
         """
         Reset pulse to its previous values, sets acceleration to 0
 
@@ -351,16 +361,21 @@ class ActionEngine(QObject):
             DevicePulse to reset
         is_wheel_mode
             Application state, either wheel (True) or module
+        state_change
+            Is the application state changed (wheel opened/closed)
         """
         self.accelMeta[dpulse].velocity = 0.0
         self.accelMeta[dpulse].acceleration = 0.0
 
-        # Right now the angle is saved for the modules globally. Perhaps it should be changed...
-        self.angles[int(not is_wheel_mode)] = self.accelMeta[dpulse].target  # save current angle
+        if state_change:
+            # Right now the angle is saved for the modules globally. Perhaps it should be changed...
+            self.angles[int(not is_wheel_mode)] = self.accelMeta[dpulse].target  # save current angle
 
-        # reset current angle
-        self.accelMeta[dpulse].step = self.angles[int(is_wheel_mode)]
-        self.accelMeta[dpulse].target = self.accelMeta[dpulse].step
+            # reset current angle
+            self.accelMeta[dpulse].step = self.angles[int(is_wheel_mode)]
+            self.accelMeta[dpulse].target = self.accelMeta[dpulse].step
+        else:
+            self.accelMeta[dpulse].step = self.accelMeta[dpulse].target
 
     def angleChanged(self, up=True):
         """
@@ -472,8 +487,14 @@ class ActionEngine(QObject):
         # Rotary
         if self.accelMeta.get(dpulse) is None:
             # Clear all DevicePulse instances; TODO clear only conflicting pulses
-            # self.devicePulses = {}
-            # self.accelMeta = {}
+
+            # We assume that there is only one existing device right now
+            new_meta = None
+            for dp, _ in self.devicePulses.items():
+                self.resetPulse(self.devicePulses[dp], is_wheel_mode, state_change=False)
+                new_meta = self.accelMeta[dp]
+            self.devicePulses = {}
+            self.accelMeta = {}
 
             # Store DevicePulse instance by its name (__str__ returns device bind)
             self.devicePulses[str(dpulse)] = dpulse
@@ -484,7 +505,11 @@ class ActionEngine(QObject):
             else:
                 accel = -self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
 
-            self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel, self.haptics["maxAccel"])
+            if new_meta is not None:
+                self.accelMeta[dpulse] = new_meta
+                self.accelMeta[dpulse].acceleration += accel
+            else:
+                self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel, self.haptics["maxAccel"])
         else:
             # Update pulse parameters (dpulse as a key does not represent all unique parameters)
             self.devicePulses[str(dpulse)].command = dpulse.command

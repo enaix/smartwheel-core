@@ -460,7 +460,6 @@ class Config(QObject):
                 else:
                     if not preserveOld or (checkModified and key not in common.defaults_manager.modified):
                         old[key] = val
-                    # print(key)
             elif not dropNew:
                 old[key] = val
 
