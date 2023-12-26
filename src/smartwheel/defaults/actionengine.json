@@ -141,7 +141,7 @@
                 "command": "enc1_hold_scroll up",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheelQuickUp",
                         "mode": "wheel",
                         "checkState": true
                     },
@@ -157,7 +157,7 @@
                 "command": "enc1_hold_scroll down",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheelQuickDown",
                         "mode": "wheel",
                         "checkState": true
                     },
@@ -296,7 +296,7 @@
                 "command": "w",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheelQuickUp",
                         "mode": "wheel",
                         "checkState": true
                     },
@@ -312,7 +312,7 @@
                 "command": "a",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheelQuickDown",
                         "mode": "wheel",
                         "checkState": true
                     },
@@ -458,6 +458,8 @@
         "pulseRefreshTime": 50,
         "deadzone": 1.0,
         "maxStopAccel": 3.0,
-        "moduleSections": 20
+        "moduleSections": 20,
+        "enableHaptics": true,
+        "linearClickTime": 0.5
     }
 }

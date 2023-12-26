@@ -67,6 +67,7 @@ class ActionEngine(QObject):
         self.haptics.updated.connect(self.onHapticsUpdate)
         self.updateModuleHaptics(True)
         self.last_state = True  # wheel
+        self.linear_mode_enabled = False
         self.angles = [0.0, 0.0]  # angles for wheel and module states
         self.accelMeta = {}
         self.devicePulses = {}
@@ -215,8 +216,8 @@ class ActionEngine(QObject):
             self.logger.warning("actionengine could not parse the signal")
 
         if not p_call._virtual:
-            # All pulses are blocked while the sections are being opened/closed
-            if Classes.WheelUi().is_sections_anim_running:
+            # All pulses are blocked while the sections are being opened/closed, or it's in the linear mode
+            if Classes.WheelUi().is_sections_anim_running or self.linear_mode_enabled:
                 self.conf["debug_input_blocked"] = True
                 return
             self.conf["debug_input_blocked"] = False
@@ -252,6 +253,128 @@ class ActionEngine(QObject):
     def sign(x):
         return -1.0 if x < 0.0 else 1.0
 
+    def physics_process(self, key: DevicePulse, pulse: DevicePulse):
+        """
+        Calculate angle position using haptics engine
+
+        Parameters
+        ==========
+        key
+            DevicePulse to calculate
+        pulse
+            Virtual DevicePulse to emit
+        """
+        # calculate section angle
+        section_angle = 360.0 / self.haptics["moduleSections"]
+
+        # calculate nearest angle among the sections (360 / n_positions)
+        nearest_angle = self.accelMeta[key].target
+        # upper bound
+        if abs(self.accelMeta[key].target + section_angle - self.accelMeta[key].step) < \
+                abs(self.accelMeta[key].target - self.accelMeta[key].step):
+            nearest_angle = self.accelMeta[key].target + section_angle * \
+                            max((self.accelMeta[key].step - self.accelMeta[key].target) // section_angle, 1)
+
+        # lower bound
+        elif abs(self.accelMeta[key].target - section_angle - self.accelMeta[key].step) < \
+                abs(self.accelMeta[key].target - self.accelMeta[key].step):
+            nearest_angle = self.accelMeta[key].target - section_angle * \
+                            max((self.accelMeta[key].target - self.accelMeta[key].step) // section_angle, 1)
+
+        # calculate the direction towards the nearest fixed angle
+        direction = 1 if nearest_angle > self.accelMeta[key].step else -1
+
+        # calculate the normalized distance to the nearest angle
+        norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (section_angle / 2.0)
+
+        # calculate deltaTime
+        delta = self.haptics["pulseRefreshTime"] / 1000
+
+        # update the position with inertia
+        self.accelMeta[key].step += self.accelMeta[key].acceleration * delta
+
+        # change of direction
+        if not self.accelMeta[key].target == nearest_angle:
+            pulse._click = True
+            # check the direction
+            if self.accelMeta[key].target > nearest_angle:
+                pulse.up = False
+            else:
+                pulse.up = True
+
+            self.accelMeta[key].target = nearest_angle
+
+        old_accel = self.accelMeta[key].acceleration
+
+        # friction calculation
+        self.accelMeta[key].acceleration += (-self.accelMeta[key].acceleration) * ((1.0 - norm_dist) ** 2) * \
+                                            self.haptics["friction"] * delta
+
+        # constantly adjust inertia based on the current direction
+        self.accelMeta[key].acceleration += self.haptics["gravity"] * direction * (
+                0.5 + 0.5 * (1.0 - norm_dist)) * delta
+
+        # change of velocity
+        dir_change = self.accelMeta[key].acceleration * old_accel < 0
+
+        stopped = False
+        if dir_change and abs(nearest_angle - self.accelMeta[key].step) < self.haptics["deadzone"] and \
+                abs(self.accelMeta[key].acceleration) < self.haptics["maxStopAccel"]:
+            self.accelMeta[key].acceleration = 0.0
+            self.accelMeta[key].step = nearest_angle
+            self.accelTime.stop()
+            stopped = True
+
+        return pulse, norm_dist, nearest_angle, stopped
+
+    def linear_process(self, key: DevicePulse, pulse: DevicePulse):
+        """
+        Calculate angle position using linear function
+
+        Parameters
+        ==========
+        key
+            DevicePulse to calculate
+        pulse
+            Virtual DevicePulse to emit
+        """
+        # calculate section angle
+        section_angle = 360.0 / self.haptics["moduleSections"]
+
+        # calculate deltaTime
+        delta = self.haptics["pulseRefreshTime"] / 1000
+
+        if self.accelMeta[key].step < self.accelMeta[key].target:
+            direction = 1.0
+            pulse.up = True
+        else:
+            direction = -1.0
+            pulse.up = False
+
+        # increment step
+        self.accelMeta[key].step += direction * section_angle * delta / self.haptics["linearClickTime"]
+
+        # check for middle position
+        if not self.accelMeta[key].threshClick and \
+                abs(self.accelMeta[key].step - self.accelMeta[key].target) < section_angle / 2.0:
+            pulse._click = True
+            self.accelMeta[key].threshClick = True
+
+        stopped = False
+        # check for end position
+        if self.accelMeta[key].threshClick and abs(self.accelMeta[key].step - self.accelMeta[key].target) < 0.01:
+            self.accelTime.stop()
+            stopped = True
+            self.accelMeta[key].threshClick = False
+
+            # disable linear mode
+            if self.linear_mode_enabled:
+                self.linear_mode_enabled = False
+        elif not self.accelTime.isActive():
+            self.accelTime.start()
+
+        return pulse, stopped
+
     @pyqtSlot()
     def pulseCycle(self, singleShot=False):
         """
@@ -270,73 +393,19 @@ class ActionEngine(QObject):
             pulse._click = False
 
             # Not spinning
-            if singleShot and \
+            if not self.linear_mode_enabled and singleShot and \
                     self.accelMeta[key].target == self.accelMeta[key].step and self.accelMeta[key].acceleration == 0.0:
                 self.callAction.emit(pulse)
                 continue
 
-            # calculate section angle
-            section_angle = 360.0 / self.haptics["moduleSections"]
-
-            # calculate nearest angle among the sections (360 / n_positions)
-            nearest_angle = self.accelMeta[key].target
-            # upper bound
-            if abs(self.accelMeta[key].target + section_angle - self.accelMeta[key].step) < \
-                    abs(self.accelMeta[key].target - self.accelMeta[key].step):
-                nearest_angle = self.accelMeta[key].target + section_angle * \
-                                max((self.accelMeta[key].step - self.accelMeta[key].target) // section_angle, 1)
-
-            # lower bound
-            elif abs(self.accelMeta[key].target - section_angle - self.accelMeta[key].step) < \
-                    abs(self.accelMeta[key].target - self.accelMeta[key].step):
-                nearest_angle = self.accelMeta[key].target - section_angle * \
-                                max((self.accelMeta[key].target - self.accelMeta[key].step) // section_angle, 1)
-
-            # assert "Nearest angle too far", abs(self.accelMeta[key].step - nearest_angle) <= (section_angle / 2.0 + 0.01)
-
-            # calculate the direction towards the nearest fixed angle
-            direction = 1 if nearest_angle > self.accelMeta[key].step else -1
-
-            # calculate the normalized distance to the nearest angle
-            norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (section_angle / 2.0)
-
-            # calculate deltaTime
-            delta = self.haptics["pulseRefreshTime"] / 1000
-
-            # update the position with inertia
-            self.accelMeta[key].step += self.accelMeta[key].acceleration * delta
-
-            # change of direction
-            if not self.accelMeta[key].target == nearest_angle:
-                pulse._click = True
-                # check the direction
-                if self.accelMeta[key].target > nearest_angle:
-                    pulse.up = False
-                else:
-                    pulse.up = True
-
-                self.accelMeta[key].target = nearest_angle
-
-            old_accel = self.accelMeta[key].acceleration
-
-            # friction calculation
-            self.accelMeta[key].acceleration += (-self.accelMeta[key].acceleration) * ((1.0 - norm_dist) ** 2) * \
-                                                self.haptics["friction"] * delta
-
-            # constantly adjust inertia based on the current direction
-            self.accelMeta[key].acceleration += self.haptics["gravity"] * direction * (
-                    0.5 + 0.5 * (1.0 - norm_dist)) * delta
-
-            # change of velocity
-            dir_change = self.accelMeta[key].acceleration * old_accel < 0
-
-            stopped = False
-            if dir_change and abs(nearest_angle - self.accelMeta[key].step) < self.haptics["deadzone"] and \
-                    abs(self.accelMeta[key].acceleration) < self.haptics["maxStopAccel"]:
-                self.accelMeta[key].acceleration = 0.0
-                self.accelMeta[key].step = nearest_angle
-                self.accelTime.stop()
-                stopped = True
+            if self.haptics["enableHaptics"] and not self.linear_mode_enabled:
+                # Run haptics engine
+                pulse, norm_dist, nearest_angle, stopped = self.physics_process(key, pulse)
+            else:
+                # Run linear calculation
+                pulse, stopped = self.linear_process(key, pulse)
+                norm_dist = None
+                nearest_angle = None
 
             # All variables theoretically should be in 0.0 - 360.0 range, but this should be done in modules
             # to cover the edge cases (359.9 -> 0.0). In practice it would take insane amount of spins for the sin
@@ -386,8 +455,20 @@ class ActionEngine(QObject):
         up
             Increment up (if True)
         """
-        self.angles[0] += (1 if up else -1) * 360.0 / self.haptics["moduleSections"]
-        self.updateModuleHaptics(self.getState() == "wheel")
+        is_wheel_mode = self.getState() == "wheel"
+
+        if is_wheel_mode:
+            self.linear_mode_enabled = True
+
+            for dp, _ in self.devicePulses.items():
+                self.resetPulse(self.devicePulses[dp], is_wheel_mode, state_change=False)
+                self.accelMeta[dp].target += (1 if up else -1) * 360.0 / self.n_positions
+            self.pulseCycle()
+        else:
+            # Update the angle for wheel mode
+            self.angles[1] += (1 if up else -1) * 360.0 / self.n_positions
+
+        self.updateModuleHaptics(is_wheel_mode)
 
     def wheelStateChanged(self, is_wheel_mode: bool):
         """
@@ -500,24 +581,36 @@ class ActionEngine(QObject):
             self.devicePulses[str(dpulse)] = dpulse
             self.conf["debugPulses"] = [str(x) for x, _ in self.devicePulses.items()]
 
-            if dpulse.up:
-                accel = self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
-            else:
-                accel = -self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
+            if self.haptics["enableHaptics"]:
+                if dpulse.up:
+                    accel = self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
+                else:
+                    accel = -self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
 
-            if new_meta is not None:
-                self.accelMeta[dpulse] = new_meta
-                self.accelMeta[dpulse].acceleration += accel
+                if new_meta is not None:
+                    self.accelMeta[dpulse] = new_meta
+                    self.accelMeta[dpulse].acceleration += accel
+                else:
+                    self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel, self.haptics["maxAccel"])
             else:
-                self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel, self.haptics["maxAccel"])
+                if new_meta is not None:
+                    self.accelMeta[dpulse] = new_meta
+                    self.accelMeta[dpulse].target += (1 if dpulse.up else -1) * 360.0 / self.n_positions
+                else:
+                    target = (1 if dpulse.up else -1) * 360.0 / self.n_positions
+                    self.accelMeta[dpulse] = AccelerationMeta(0.0, target, 0.0, 0.0, self.haptics["maxAccel"])
+
         else:
             # Update pulse parameters (dpulse as a key does not represent all unique parameters)
             self.devicePulses[str(dpulse)].command = dpulse.command
 
-            if dpulse.up:
-                self.accelMeta[dpulse].acceleration += self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
+            if self.haptics["enableHaptics"]:
+                if dpulse.up:
+                    self.accelMeta[dpulse].acceleration += self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
+                else:
+                    self.accelMeta[dpulse].acceleration -= self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
             else:
-                self.accelMeta[dpulse].acceleration -= self.haptics["clickAccel"] * self.haptics["clickAccelCoeff"]
+                self.accelMeta[dpulse].target += (1 if dpulse.up else -1) * 360.0 / self.n_positions
 
             if abs(self.accelMeta[dpulse].acceleration) >= self.haptics["maxAccel"]:
                 if self.accelMeta[dpulse].acceleration > 0:

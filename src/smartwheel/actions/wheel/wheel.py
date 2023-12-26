@@ -17,18 +17,23 @@ class WheelAction(BaseWheelAction):
         elif action == "wheelOpen":
             wheel.openWheel()
             Classes.ActionEngine().wheelStateChanged(True)
+
         elif action == "wheelQuickUp":
+            pulse.up = True
+            if pulse.virtual:
+                wheel.processKey(pulse)
+                return
             pulse.click = True
+            Classes.ActionEngine().angleChanged(True)
             if Classes.ActionEngine().getState() == "module":
                 wheel.quickSwitch(pulse)
-                Classes.ActionEngine().angleChanged(True)
-            else:
-                wheel.processKey(pulse)
 
         elif action == "wheelQuickDown":
-            pulse.click = False
+            pulse.up = False
+            if pulse.virtual:
+                wheel.processKey(pulse)
+                return
+            pulse.click = True
+            Classes.ActionEngine().angleChanged(False)
             if Classes.ActionEngine().getState() == "module":
                 wheel.quickSwitch(pulse)
-                Classes.ActionEngine().angleChanged(False)
-            else:
-                wheel.processKey(pulse)
