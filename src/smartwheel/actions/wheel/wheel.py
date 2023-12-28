@@ -22,7 +22,6 @@ class WheelAction(BaseWheelAction):
                 wheel.processKey(pulse)
                 return
             pulse.click = True
-            print("Setting up: " + str(pulse.up))
             Classes.ActionEngine().angleChanged(pulse.up)
             if Classes.ActionEngine().getState() == AppState.MODULE:
                 wheel.quickSwitch(pulse)

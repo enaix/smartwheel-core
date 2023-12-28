@@ -193,7 +193,7 @@ class UIElem(BaseUIElem):
         self.sections[old_selection].is_selected = False
 
     def processKey(self, pulse: Pulse):
-        if pulse.click:
+        if pulse.click and pulse.up is not None:
             self.wheelUp.put(pulse.up)
             self.startShadowAnimation()
             # self._angle += self.delta
@@ -208,6 +208,9 @@ class UIElem(BaseUIElem):
         #    self.startAnimation(up)
 
         # self.startShadowAnimation()
+
+        if pulse.up is None:
+            return
 
         if self.sections_timer.isActive():
             self.sections_timer.start(self.conf["sectionsHideTimeout"])
@@ -429,7 +432,6 @@ class UIElem(BaseUIElem):
             self.sections_anim.setEndValue(self.sections_anim_start)
             self.is_sections_hidden = False
         self.sections_anim.start()
-        print("starting")
         self.force_update()
 
     def hideSections(self):

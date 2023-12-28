@@ -279,7 +279,7 @@ class UIElem(BaseUIElem):
 
     def drawPadding(self, qp, width):
         qp.setPen(QPen())
-        qp.setBrush(QBrush(QColor(self.conf["bgWheelColor"])))
+        qp.setBrush(QBrush(QColor(self.conf["pickerBackground"])))
         qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), width // 2, width // 2)
 
     def drawColorWindow(self, qp, color, width, offset):

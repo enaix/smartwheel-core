@@ -3,6 +3,7 @@
     "colorDotLightnessThreshold": 100,
     "colorDotDarkStrokeColor": "#000000",
     "colorDotLightStrokeColor": "#ffffff",
+    "pickerBackground": "#101010",
     "colorDotStrokeWidth": 2,
     "colorWidgetShape": "hybrid",
     "colorWidgetPadding": 10,

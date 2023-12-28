@@ -1,3 +1,4 @@
+import copy
 import importlib
 import logging
 import os
@@ -72,10 +73,15 @@ class ActionEngine(QObject):
         self.angles = [0.0, 0.0]  # angles for wheel and module states
         self.accelMeta = {}
         self.devicePulses = {}
+        self.explicitPulses = {
+            CommandActions.wheel: DevicePulse(bind="_none", pulse_type=PulseTypes.ENCODER,
+                                              actions=[CommandActions.wheel], _virtual=True)
+        }
 
         self.modules_bind = {}
         self.loadModulesNames()
         self.cmdmap = {}
+        self.commandActions = {}
         self.buildCommandActionsCache()
         self.cmdbind = {}
         self.parseCommandBinds()
@@ -153,11 +159,13 @@ class ActionEngine(QObject):
         for act in CommandActions:
             self.cmdmap[act.name] = act
 
-        # Validation
         for act in self.conf["commandActions"]:
+            # Validation
             if self.cmdmap.get(act["name"]) is None:
                 self.logger.error("CommandAction mismatch (" + act["name"] +
                                   "). Please update api.action.CommandActions")
+
+            self.commandActions[self.cmdmap[act["name"]]] = act
 
     @pyqtSlot()
     def parseCommandBinds(self):
@@ -185,8 +193,9 @@ class ActionEngine(QObject):
                     continue
 
                 # iterate over actions
-                for act in self.conf["commandBind"][bind][i]["actions"]:
+                for action in self.conf["commandBind"][bind][i]["actions"]:
                     # Get corresponding commandAction
+                    act = copy.deepcopy(action)
                     act["wheel"] = self.getWheelAction(act)
 
                     # check where to call it
@@ -261,7 +270,7 @@ class ActionEngine(QObject):
         if context is None:
             self.logger.warning("Could not process call " + mod_name + ": no such action")
             return
-        print(mod_name)
+
         for i in context:
             i["module"] = weakref.ref(modules[current_module]["class"])
             i["call"] = call
@@ -305,7 +314,7 @@ class ActionEngine(QObject):
 
         cur_state = self.getState()
 
-        if elem is None or call is None:
+        if (elem is None or call is None) and not elem == "_none":
             self.logger.warning("actionengine could not parse the signal")
             return
 
@@ -318,25 +327,30 @@ class ActionEngine(QObject):
 
             self.logger.debug("Incoming call: " + elem + "." + call)
 
-        if self.cmdbind.get(elem) is None or self.cmdbind[elem].get(call) is None:
+        if (self.cmdbind.get(elem) is None or self.cmdbind[elem].get(call) is None) and not elem == "_none":
             self.logger.warning("Actionengine could not find call " + str(elem) + "." + str(call))
             return
 
         call_stack = []
-        p_call.actions = []
-        # Find the corresponding action to execute
-        for state in (cur_state, AppState.ANY):
-            for act in self.cmdbind[elem][call][state]:
-                if act.get("wheel") is None:
-                    continue
+        # System explicit call
+        if elem == "_none":
+            call_stack.append({"wheel": self.commandActions[p_call.actions[0]]})
 
-                if p_call.up is None:
-                    if act.get("up") is not None:
-                        p_call.up = act["up"]
-                print(p_call.up)
+        # Regular call
+        else:
+            p_call.actions = []
+            # Find the corresponding action to execute
+            for state in (cur_state, AppState.ANY):
+                for act in self.cmdbind[elem][call][state]:
+                    if act.get("wheel") is None:
+                        continue
 
-                p_call.actions.append(self.cmdmap.get(act["wheel"]["name"], CommandActions.Custom))
-                call_stack.append(act)
+                    if p_call.up is None:
+                        if act.get("up") is not None:
+                            p_call.up = act["up"]
+
+                    p_call.actions.append(self.cmdmap.get(act["wheel"]["name"], CommandActions.Custom))
+                    call_stack.append(act)
 
         pulse = self.generatePulse(p_call, cur_state == AppState.WHEEL)
 
@@ -574,6 +588,12 @@ class ActionEngine(QObject):
         if is_wheel_mode:
             self.linear_mode_enabled = True
 
+            if len(self.devicePulses) == 0:
+                self.explicitPulses[CommandActions.wheel].up = up
+                self.devicePulses[self.explicitPulses[CommandActions.wheel]] = self.explicitPulses[CommandActions.wheel]
+                self.accelMeta[self.explicitPulses[CommandActions.wheel]] = \
+                    AccelerationMeta(0.0, 0.0, 0.0, 0.0, self.haptics["maxAccel"])
+
             for dp, _ in self.devicePulses.items():
                 self.resetPulse(self.devicePulses[dp], is_wheel_mode, state_change=False)
                 self.accelMeta[dp].target += (1 if up else -1) * 360.0 / self.n_positions
@@ -599,6 +619,10 @@ class ActionEngine(QObject):
         self.updateModuleHaptics(is_wheel_mode)
 
         # execute force update
+        if self.explicitPulses[CommandActions.wheel] in self.devicePulses:
+            self.explicitPulses[CommandActions.wheel].up = None
+            self.accelMeta[self.explicitPulses[CommandActions.wheel]].step = self.angles[1]
+            self.accelMeta[self.explicitPulses[CommandActions.wheel]].target = self.angles[1]
         self.pulseCycle(True)
 
     def updateModuleHaptics(self, is_wheel_mode: bool):
@@ -665,6 +689,7 @@ class ActionEngine(QObject):
 
             return pulse
 
+        # TODO check for actions instead
         if pulse.type == PulseTypes.BUTTON:
             return pulse
 
@@ -675,6 +700,9 @@ class ActionEngine(QObject):
             pulse.target = 0.0
             pulse.velocity = 0.0
             pulse.virtual = False
+            return pulse
+
+        if CommandActions.wheelQuick in dpulse.actions:
             return pulse
 
         # Rotary

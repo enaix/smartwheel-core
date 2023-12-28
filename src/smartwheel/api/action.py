@@ -70,12 +70,13 @@ class DevicePulse:
     (Internal) True if virtual pulse produces a click
     """
 
-    def __init__(self, bind=None, command=None, pulse_type=None, up=None, actions=list()):
+    def __init__(self, bind=None, command=None, pulse_type=None, up=None, actions=list(), _virtual=False):
         self.bind = bind
         self.command = command
         self.type = pulse_type
         self.up = up
         self.actions = actions
+        self._virtual = _virtual
 
     def copy(self):
         """

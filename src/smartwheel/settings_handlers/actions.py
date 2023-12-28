@@ -127,7 +127,7 @@ class ActionList(BaseHandler):
         font = QFont()
         font.setBold(True)
 
-        for i, s in enumerate([10, 0, 0, 0]):
+        for i, s in enumerate([10, 0, 0, 0, 0]):
             wheel_l.setColumnStretch(s, i)
             module_l.setColumnStretch(s, i)
 
@@ -135,6 +135,7 @@ class ActionList(BaseHandler):
             enabled_label = QLabel("Enabled")
             title_label = QLabel("Title")
             any_label = QLabel("Where to call")
+            dir_label = QLabel("Up")
 
             desc_label = QLabel("Description")
             desc_label.setFont(font)
@@ -148,12 +149,14 @@ class ActionList(BaseHandler):
                 wheel_l.addWidget(title_label, 0, 1, Qt.AlignmentFlag.AlignLeft)
                 wheel_l.addWidget(desc_label, 0, 2, Qt.AlignmentFlag.AlignLeft)
                 wheel_l.addWidget(any_label, 0, 3, Qt.AlignmentFlag.AlignLeft)
+                wheel_l.addWidget(dir_label, 0, 4, Qt.AlignmentFlag.AlignLeft)
 
             if group == "module":
                 module_l.addWidget(enabled_label, 0, 0, Qt.AlignmentFlag.AlignLeft)
                 module_l.addWidget(title_label, 0, 1, Qt.AlignmentFlag.AlignLeft)
                 module_l.addWidget(desc_label, 0, 2, Qt.AlignmentFlag.AlignLeft)
                 module_l.addWidget(any_label, 0, 3, Qt.AlignmentFlag.AlignLeft)
+                module_l.addWidget(dir_label, 0, 4, Qt.AlignmentFlag.AlignLeft)
 
         for i, a in enumerate(actions):
             enabled = QCheckBox()
@@ -166,6 +169,11 @@ class ActionList(BaseHandler):
             state = QComboBox()
             state.insertItems(0, ["Wheel", "Module", "Anywhere"])
             # anyState = QCheckBox()
+
+            up = QCheckBox()
+            up.setChecked(False)
+            if not a.get("directional", False):
+                up.setEnabled(False)
 
             for j, bind in enumerate(elem_actions):
                 if a.get("default") is not None:
@@ -201,13 +209,17 @@ class ActionList(BaseHandler):
                 if not bind["checkState"]:
                     state.setCurrentIndex(2)
 
+                if bind.get("up") is not None and bind["up"] and up.isEnabled():
+                    up.setChecked(True)
+
             if a["type"] == "wheel":
                 wheel_l.addWidget(enabled, i + 1, 0, Qt.AlignmentFlag.AlignLeft)
                 wheel_l.addWidget(title, i + 1, 1, Qt.AlignmentFlag.AlignLeft)
                 wheel_l.addWidget(desc, i + 1, 2, Qt.AlignmentFlag.AlignLeft)
                 wheel_l.addWidget(state, i + 1, 3, Qt.AlignmentFlag.AlignRight)
+                wheel_l.addWidget(up, i + 1, 4, Qt.AlignmentFlag.AlignRight)
 
-                for j in range(1, 4):
+                for j in range(1, 5):
                     if wheel_l.itemAtPosition(i + 1, j) is not None:
                         enabled.clicked.connect(
                             wheel_l.itemAtPosition(i + 1, j).widget().setEnabled
@@ -219,8 +231,9 @@ class ActionList(BaseHandler):
                 module_l.addWidget(title, i + 1, 1, Qt.AlignmentFlag.AlignLeft)
                 module_l.addWidget(desc, i + 1, 2, Qt.AlignmentFlag.AlignLeft)
                 module_l.addWidget(state, i + 1, 3, Qt.AlignmentFlag.AlignRight)
+                module_l.addWidget(up, i + 1, 4, Qt.AlignmentFlag.AlignRight)
 
-                for j in range(1, 4):
+                for j in range(1, 5):
                     enabled.clicked.connect(
                         module_l.itemAtPosition(i + 1, j).widget().setEnabled
                     )
@@ -316,6 +329,9 @@ class ActionList(BaseHandler):
                 if onState == "anywhere":
                     anyState = True
 
+                directional = grid.itemAtPosition(j, 4).widget().isEnabled()
+                up = grid.itemAtPosition(j, 4).widget().isChecked()
+
                 actionName = grid.itemAtPosition(j, 0).widget().property("action_name")
 
                 action = {
@@ -324,13 +340,16 @@ class ActionList(BaseHandler):
                     "checkState": not anyState,
                 }
 
+                if directional:
+                    action["up"] = up
+
                 if not anyState and not mode == onState:
                     action["onState"] = onState
 
                 actions.append(action)
 
         # Saving
-        exists, elem_bind = self.value_getter(
+        exists, elem_bind = HandlersApi.getter(
             "actionengine", "commandBind." + elem["device"]
         )
         if not exists:
