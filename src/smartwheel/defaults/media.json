@@ -5,7 +5,7 @@
         "pause.svg"
     ],
     "actions": {
-        "scrollUp": [
+        "scroll.up": [
             {
                 "action": "keyPress",
                 "type": "updown",
@@ -15,7 +15,7 @@
                 "comment": "Volume up"
             }
         ],
-        "scrollDown": [
+        "scroll.down": [
             {
                 "action": "keyPress",
                 "type": "updown",
@@ -45,7 +45,7 @@
                 "comment": "Mute on double click/hold"
             }
         ],
-        "scrollUp2": [
+        "scroll2.up": [
             {
                 "action": "keyPress",
                 "type": "updown",
@@ -55,7 +55,7 @@
                 "comment": "Play the next track"
             }
         ],
-        "scrollDown2": [
+        "scroll2.down": [
             {
                 "action": "keyPress",
                 "type": "updown",

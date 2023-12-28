@@ -7,14 +7,14 @@
     "controlChangeType": 1,
     "steps": 3,
     "actions": {
-        "scrollUp": [
+        "scroll.up": [
             {
                 "action": "custom",
                 "repeat": 0,
                 "comment": "ControlChange up"
             }
         ],
-        "scrollDown": [
+        "scroll.down": [
             {
                 "action": "custom",
                 "repeat": 0,

@@ -2,12 +2,13 @@ import importlib
 import logging
 import os
 import weakref
+from typing import Union
 
 from PyQt6.QtCore import *
 
 from smartwheel import config, tools
 from smartwheel.api.app import Classes
-from smartwheel.api.action import Pulse, DevicePulse, PulseTypes
+from smartwheel.api.action import AppState, Pulse, DevicePulse, PulseTypes, CommandActions, RotaryActions
 
 
 class AccelerationMeta:
@@ -64,7 +65,7 @@ class ActionEngine(QObject):
 
         self.n_positions = Classes.RootCanvas().common_config["selectionWheelEntries"]  # Current number of sections
         self.haptics = config.Config(logger=self.logger, ignoreNewVars=False, config_dict={}, disableSaving=True)
-        self.haptics.updated.connect(self.onHapticsUpdate)
+        self.haptics.updated.connect(self.parseCommandBinds)
         self.updateModuleHaptics(True)
         self.last_state = True  # wheel
         self.linear_mode_enabled = False
@@ -74,6 +75,10 @@ class ActionEngine(QObject):
 
         self.modules_bind = {}
         self.loadModulesNames()
+        self.cmdmap = {}
+        self.buildCommandActionsCache()
+        self.cmdbind = {}
+        self.parseCommandBinds()
 
         self.accelTime = QTimer(self)
         self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
@@ -141,7 +146,81 @@ class ActionEngine(QObject):
             ).WheelAction()
             self.wheel_actions[mod_class.type] = mod_class
 
-    def action(self, call: str, pulse: Pulse = None):
+    def buildCommandActionsCache(self):
+        """
+        Map each commandAction to the enum value
+        """
+        for act in CommandActions:
+            self.cmdmap[act.name] = act
+
+        # Validation
+        for act in self.conf["commandActions"]:
+            if self.cmdmap.get(act["name"]) is None:
+                self.logger.error("CommandAction mismatch (" + act["name"] +
+                                  "). Please update api.action.CommandActions")
+
+    @pyqtSlot()
+    def parseCommandBinds(self):
+        """
+        Iterate over commandBind and build cache
+        """
+        self.cmdbind = {}
+
+        for bind, _ in self.conf["commandBind"].items():
+            self.cmdbind[bind] = {}
+
+            # iterate over commands
+            for i, command in enumerate(self.conf["commandBind"][bind]):
+                if command.get("command") is None:
+                    continue
+                cmd = command["command"]
+
+                self.cmdbind[bind][cmd] = {}
+                # initialize action lists
+                for state in AppState:
+                    self.cmdbind[bind][cmd][state] = []
+
+                if self.conf["commandBind"][bind][i].get("actions") is None:
+                    self.logger.warning("Command " + bind + "." + cmd + " has no actions")
+                    continue
+
+                # iterate over actions
+                for act in self.conf["commandBind"][bind][i]["actions"]:
+                    # Get corresponding commandAction
+                    act["wheel"] = self.getWheelAction(act)
+
+                    # check where to call it
+                    onState = act.get("onState")
+                    checkState = act.get("checkState", True)
+
+                    # check for default
+                    if act.get("mode") is None:
+                        if act["wheel"].get("default", "wheel") == "wheel":
+                            act["mode"] = "wheel"
+                        elif act["wheel"]["default"] == "module":
+                            act["mode"] = "module"
+                        else:
+                            if act.get("checkState") is None:
+                                checkState = False
+
+                    # call anywhere
+                    if not checkState:
+                        self.cmdbind[bind][cmd][AppState.ANY].append(act)
+                    elif onState is None:
+                        # check by action mode
+
+                        if act.get("mode", "wheel") == "wheel":
+                            self.cmdbind[bind][cmd][AppState.WHEEL].append(act)
+                        else:
+                            self.cmdbind[bind][cmd][AppState.MODULE].append(act)
+                    else:
+                        # check by action onState
+                        if onState == "wheel":
+                            self.cmdbind[bind][cmd][AppState.WHEEL].append(act)
+                        else:
+                            self.cmdbind[bind][cmd][AppState.MODULE].append(act)
+
+    def action(self, call: Union[CommandActions, str], pulse: Pulse = None):
         """
         Execute action
 
@@ -164,11 +243,25 @@ class ActionEngine(QObject):
         if modules[current_module]["class"].conf.get("actions") is None:
             return
 
+        if type(call) is str:
+            mod_name = call
+        else:
+            mod_name = call.name
+
+        # Check if we need to add .up/.down to the end of the name
+        if modules[current_module]["class"].conf["actions"].get(mod_name) is None and call in RotaryActions:
+            if pulse.up is None:
+                self.logger.warning("Could not process call " + call + ": pulse.up is unset")
+                return
+            mod_name += "." + ("up" if pulse.up else "down")
+
         context = (
-            modules[current_module]["class"].conf["actions"].get(call, None)
+            modules[current_module]["class"].conf["actions"].get(mod_name)
         )
         if context is None:
+            self.logger.warning("Could not process call " + mod_name + ": no such action")
             return
+        print(mod_name)
         for i in context:
             i["module"] = weakref.ref(modules[current_module]["class"])
             i["call"] = call
@@ -190,8 +283,8 @@ class ActionEngine(QObject):
         Get current state (sections opened or closed)
         """
         if Classes.WheelUi().is_sections_hidden:
-            return "module"
-        return "wheel"
+            return AppState.MODULE
+        return AppState.WHEEL
 
     @pyqtSlot(DevicePulse)
     def processCall(self, p_call: DevicePulse):
@@ -214,6 +307,7 @@ class ActionEngine(QObject):
 
         if elem is None or call is None:
             self.logger.warning("actionengine could not parse the signal")
+            return
 
         if not p_call._virtual:
             # All pulses are blocked while the sections are being opened/closed, or it's in the linear mode
@@ -224,30 +318,41 @@ class ActionEngine(QObject):
 
             self.logger.debug("Incoming call: " + elem + "." + call)
 
-        pulse = self.generatePulse(p_call, cur_state == "wheel")
+        if self.cmdbind.get(elem) is None or self.cmdbind[elem].get(call) is None:
+            self.logger.warning("Actionengine could not find call " + str(elem) + "." + str(call))
+            return
 
-        # TODO rewrite this in constant time
-        i = self.conf["commandBind"].get(elem, None)
-        if i is not None:
-            c = list(j for j in i if j["command"] == call)
-            if c:  # c != []
-                for act in c:
-                    for a in act["actions"]:
-                        cmd = self.getWheelAction(a)
-                        if cmd is not None:
-                            onState = a.get("onState", None)
-                            if onState is not None:
-                                if a.get("checkState", True) and onState != cur_state:
-                                    continue
-                            elif a.get("checkState", True) and a["mode"] != cur_state:
-                                continue
-                            for _ in range(1 + a.get("repeat", 0)):
-                                self.wheel_actions[cmd["type"]].run(
-                                    cmd["name"], pulse
-                                )
-                Classes.RootCanvas().update_func()
-        else:
-            self.logger.warning("actionengine could not find call with this name")
+        call_stack = []
+        p_call.actions = []
+        # Find the corresponding action to execute
+        for state in (cur_state, AppState.ANY):
+            for act in self.cmdbind[elem][call][state]:
+                if act.get("wheel") is None:
+                    continue
+
+                if p_call.up is None:
+                    if act.get("up") is not None:
+                        p_call.up = act["up"]
+                print(p_call.up)
+
+                p_call.actions.append(self.cmdmap.get(act["wheel"]["name"], CommandActions.Custom))
+                call_stack.append(act)
+
+        pulse = self.generatePulse(p_call, cur_state == AppState.WHEEL)
+
+        # Call these actions
+        for act in call_stack:
+            # Check for non-core actions
+            if self.cmdmap.get(act["wheel"]["name"]) is not None:
+                name = self.cmdmap[act["wheel"]["name"]]
+            else:
+                name = act["wheel"]["name"]
+
+            for _ in range(1 + act.get("repeat", 0)):
+                self.wheel_actions[act["wheel"]["type"]].run(
+                    name, pulse
+                )
+        Classes.RootCanvas().update_func()
 
     @staticmethod
     def sign(x):
@@ -292,6 +397,12 @@ class ActionEngine(QObject):
 
         # update the position with inertia
         self.accelMeta[key].step += self.accelMeta[key].acceleration * delta
+
+        # check pulse direction (for non-click pulses)
+        if self.accelMeta[key].acceleration > 0:
+            pulse.up = True
+        else:
+            pulse.up = False
 
         # change of direction
         if not self.accelMeta[key].target == nearest_angle:
@@ -366,6 +477,7 @@ class ActionEngine(QObject):
             self.accelTime.stop()
             stopped = True
             self.accelMeta[key].threshClick = False
+            self.accelMeta[key].step = self.accelMeta[key].target
 
             # disable linear mode
             if self.linear_mode_enabled:
@@ -393,7 +505,7 @@ class ActionEngine(QObject):
             pulse._click = False
 
             # Not spinning
-            if not self.linear_mode_enabled and singleShot and \
+            if singleShot and \
                     self.accelMeta[key].target == self.accelMeta[key].step and self.accelMeta[key].acceleration == 0.0:
                 self.callAction.emit(pulse)
                 continue
@@ -413,12 +525,14 @@ class ActionEngine(QObject):
 
             if self.conf["debugLookupKey"] == str(key):
                 self.conf["debug"] = {"step": self.accelMeta[key].step, "target": self.accelMeta[key].target,
-                                      "velocity": self.accelMeta[key].acceleration, "distance": norm_dist, "stop": stopped}
+                                      "velocity": self.accelMeta[key].acceleration, "distance": norm_dist,
+                                      "stop": stopped, "up": pulse.up}
 
             self.callAction.emit(pulse)
             if self.conf["logEngine"]:
                 self.logger.debug("Step: " + str(self.accelMeta[key].step) + "; target: " + str(nearest_angle)
-                                  + "; vel: " + str(self.accelMeta[key].acceleration) + "; dist: " + str(norm_dist))
+                                  + "; vel: " + str(self.accelMeta[key].acceleration) + "; dist: " + str(norm_dist) +
+                                  "; up: " + str(pulse.up))
 
     def resetPulse(self, dpulse: DevicePulse, is_wheel_mode: bool, state_change=True):
         """
@@ -455,7 +569,7 @@ class ActionEngine(QObject):
         up
             Increment up (if True)
         """
-        is_wheel_mode = self.getState() == "wheel"
+        is_wheel_mode = self.getState() == AppState.WHEEL
 
         if is_wheel_mode:
             self.linear_mode_enabled = True
@@ -505,7 +619,7 @@ class ActionEngine(QObject):
             modules = Classes.RootCanvas().cur_wheel_modules
             current_module = Classes.WheelUi().getCurModule()
 
-            if current_module >= len(modules) or modules[current_module] is None or modules[current_module].get("class")\
+            if current_module >= len(modules) or modules[current_module] is None or modules[current_module].get("class") \
                     is None or modules[current_module]["class"].conf.get("haptics") is None:
                 # Load default params
                 self.updateModuleHaptics(True)
@@ -517,15 +631,11 @@ class ActionEngine(QObject):
                 self.haptics[key] = value
 
     @pyqtSlot()
-    def onHapticsUpdate(self):
-        pass
-
-    @pyqtSlot()
     def updateHapticsConf(self):
         """
         Update haptics config on settings change
         """
-        self.updateModuleHaptics(self.getState() == "wheel")
+        self.updateModuleHaptics(self.getState() == AppState.WHEEL)
 
     def generatePulse(self, dpulse: DevicePulse, is_wheel_mode: bool):
         """
@@ -540,12 +650,14 @@ class ActionEngine(QObject):
         """
         pulse = Pulse()
         pulse.type = dpulse.type
+        pulse.up = dpulse.up
+
+        self.logger.debug(
+            "Pulse: " + str(dpulse.type) + "; virtual: " + str(dpulse._virtual) + "; cmd: " + str(dpulse.command))
 
         if dpulse._virtual:
             pulse.virtual = True
             pulse.click = dpulse._click
-            if dpulse.up is not None:
-                pulse.up = dpulse.up
 
             pulse.step = self.accelMeta[dpulse].step
             pulse.target = self.accelMeta[dpulse].target
@@ -578,7 +690,7 @@ class ActionEngine(QObject):
             self.accelMeta = {}
 
             # Store DevicePulse instance by its name (__str__ returns device bind)
-            self.devicePulses[str(dpulse)] = dpulse
+            self.devicePulses[str(dpulse)] = dpulse.copy()
             self.conf["debugPulses"] = [str(x) for x, _ in self.devicePulses.items()]
 
             if self.haptics["enableHaptics"]:
@@ -593,6 +705,7 @@ class ActionEngine(QObject):
                 else:
                     self.accelMeta[dpulse] = AccelerationMeta(0.0, 0.0, 0.0, accel, self.haptics["maxAccel"])
             else:
+                # Linear-only mode
                 if new_meta is not None:
                     self.accelMeta[dpulse] = new_meta
                     self.accelMeta[dpulse].target += (1 if dpulse.up else -1) * 360.0 / self.n_positions
@@ -602,7 +715,8 @@ class ActionEngine(QObject):
 
         else:
             # Update pulse parameters (dpulse as a key does not represent all unique parameters)
-            self.devicePulses[str(dpulse)].command = dpulse.command
+            # self.devicePulses[str(dpulse)].command = dpulse.command
+            self.devicePulses[str(dpulse)] = dpulse.copy()
 
             if self.haptics["enableHaptics"]:
                 if dpulse.up:

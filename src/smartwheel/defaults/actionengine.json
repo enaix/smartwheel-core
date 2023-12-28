@@ -1,16 +1,11 @@
 {
     "commandActions": [
         {
-            "name": "wheelUp",
-            "title": "Scroll wheel up",
-            "description": "Scroll the wheel up",
-            "type": "wheel"
-        },
-        {
-            "name": "wheelDown",
-            "title": "Scroll wheel down",
-            "description": "Scroll the wheel down",
-            "type": "wheel"
+            "name": "wheel",
+            "title": "Scroll the wheel",
+            "description": "Scroll the wheel",
+            "type": "wheel",
+            "directional": true
         },
         {
             "name": "wheelSelect",
@@ -26,30 +21,19 @@
             "default": "module"
         },
         {
-            "name": "wheelQuickUp",
-            "title": "Instantly scroll wheel up",
-            "description": "Quickly scroll the wheel up",
+            "name": "wheelQuick",
+            "title": "Instantly scroll the wheel",
+            "description": "Quickly scroll the wheel",
             "type": "wheel",
-            "default": "any"
+            "default": "any",
+            "directional": true
         },
         {
-            "name": "wheelQuickDown",
-            "title": "Instantly scroll wheel down",
-            "description": "Quickly scroll the wheel down",
-            "type": "wheel",
-            "default": "any"
-        },
-        {
-            "name": "scrollUp",
-            "title": "Scroll up",
-            "description": "Main scroll up action",
-            "type": "module"
-        },
-        {
-            "name": "scrollDown",
-            "title": "Scroll down",
-            "description": "Main scroll down action",
-            "type": "module"
+            "name": "scroll",
+            "title": "Scroll the module",
+            "description": "Main scroll action in module",
+            "type": "module",
+            "directional": true
         },
         {
             "name": "keyAction1",
@@ -64,16 +48,11 @@
             "type": "module"
         },
         {
-            "name": "scrollUp2",
-            "title": "Scroll up 2",
-            "description": "Secondary scroll up action",
-            "type": "module"
-        },
-        {
-            "name": "scrollDown2",
-            "title": "Scroll down 2",
-            "description": "Secondary scroll down action",
-            "type": "module"
+            "name": "scroll2",
+            "title": "Scroll the module (2)",
+            "description": "Secondary scroll action in module",
+            "type": "module",
+            "directional": true
         }
     ],
     "commandBind": {
@@ -111,14 +90,16 @@
                 "command": "enc1_scroll up",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "scrollUp",
+                        "action": "scroll",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -126,14 +107,16 @@
                 "command": "enc1_scroll down",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "scrollDown",
+                        "action": "scroll",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             },
@@ -141,15 +124,17 @@
                 "command": "enc1_hold_scroll up",
                 "actions": [
                     {
-                        "action": "wheelQuickUp",
+                        "action": "wheelQuick",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "wheelQuickUp",
+                        "action": "wheelQuick",
                         "mode": "wheel",
                         "onState": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -157,15 +142,17 @@
                 "command": "enc1_hold_scroll down",
                 "actions": [
                     {
-                        "action": "wheelQuickDown",
+                        "action": "wheelQuick",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "wheelQuickDown",
+                        "action": "wheelQuick",
                         "mode": "wheel",
                         "onState": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             },
@@ -173,14 +160,16 @@
                 "command": "enc1_doubleclick_scroll up",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "scrollUp2",
+                        "action": "scroll2",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -188,14 +177,16 @@
                 "command": "enc1_doubleclick_scroll down",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "scrollUp2",
+                        "action": "scroll2",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             }
@@ -205,15 +196,17 @@
                 "command": "w",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "wheelQuickUp",
+                        "action": "wheelQuick",
                         "mode": "wheel",
                         "onState": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -221,15 +214,17 @@
                 "command": "a",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "wheelQuickDown",
+                        "action": "wheelQuick",
                         "mode": "wheel",
                         "onState": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             },
@@ -237,14 +232,16 @@
                 "command": "up",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "scrollUp",
+                        "action": "scroll",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -252,14 +249,16 @@
                 "command": "down",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "scrollDown",
+                        "action": "scroll",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             },
@@ -296,15 +295,17 @@
                 "command": "w",
                 "actions": [
                     {
-                        "action": "wheelQuickUp",
+                        "action": "wheelQuick",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "wheelQuickUp",
+                        "action": "wheelQuick",
                         "mode": "wheel",
                         "onState": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -312,15 +313,17 @@
                 "command": "a",
                 "actions": [
                     {
-                        "action": "wheelQuickDown",
+                        "action": "wheelQuick",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "wheelQuickDown",
+                        "action": "wheelQuick",
                         "mode": "wheel",
                         "onState": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             }
@@ -359,14 +362,16 @@
                 "command": "up",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "scrollUp",
+                        "action": "scroll",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -374,14 +379,16 @@
                 "command": "down",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "scrollDown",
+                        "action": "scroll",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             },
@@ -389,15 +396,17 @@
                 "command": "click up",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "wheelQuickUp",
+                        "action": "wheelQuick",
                         "mode": "wheel",
                         "onState": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -405,15 +414,17 @@
                 "command": "click down",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "wheelQuickDown",
+                        "action": "wheelQuick",
                         "mode": "wheel",
                         "onState": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             },
@@ -421,14 +432,16 @@
                 "command": "double up",
                 "actions": [
                     {
-                        "action": "wheelUp",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     },
                     {
-                        "action": "scrollUp2",
+                        "action": "scroll2",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": true
                     }
                 ]
             },
@@ -436,14 +449,16 @@
                 "command": "double down",
                 "actions": [
                     {
-                        "action": "wheelDown",
+                        "action": "wheel",
                         "mode": "wheel",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     },
                     {
-                        "action": "scrollUp2",
+                        "action": "scroll2",
                         "mode": "module",
-                        "checkState": true
+                        "checkState": true,
+                        "up": false
                     }
                 ]
             }

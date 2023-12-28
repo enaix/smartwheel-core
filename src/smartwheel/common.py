@@ -16,7 +16,7 @@ class ConfigManager(QObject):
     """
 
     save = pyqtSignal()
-    defaults = pyqtSignal()
+    defaults = pyqtSignal(bool)
     batchDefaults = pyqtSignal(list)
     updated = pyqtSignal(list)
     batchUpdate = pyqtSignal(list)
@@ -229,14 +229,14 @@ class Doctor(QObject):
 
         elif conf._fixStrategy == ConfigFixStrategy.Defaults:
             self.logger.warning("Restoring defaults for the config...")
-            conf.loadDefaults()
+            conf.loadDefaults(hardReset=True)
             return True
 
         elif conf._fixStrategy == ConfigFixStrategy.DefaultsAll:
             self.logger.warning("Restoring all defaults...")
             conf.loadDefaults()
             conf.blockSignals(True)
-            config_manager.defaults.emit()
+            config_manager.defaults.emit(True)
             conf.blockSignals(False)
             return True
 
@@ -313,7 +313,6 @@ class Doctor(QObject):
                 conf._fixStrategy = ConfigFixStrategy.Defaults
 
         self.executeConfigFix(conf, key)
-
 
     def loadStatus(self, file):
         """

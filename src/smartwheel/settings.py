@@ -656,7 +656,7 @@ class SettingsWindow(QWidget):
 
             # execute the update and wait
             start_time = time.time_ns()
-            common.config_manager.defaults.emit()
+            common.config_manager.defaults.emit(False)
             self.logger.info("Reset took " + str((time.time_ns() - start_time) / 1000000) + " ms")
 
             # Remove all modified variables

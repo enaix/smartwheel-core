@@ -229,8 +229,8 @@ class UIElem(BaseUIElem):
         self.hideSections()
 
     def quickSwitch(self, pulse: Pulse):
-        # if not pulse.click:
-        #     return
+        if not pulse.click:
+            return
 
         # self.scrollModule(up)
         self.wheelUp.put(pulse.up)
@@ -414,7 +414,7 @@ class UIElem(BaseUIElem):
         if self.conf["isWheelWidthFixed"]:
             self.sections_anim_end = self.conf["fixedWheelWidth"]
         else:
-            self.sections_anim_end = (self.conf["width"] * 1) // 4
+            self.sections_anim_end = (self.conf["width"]) / 4.0
         self.sections_anim = QPropertyAnimation(self, b"prop_sections")
         self.sections_anim.setDuration(self.conf["sectionsAnimationDuration"])
 
@@ -429,6 +429,7 @@ class UIElem(BaseUIElem):
             self.sections_anim.setEndValue(self.sections_anim_start)
             self.is_sections_hidden = False
         self.sections_anim.start()
+        print("starting")
         self.force_update()
 
     def hideSections(self):

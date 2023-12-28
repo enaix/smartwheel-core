@@ -1,7 +1,6 @@
 import logging
 
 from pynput import keyboard
-from PyQt6.QtCore import *
 
 from smartwheel import config
 from smartwheel.serialpipe.base import ClickButton, ConnPipe, PRButton, Rotary

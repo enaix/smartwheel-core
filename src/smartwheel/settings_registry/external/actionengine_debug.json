@@ -9,6 +9,7 @@
     {"name": "Velocity", "type": "watch", "module": "actionengine", "prop": "debug.velocity", "noWarn": true},
     {"name": "Normalized distance", "type": "watch", "module": "actionengine", "prop": "debug.distance", "noWarn": true},
     {"name": "Stopped", "type": "watch", "module": "actionengine", "prop": "debug.stop", "noWarn": true},
-    {"name": "Input blocked", "type": "watch", "module": "actionengine", "prop": "debug_input_blocked", "noWarn": true}
+    {"name": "Input blocked", "type": "watch", "module": "actionengine", "prop": "debug_input_blocked", "noWarn": true},
+    {"name": "Up", "type": "watch", "module": "actionengine", "prop": "debug.up", "noWarn": true}
   ]
 }

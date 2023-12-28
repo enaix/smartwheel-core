@@ -6,6 +6,29 @@ class PulseTypes(Enum):
     ENCODER = 1
 
 
+class AppState(Enum):
+    WHEEL = 0
+    MODULE = 1
+    ANY = 2
+
+
+class CommandActions(Enum):
+    """
+    Enum containing all core actions
+    """
+    wheel = 0
+    wheelSelect = 1
+    wheelOpen = 2
+    wheelQuick = 3
+    scroll = 4
+    keyAction1 = 5
+    keyAction2 = 6
+    scroll2 = 7
+    Custom = 8
+
+
+RotaryActions = {CommandActions.wheel, CommandActions.wheelQuick, CommandActions.scroll, CommandActions.scroll2}
+
 class DevicePulse:
     """
     Pulse that is processed by action engine (must be used in serial modules)
@@ -32,6 +55,11 @@ class DevicePulse:
     Scroll direction (only for the encoder)
     """
 
+    actions: list[CommandActions] = []
+    """
+    List of actions to execute
+    """
+
     _virtual: bool = False
     """
     (Internal) True if executed by action engine cycle
@@ -42,18 +70,19 @@ class DevicePulse:
     (Internal) True if virtual pulse produces a click
     """
 
-    def __init__(self, bind=None, command=None, pulse_type=None, up=None):
+    def __init__(self, bind=None, command=None, pulse_type=None, up=None, actions=list()):
         self.bind = bind
         self.command = command
         self.type = pulse_type
         self.up = up
+        self.actions = actions
 
     def copy(self):
         """
         Copy constructor of DevicePusle
         Note that it doesn't copy _virtual and _click properties
         """
-        return DevicePulse(bind=self.bind, command=self.command, pulse_type=self.type, up=self.up)
+        return DevicePulse(bind=self.bind, command=self.command, pulse_type=self.type, up=self.up, actions=self.actions)
 
     def __str__(self):
         return self.bind

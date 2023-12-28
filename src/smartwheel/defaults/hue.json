@@ -18,14 +18,14 @@
     "SatStartAngle": 359,
     "BriStartAngle": 179,
     "actions": {
-        "scrollUp": [
+        "scroll.up": [
             {
                 "action": "custom",
                 "repeat": 0,
                 "comment": "Increment current HSL value"
             }
         ],
-        "scrollDown": [
+        "scroll.down": [
             {
                 "action": "custom",
                 "repeat": 0,

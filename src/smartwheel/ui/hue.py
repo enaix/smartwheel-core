@@ -7,6 +7,7 @@ from PyQt6.QtGui import *
 
 from smartwheel import config
 from smartwheel.ui.base import BaseUIElem
+from smartwheel.api.action import CommandActions
 
 
 class UIElem(BaseUIElem):
@@ -45,11 +46,11 @@ class UIElem(BaseUIElem):
         if not pulse.click:
             return
 
-        if event["call"] == "keyAction1":
+        if event["call"] == CommandActions.keyAction1:
             self.mode = (self.mode + 1) % 3
             self.startWidthAnimation()
-        elif event["call"] == "scrollUp" or event["call"] == "scrollDown":
-            dlt = self.angle_delta if event["call"] == "scrollUp" else -self.angle_delta
+        elif event["call"] == CommandActions.scroll:
+            dlt = self.angle_delta if pulse.up else -self.angle_delta
             if self.mode == 0:
                 self.hue_selection = self.checkOverflow(self.hue_selection + dlt)
             elif self.mode == 1:

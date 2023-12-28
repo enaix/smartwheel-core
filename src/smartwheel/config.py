@@ -373,11 +373,17 @@ class Config(QObject):
                     self.loadDefaults()
         except BaseException as e:
             if self.logger is not None:
-                self.logger.error("Could not load config file:")
-                self.logger.error(str(e))
+                self.logger.error("Could not load config file: " + str(e))
             else:
                 print("Could not load config file:")
                 print(str(e))
+
+            # This might happen due to breaking changes in configs
+            if common.doctor.startupMode == common.StartupMode.Update:
+                self.logger.error("Attempting to load defaults...")
+                self.loadDefaults(hardReset=True)
+                # Defaults seem to be loaded just fine
+                return True
 
             if immediate:
                 return False, None
@@ -519,16 +525,21 @@ class Config(QObject):
         """
         self.mergeDefaults()
 
-    @pyqtSlot()
-    def __defaults(self):
+    @pyqtSlot(bool)
+    def __defaults(self, hardReset=False):
         """
         Reload defaults for this config. Should be called from common module
         """
-        self.loadDefaults()
+        self.loadDefaults(hardReset)
 
-    def loadDefaults(self):
+    def loadDefaults(self, hardReset=False):
         """
         Reload config file from defaults
+
+        Parameters
+        ==========
+        hardReset
+            More reliable way to reset the config; drops all current variables first
         """
         if self.default_config_file is None or self.config_file is None:
             return
@@ -542,7 +553,10 @@ class Config(QObject):
                 print("Failed to merge defaults")
             return
 
-        self.dictIter(defaults, self.c)
+        if not hardReset:
+            self.dictIter(defaults, self.c)
+        else:
+            self.c = defaults
 
         with open(self.config_file, "w") as f:
             json.dump(defaults, f, indent=4)

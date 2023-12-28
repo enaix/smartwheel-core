@@ -4,6 +4,7 @@ from PyQt6.QtGui import QPen, QBrush, QColor
 from smartwheel import config, gui_tools
 from smartwheel.tools import merge_dicts
 from smartwheel.ui.base import BaseUIElem
+from smartwheel.api.action import CommandActions
 
 import rtmidi
 from rtmidi.midiconstants import CONTROL_CHANGE
@@ -47,10 +48,11 @@ class UIElem(BaseUIElem):
 
         if not self.midiout.is_port_open():
             return
-        if event["call"] == "scrollUp":
-            self.cur = min(self.max_pos, self.cur + self.conf["steps"])
-        elif event["call"] == "scrollDown":
-            self.cur = max(self.min_pos, self.cur - self.conf["steps"])
+        if event["call"] == CommandActions.scroll:
+            if pulse.up:
+                self.cur = min(self.max_pos, self.cur + self.conf["steps"])
+            else:
+                self.cur = max(self.min_pos, self.cur - self.conf["steps"])
 
         self.midiout.send_message([CONTROL_CHANGE, self.conf["controlChangeType"], self.cur])
 
