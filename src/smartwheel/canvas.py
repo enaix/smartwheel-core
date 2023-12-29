@@ -428,6 +428,9 @@ class RootCanvas(QObject):
 
         HandlersApi.watch.emit()
 
+        if not Classes.ActionEngine().conf["acceleration"]["fixedDeltaTime"] and Classes.ActionEngine().enablePulseCycle:
+            Classes.ActionEngine().pulseCycle()
+
         if self.sleep_time is not None:
             if self.conf["stabilizeFPS"]:
                 self.conf["real_fps"] = str(round(1 / max(self.sleep_time + self.exec_time, 0.0000001), 1))

@@ -1,8 +1,9 @@
 {
   "items": [
     {"name": "Haptics engine", "options": [
-      {"name": "Refresh time (ms)", "type": "int", "min": 0, "max": 1000, "module": "actionengine", "prop": "acceleration.pulseRefreshTime"},
-      {"name": "Refresh time for linear calculations (ms)", "type": "int", "min": 0, "max": 1000, "module": "actionengine", "prop": "acceleration.linearRefreshTime"},
+      {"name": "Enable fixed delta time (high CPU)", "type": "bool", "module": "actionengine", "prop": "acceleration.fixedDeltaTime"},
+      {"name": "(Fixed delta) Refresh time (ms)", "type": "int", "min": 0, "max": 1000, "module": "actionengine", "prop": "acceleration.pulseRefreshTime"},
+      {"name": "(Fixed delta) Refresh time for linear calculations (ms)", "type": "int", "min": 0, "max": 1000, "module": "actionengine", "prop": "acceleration.linearRefreshTime"},
       {"name": "Default number of sections in modules", "type": "int", "min": 1, "max": 10000, "module": "actionengine", "prop": "acceleration.moduleSections"},
       {"name": "Log engine parameters (debug)", "type": "bool", "module": "actionengine", "prop": "logEngine"},
       {"name": "Click acceleration", "type": "float", "min": -200.0, "max": 200.0, "module": "actionengine", "prop": "acceleration.clickAccel"}

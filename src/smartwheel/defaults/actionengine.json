@@ -470,6 +470,7 @@
         "maxAccel": 100.0,
         "gravity": 27.0,
         "friction": 5.0,
+        "fixedDeltaTime": false,
         "pulseRefreshTime": 50,
         "linearRefreshTime": 20,
         "deadzone": 1.0,

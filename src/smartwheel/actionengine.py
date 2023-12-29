@@ -2,6 +2,7 @@ import copy
 import importlib
 import logging
 import os
+import time
 import weakref
 from typing import Union
 
@@ -77,6 +78,7 @@ class ActionEngine(QObject):
             CommandActions.wheel: DevicePulse(bind="_none", pulse_type=PulseTypes.ENCODER,
                                               actions=[CommandActions.wheel], _virtual=True)
         }
+        self.start_time = None
 
         self.modules_bind = {}
         self.loadModulesNames()
@@ -89,6 +91,7 @@ class ActionEngine(QObject):
         self.accelTime = QTimer(self)
         self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
         self.accelTime.timeout.connect(self.pulseCycle)
+        self.enablePulseCycle = False
 
         # Initialize debugging parameters
         self.conf["debug"] = {}
@@ -372,7 +375,7 @@ class ActionEngine(QObject):
     def sign(x):
         return -1.0 if x < 0.0 else 1.0
 
-    def physics_process(self, key: DevicePulse, pulse: DevicePulse):
+    def physics_process(self, key: DevicePulse, pulse: DevicePulse, delta: float):
         """
         Calculate angle position using haptics engine
 
@@ -382,6 +385,8 @@ class ActionEngine(QObject):
             DevicePulse to calculate
         pulse
             Virtual DevicePulse to emit
+        delta
+            DeltaTime in seconds
         """
         # calculate section angle
         section_angle = 360.0 / self.haptics["moduleSections"]
@@ -407,7 +412,7 @@ class ActionEngine(QObject):
         norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (section_angle / 2.0)
 
         # calculate deltaTime
-        delta = self.conf["acceleration"]["pulseRefreshTime"] / 1000
+        # delta = self.conf["acceleration"]["pulseRefreshTime"] / 1000
 
         # update the position with inertia
         self.accelMeta[key].step += self.accelMeta[key].acceleration * delta
@@ -451,12 +456,14 @@ class ActionEngine(QObject):
                 abs(self.accelMeta[key].acceleration) < self.haptics["maxStopAccel"]:
             self.accelMeta[key].acceleration = 0.0
             self.accelMeta[key].step = nearest_angle
-            self.accelTime.stop()
+            if self.conf["acceleration"]["fixedDeltaTime"]:
+                self.accelTime.stop()
+            self.enablePulseCycle = False
             stopped = True
 
         return pulse, norm_dist, nearest_angle, stopped
 
-    def linear_process(self, key: DevicePulse, pulse: DevicePulse):
+    def linear_process(self, key: DevicePulse, pulse: DevicePulse, delta: float):
         """
         Calculate angle position using linear function
 
@@ -466,12 +473,14 @@ class ActionEngine(QObject):
             DevicePulse to calculate
         pulse
             Virtual DevicePulse to emit
+        delta
+            DeltaTime in seconds
         """
         # calculate section angle
         section_angle = 360.0 / self.n_positions
 
         # calculate deltaTime
-        delta = self.conf["acceleration"]["linearRefreshTime"] / 1000
+        # delta = self.conf["acceleration"]["linearRefreshTime"] / 1000
 
         if self.accelMeta[key].step < self.accelMeta[key].target:
             direction = 1.0
@@ -492,7 +501,9 @@ class ActionEngine(QObject):
         stopped = False
         # check for end position
         if self.accelMeta[key].threshClick and abs(self.accelMeta[key].step - self.accelMeta[key].target) < 0.01:
-            self.accelTime.stop()
+            if self.conf["acceleration"]["fixedDeltaTime"]:
+                self.accelTime.stop()
+            self.enablePulseCycle = False
             stopped = True
             self.accelMeta[key].threshClick = False
             self.accelMeta[key].step = self.accelMeta[key].target
@@ -503,7 +514,9 @@ class ActionEngine(QObject):
                 # reset timer interval
                 self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
         elif not self.accelTime.isActive():
-            self.accelTime.start()
+            self.enablePulseCycle = True
+            if self.conf["acceleration"]["fixedDeltaTime"]:
+                self.accelTime.start()
 
         return pulse, stopped
 
@@ -519,6 +532,14 @@ class ActionEngine(QObject):
         """
         self.conf["debug"] = {}
 
+        if self.conf["acceleration"]["fixedDeltaTime"] or self.start_time is None:
+            if self.linear_mode_enabled:
+                deltaTime = self.conf["acceleration"]["linearRefreshTime"] / 1000
+            else:
+                deltaTime = self.conf["acceleration"]["pulseRefreshTime"] / 1000
+        else:
+            deltaTime = (time.time_ns() - self.start_time) / 1000000000
+
         for key, _ in self.accelMeta.items():
             pulse = key.copy()
             pulse._virtual = True
@@ -532,16 +553,18 @@ class ActionEngine(QObject):
 
             if self.haptics["enableHaptics"] and not self.linear_mode_enabled:
                 # Run haptics engine
-                pulse, norm_dist, nearest_angle, stopped = self.physics_process(key, pulse)
+                pulse, norm_dist, nearest_angle, stopped = self.physics_process(key, pulse, deltaTime)
             else:
                 # Run linear calculation
-                pulse, stopped = self.linear_process(key, pulse)
+                pulse, stopped = self.linear_process(key, pulse, deltaTime)
                 norm_dist = None
                 nearest_angle = None
 
             # All variables theoretically should be in 0.0 - 360.0 range, but this should be done in modules
             # to cover the edge cases (359.9 -> 0.0). In practice it would take insane amount of spins for the sin
             # and cos functions to break due to precision errors
+
+            start_time = time.time_ns()
 
             if self.conf["debugLookupKey"] == str(key):
                 self.conf["debug"] = {"step": self.accelMeta[key].step, "target": self.accelMeta[key].target,
@@ -778,6 +801,8 @@ class ActionEngine(QObject):
         pulse.up = dpulse.up
 
         if not self.accelTime.isActive():
-            self.accelTime.start()
+            self.enablePulseCycle = True
+            if self.conf["acceleration"]["fixedDeltaTime"]:
+                self.accelTime.start()
 
         return pulse
