@@ -407,7 +407,7 @@ class ActionEngine(QObject):
         norm_dist = abs(self.accelMeta[key].step - nearest_angle) / (section_angle / 2.0)
 
         # calculate deltaTime
-        delta = self.haptics["pulseRefreshTime"] / 1000
+        delta = self.conf["acceleration"]["pulseRefreshTime"] / 1000
 
         # update the position with inertia
         self.accelMeta[key].step += self.accelMeta[key].acceleration * delta
@@ -428,6 +428,10 @@ class ActionEngine(QObject):
                 pulse.up = True
 
             self.accelMeta[key].target = nearest_angle
+
+            # update stored angle
+            if self.getState() == AppState.WHEEL:
+                self.angles[1] = self.accelMeta[key].target
 
         old_accel = self.accelMeta[key].acceleration
 
@@ -464,10 +468,10 @@ class ActionEngine(QObject):
             Virtual DevicePulse to emit
         """
         # calculate section angle
-        section_angle = 360.0 / self.haptics["moduleSections"]
+        section_angle = 360.0 / self.n_positions
 
         # calculate deltaTime
-        delta = self.haptics["pulseRefreshTime"] / 1000
+        delta = self.conf["acceleration"]["linearRefreshTime"] / 1000
 
         if self.accelMeta[key].step < self.accelMeta[key].target:
             direction = 1.0
@@ -496,6 +500,8 @@ class ActionEngine(QObject):
             # disable linear mode
             if self.linear_mode_enabled:
                 self.linear_mode_enabled = False
+                # reset timer interval
+                self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
         elif not self.accelTime.isActive():
             self.accelTime.start()
 
@@ -585,22 +591,24 @@ class ActionEngine(QObject):
         """
         is_wheel_mode = self.getState() == AppState.WHEEL
 
-        if is_wheel_mode:
-            self.linear_mode_enabled = True
+        self.linear_mode_enabled = True
 
-            if len(self.devicePulses) == 0:
-                self.explicitPulses[CommandActions.wheel].up = up
-                self.devicePulses[self.explicitPulses[CommandActions.wheel]] = self.explicitPulses[CommandActions.wheel]
-                self.accelMeta[self.explicitPulses[CommandActions.wheel]] = \
-                    AccelerationMeta(0.0, 0.0, 0.0, 0.0, self.haptics["maxAccel"])
+        self.accelTime.setInterval(self.conf["acceleration"]["linearRefreshTime"])
 
-            for dp, _ in self.devicePulses.items():
-                self.resetPulse(self.devicePulses[dp], is_wheel_mode, state_change=False)
-                self.accelMeta[dp].target += (1 if up else -1) * 360.0 / self.n_positions
-            self.pulseCycle()
-        else:
-            # Update the angle for wheel mode
-            self.angles[1] += (1 if up else -1) * 360.0 / self.n_positions
+        self.devicePulses = {}
+        self.accelMeta = {}
+
+        self.explicitPulses[CommandActions.wheel].up = up
+        self.devicePulses[self.explicitPulses[CommandActions.wheel]] = self.explicitPulses[CommandActions.wheel]
+        self.accelMeta[self.explicitPulses[CommandActions.wheel]] = \
+            AccelerationMeta(self.angles[1], self.angles[1], 0.0, 0.0, self.haptics["maxAccel"])
+
+        for dp, _ in self.devicePulses.items():
+            self.resetPulse(self.devicePulses[dp], is_wheel_mode, state_change=False)
+            self.accelMeta[dp].target += (1 if up else -1) * 360.0 / self.n_positions
+        self.pulseCycle()
+
+        self.angles[1] += (1 if up else -1) * 360.0 / self.n_positions
 
         self.updateModuleHaptics(is_wheel_mode)
 
@@ -660,6 +668,10 @@ class ActionEngine(QObject):
         Update haptics config on settings change
         """
         self.updateModuleHaptics(self.getState() == AppState.WHEEL)
+        if self.linear_mode_enabled:
+            self.accelTime.setInterval(self.conf["acceleration"]["linearRefreshTime"])
+        else:
+            self.accelTime.setInterval(self.conf["acceleration"]["pulseRefreshTime"])
 
     def generatePulse(self, dpulse: DevicePulse, is_wheel_mode: bool):
         """
@@ -675,9 +687,7 @@ class ActionEngine(QObject):
         pulse = Pulse()
         pulse.type = dpulse.type
         pulse.up = dpulse.up
-
-        self.logger.debug(
-            "Pulse: " + str(dpulse.type) + "; virtual: " + str(dpulse._virtual) + "; cmd: " + str(dpulse.command))
+        pulse.actions = tuple(dpulse.actions)
 
         if dpulse._virtual:
             pulse.virtual = True

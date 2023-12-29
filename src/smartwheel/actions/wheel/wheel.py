@@ -21,8 +21,8 @@ class WheelAction(BaseWheelAction):
             if pulse.virtual:
                 wheel.processKey(pulse)
                 return
-            pulse.click = True
+            # pulse.click = True
             Classes.ActionEngine().angleChanged(pulse.up)
-            if Classes.ActionEngine().getState() == AppState.MODULE:
-                wheel.quickSwitch(pulse)
+            # if Classes.ActionEngine().getState() == AppState.MODULE:
+            #     wheel.quickSwitch(pulse)
 

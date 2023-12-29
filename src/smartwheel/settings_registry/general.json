@@ -9,7 +9,8 @@
     {"name": "Application", "options": [ 
       {"name": "FPS", "type": "int", "min": 1, "max": 1000, "module": "canvas", "prop": "fps"},
       {"name": "Log FPS (INFO log)", "type": "bool", "module": "canvas", "prop": "logFPS"},
-      {"name": "Stabilize FPS", "type": "bool", "module": "canvas", "prop": "stabilizeFPS"},
+      {"name": "Stabilize FPS counter", "type": "bool", "module": "canvas", "prop": "stabilizeFPS"},
+      {"name": "Sleep between frames", "type": "bool", "module": "canvas", "prop": "enableSleep"},
       {"name": "FPS stabilizer window", "type": "int", "min": 1, "max": 10000, "module": "canvas", "prop": "fpsFramesSmooth"},
       {"name": "Logging level", "type": "combo", "options": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], "module": "canvas", "prop": "logging"},
       {"name": "Current FPS", "type": "watch", "module": "canvas", "prop": "real_fps"}

@@ -66,6 +66,9 @@ class RootCanvas(QObject):
         self.exec_window = 0
         self.exec_times = queue.Queue()
         self.conf["real_fps"] = 0.0
+        self.start_time = None
+        self.sleep_time = None
+        self.e_time = None
 
         self.startThreads()
 
@@ -398,14 +401,21 @@ class RootCanvas(QObject):
         if common.doctor.startupMode == common.StartupMode.Emergency:
             return
 
-        if self.conf["stabilizeFPS"]:
-            sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)
-        else:
-            sleep_time = 1 / self.conf["fps"]
+        # Check if it's the first run
+        if self.start_time is not None:
+            # Stop measurements, calculate execution time
+            self.e_time = (time.time_ns() - self.start_time) / 1000000000  # seconds
 
-        time.sleep(sleep_time)
+            if self.conf["stabilizeFPS"]:
+                self.sleep_time = max(1 / self.conf["fps"] - self.exec_time, 0)
+            else:
+                self.sleep_time = 1 / self.conf["fps"]
 
-        start_time = time.time_ns()
+            if self.conf["enableSleep"]:
+                time.sleep(self.sleep_time)
+
+        # Start measurements
+        self.start_time = time.time_ns()
 
         try:
             self.conf["modules"][0]["class"].draw(qp)  # render wheel
@@ -416,33 +426,32 @@ class RootCanvas(QObject):
             self.fixConfig.emit(common.doctor.broken_config, common.doctor.broken_key)
             return
 
-        e_time = (time.time_ns() - start_time) / 1000000000  # seconds
-
         HandlersApi.watch.emit()
 
-        if self.conf["stabilizeFPS"]:
-            self.conf["real_fps"] = str(round(1 / max(sleep_time + self.exec_time, 0.0000001), 1))
-            if self.conf["logFPS"]:
-                self.logger.info(
-                    "FPS(AVG): "
-                    + self.conf["real_fps"]
-                )
-            self.calculateSmoothFPS(e_time)
+        if self.sleep_time is not None:
+            if self.conf["stabilizeFPS"]:
+                self.conf["real_fps"] = str(round(1 / max(self.sleep_time + self.exec_time, 0.0000001), 1))
+                if self.conf["logFPS"]:
+                    self.logger.info(
+                        "FPS(AVG): "
+                        + self.conf["real_fps"]
+                    )
+                self.calculateSmoothFPS(self.e_time)
 
-        else:
-            self.conf["real_fps"] = str(round(1 / (sleep_time + e_time), 1))
-            if self.conf["logFPS"]:
-                self.logger.info("FPS: " + self.conf["real_fps"])
+            else:
+                self.conf["real_fps"] = str(round(1 / (self.sleep_time + self.e_time), 1))
+                if self.conf["logFPS"]:
+                    self.logger.info("FPS: " + self.conf["real_fps"])
 
         m = self.getWheelModule()
         cache = self.updateIconCache()
         if (
-            self.conf["modules"][0]["class"].is_anim_running
-            or (
+                self.conf["modules"][0]["class"].is_anim_running
+                or (
                 m is not None
                 and hasattr(m["class"], "is_anim_running")
                 and m["class"].is_anim_running
-            )
-            or cache
+        )
+                or cache
         ):
             self.update_func()

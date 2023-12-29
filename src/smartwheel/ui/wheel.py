@@ -12,7 +12,7 @@ from smartwheel import config, gui_tools
 from smartwheel.tools import merge_dicts
 from smartwheel.ui.base import BaseUIElem
 from smartwheel.api.app import Classes
-from smartwheel.api.action import Pulse
+from smartwheel.api.action import Pulse, CommandActions
 
 
 class Section:
@@ -219,7 +219,8 @@ class UIElem(BaseUIElem):
                 self.conf["sectionsHideTimeout"]
                 + self.conf["sectionsAnimationDuration"]
             )
-        self.showSections()
+        if not pulse.virtual:
+            self.showSections()
         # self.sections_timer.singleShot(self.conf["sectionsHideTimeout"] + self.conf["sectionsAnimationDuration"], self.hideSections)
         # self.startSectionsAnimation(True)
 

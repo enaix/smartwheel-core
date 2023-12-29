@@ -139,10 +139,16 @@ class Pulse:
     False if this pulse is created by the hardware and not by action engine cycle
     """
 
-    def __init__(self, pulse_type=None, click=True, step=None, target=None, velocity=None, up=None):
+    actions: tuple[CommandActions] = None
+    """
+    Tuple containing actions to execute
+    """
+
+    def __init__(self, pulse_type=None, click=True, step=None, target=None, velocity=None, up=None, actions=None):
         self.type = pulse_type
         self.click = click
         self.step = step
         self.target = target
         self.velocity = velocity
         self.up = up
+        self.actions = actions

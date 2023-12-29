@@ -130,6 +130,7 @@
         "actionEngineConfig": "actionengine.json",
         "fps": 60,
         "stabilizeFPS": true,
+        "enableSleep": true,
         "fpsFramesSmooth": 10,
         "logFPS": false,
         "logging": "INFO",

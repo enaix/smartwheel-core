@@ -471,6 +471,7 @@
         "gravity": 27.0,
         "friction": 5.0,
         "pulseRefreshTime": 50,
+        "linearRefreshTime": 20,
         "deadzone": 1.0,
         "maxStopAccel": 3.0,
         "moduleSections": 20,
