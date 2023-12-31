@@ -100,12 +100,12 @@ class Config(QObject):
 
         self._fixStrategy = common.doctor.defaultMergeStrategy
         common.config_manager.save.connect(self.saveConfig)
-        common.config_manager.updated.connect(self.__updated)
-        common.config_manager.batchUpdate.connect(self.__batchUpdate)
+        common.config_manager.updated.connect(self.onUpdated)
+        common.config_manager.batchUpdate.connect(self.onBatchUpdate)
         # We assume that all configs are in the same thread as settings
         common.config_manager.defaults.connect(self.loadDefaults)
-        common.config_manager.merge.connect(self.__merge)
-        common.config_manager.batchDefaults.connect(self.__batchDefaults)
+        common.config_manager.merge.connect(self.doMerge)
+        common.config_manager.batchDefaults.connect(self.doBatchDefaults)
         self.keyError.connect(common.doctor.configKeyError)
 
     def __fetchParentMeta(self):
@@ -192,7 +192,7 @@ class Config(QObject):
         self.c[key] = newvalue
 
     @pyqtSlot(list)
-    def __updated(self, key: list[str]):
+    def onUpdated(self, key: list[str]):
         """
         Call the update signal if the property is updated
 
@@ -211,7 +211,7 @@ class Config(QObject):
         return False
 
     @pyqtSlot(list)
-    def __batchUpdate(self, keys: list[list[str]]):
+    def onBatchUpdate(self, keys: list[list[str]]):
         """
         Call the update signal if multiple properties may be updated
 
@@ -221,14 +221,19 @@ class Config(QObject):
             Updated nested keys (see __updated)
         """
         for key in keys:
-            if self.__updated(key):
+            if self.onUpdated(key):
                 return True
         return False
 
     @pyqtSlot(list)
-    def __batchDefaults(self, keys: list[list[str]]):
+    def doBatchDefaults(self, keys: list[list[str]]):
         """
         Set specified keys to their defaults
+
+        Parameters
+        ==========
+        keys
+            Keys to set to default (see __updated)
         """
         if (self.default_config_file is None or self.config_file is None) and self.defaults is None:
             return
@@ -519,7 +524,7 @@ class Config(QObject):
             json.dump(defaults, f, indent=4)
 
     @pyqtSlot()
-    def __merge(self):
+    def doMerge(self):
         """
         Execute merge with the defaults. Should be called from common module
         """

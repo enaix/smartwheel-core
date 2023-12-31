@@ -89,8 +89,6 @@ class RootWindow(QMainWindow):
         self.loadClasses()
         self.loadSerial()
 
-
-
         self.initUI()
 
         self.postStart()
