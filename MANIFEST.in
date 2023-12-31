@@ -1,2 +1,3 @@
 recursive-include src/smartwheel *.json *.png *.svg
 prune _build
+prune src/smartwheel/cache
