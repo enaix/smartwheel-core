@@ -71,6 +71,9 @@ class ModulesLoader(BaseHandler):
                 form = HandlersApi.externalRegistries.get(mod["registry"])
                 if form is not None:
                     options.clicked.connect(form.show)
+                else:
+                    self.logger.error("Could not find " + mod["registry"] + " in external registries list")
+                    self.logger.debug("Available external registries: " + HandlersApi.externalRegistries.__str__())
                 # handler = self.parent_obj().handlers.get(mod["handler"])
                 # if handler is not None:
                 # module_edit = handler.initElem(mod)

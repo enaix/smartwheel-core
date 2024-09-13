@@ -1,0 +1,26 @@
+{
+    "icon_path": "radio.svg",
+    "frequencyFont": "Ubuntu",
+    "frequencyFontSize": 40,
+    "maxScrollSpeed": 50.0,
+    "frequencyQuant": "100.0;500.0",
+    "gqrx": {
+        "listenerAddr": "localhost:7356"
+    },
+    "actions": {
+        "scroll.up": [
+            {
+                "action": "custom",
+                "repeat": 0,
+                "comment": "Frequency up"
+            }
+        ],
+        "scroll.down": [
+            {
+                "action": "custom",
+                "repeat": 0,
+                "comment": "Frequency down"
+            }
+        ]
+    }
+}

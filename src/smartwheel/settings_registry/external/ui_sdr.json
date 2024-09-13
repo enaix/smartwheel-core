@@ -1,0 +1,15 @@
+{
+    "name": "ui.sdr",
+    "items": [
+        {"name": "Highest scrolling speed", "type": "float", "min": 0.0, "max": 10000.0, "module": "ui.sdr", "prop": "maxScrollSpeed"},
+        {"name": "Frequency quantization (KHz)", "type": "string", "module": "ui.sdr", "prop": "frequencyQuant"},
+        {"type": "text", "text": "Must be set in ascending order, separated with ;"},
+        {"name": "Gqrx server address:port", "type": "string", "module": "ui.sdr", "prop": "gqrx.listenerAddr"},
+        {"name": "Font size", "type": "int", "min": 1, "max": 1000, "module": "ui.sdr", "prop": "frequencyFontSize"},
+        {"name": "Font", "type": "string", "module": "ui.sdr", "prop": "frequencyFont"},
+        {"type": "text", "text": "Debug"},
+        {"name": "Pulse frequency step", "type": "watch", "module": "ui.sdr", "prop": "debug.lastFreqStep", "noWarn": true},
+        {"name": "Pulse scrolling velocity", "type": "watch", "module": "ui.sdr", "prop": "debug.lastVel", "noWarn": true},
+        {"name": "Frequency quant list", "type": "watch", "module": "ui.sdr", "prop": "debug.quantList", "noWarn": true}
+    ]
+}

@@ -35,6 +35,13 @@
 		        "title": "MIDI device simulator",
 		        "description": "Use your picker as a MIDI device",
                 "registry": "ui_midi"
+            },
+            {
+                "name": "ui.sdr",
+                "config": "sdr.json",
+                "title": "SDR Frequency plugin",
+                "description": "Simple frequency plugin for Gqrx",
+                "registry": "ui_sdr"
             }
         ],
         "wheelModules": [
@@ -55,6 +62,9 @@
             },
             {
                 "name": "ui.midi"
+            },
+            {
+                "name": "ui.sdr"
             }
         ],
         "internalModules": [
@@ -108,7 +118,8 @@
             0,
 	        1,
             2,
-            3
+            3,
+            4
         ],
         "internalModulesLoad": [
             0,
