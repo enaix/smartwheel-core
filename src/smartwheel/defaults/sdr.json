@@ -3,8 +3,15 @@
     "frequencyFont": "Ubuntu",
     "frequencyFontSize": 40,
     "maxScrollSpeed": 50.0,
-    "frequencyQuant": "100.0;500.0",
+    "frequencyQuant": "500;1500;3000",
+    "freqDotRadius": 7.0,
+    "freqDotSpacing": 2.0,
+    "freqDotLineWidth": 2.0,
+    "angleDotRadius": 5.0,
+    "angleDotOffset": 70.0,
+    "angleDotSpeedMul": 0.5,
     "gqrx": {
+        "pollingRate": 100,
         "listenerAddr": "localhost:7356"
     },
     "actions": {
@@ -22,5 +29,12 @@
                 "comment": "Frequency down"
             }
         ]
+    },
+    "haptics": {
+        "moduleSections": 20,
+        "clickAccelCoeff": 15.0,
+        "gravity": 50.0,
+        "friction": 20.0,
+        "maxAccel": 300.0
     }
 }

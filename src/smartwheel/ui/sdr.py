@@ -5,11 +5,12 @@ from smartwheel.ui.base import BaseUIElem
 from smartwheel.tools import merge_dicts
 from smartwheel.api.action import CommandActions, Pulse
 import socket
+import math
 import logging
 
 from PyQt6.QtGui import QPen, QBrush, QColor, QFont, QPainter
 from PyQt6.QtWidgets import QMessageBox
-from PyQt6.QtCore import Qt, QRect, pyqtSlot, QTimer, QObject
+from PyQt6.QtCore import Qt, QRect, pyqtSlot, QTimer, QObject, QPointF
 
 
 class SDRInfo:
@@ -48,7 +49,9 @@ class UIElem(BaseUIElem):
         self.conf.updated.connect(self.updateCache)
         self.updateVars()
         self.updateCache()
-        self.plugin = GQRXPlugin(self.conf["gqrx"]["listenerAddr"], 100)
+        self.last_quant = 0
+        self.last_angle = 0.0
+        self.plugin = GQRXPlugin(self.conf["gqrx"]["listenerAddr"], self.conf["gqrx"]["pollingRate"])
 
     def loadConfig(self):
         self.conf = config.Config(self.config_file)
@@ -72,7 +75,7 @@ class UIElem(BaseUIElem):
         self.step = self.conf["maxScrollSpeed"] / len(self.quant)
 
     def processFrequencyQuant(self) -> bool:
-        quant_default = [100.0]  # 100 khz
+        quant_default = [1000]  # 1 khz
         quant_new = []
         for x in self.conf["frequencyQuant"].split(';'):
             x = x.strip()
@@ -92,6 +95,34 @@ class UIElem(BaseUIElem):
         self.quant = quant_new  # Apply changes
         return True
 
+    def draw_speed_overlay(self, qp: QPainter, offset=None):
+        pen_accent = QPen(QColor(self.conf["bgWheelColor"]))
+        brush_accent = QBrush(QColor(self.conf["bgWheelColor"]))
+        pen = QPen(QColor(self.conf["bgWheelColor"]))
+        pen.setWidthF(self.conf["freqDotLineWidth"])
+
+        if len(self.quant) % 2 == 0:
+            n = max(len(self.quant) - 1, 1) / 2.0
+        else:
+            n = len(self.quant) // 2
+
+        for i in range(len(self.quant)):
+            if i <= self.last_quant:
+                qp.setPen(pen_accent)
+                qp.setBrush(brush_accent)
+            else:
+                qp.setPen(pen)
+                qp.setBrush(Qt.BrushStyle.NoBrush)
+
+            x_offset = (i - n) * 2.0 * self.conf["freqDotRadius"] * self.conf["freqDotSpacing"]
+            qp.drawEllipse(QPointF(self.conf["cx"] + x_offset, (self.conf["cy"] * 4) // 3 + offset // 8),
+                           self.conf["freqDotRadius"], self.conf["freqDotRadius"])
+
+        qp.setPen(pen_accent)
+        qp.setBrush(brush_accent)
+        qp.drawEllipse(QPointF(self.conf["cx"] + math.cos(math.radians(self.last_angle * self.conf["angleDotSpeedMul"])) * (self.conf["width"] // 2 - self.conf["angleDotOffset"] + offset / 2.0),
+                               self.conf["cy"] + math.sin(math.radians(self.last_angle * self.conf["angleDotSpeedMul"])) * (self.conf["height"] // 2 - self.conf["angleDotOffset"] + offset / 2.0)), self.conf["angleDotRadius"], self.conf["angleDotRadius"])
+
     def draw(self, qp: QPainter, offset=None):
         pen = QPen(QColor(self.conf["majorTextColor"]))
         # max_offset = (self.conf["width"]) / 4.0  # TODO move to common
@@ -99,19 +130,25 @@ class UIElem(BaseUIElem):
         # font.setPointSizeF(float(self.conf["frequencyFontSize"]) - (((max_offset - offset) / max_offset) * 2.0))
         qp.setPen(pen)
         qp.setFont(font)
-
         qp.drawText(QRect(self.conf["cx"] - self.text_width // 2, self.conf["cy"] - self.text_height // 2,
                           self.text_width, self.text_height), Qt.AlignmentFlag.AlignCenter, self.plugin.info.to_str())
+        self.draw_speed_overlay(qp, offset)
 
     def processKey(self, event: dict, pulse: Pulse):
+        quant = min(int(abs(pulse.velocity) / self.step), len(self.quant) - 1)
+        self.last_angle = pulse.step
+        if pulse.velocity == 0.0:
+            self.last_quant = 0
+
         if not pulse.click:
             return
 
         if event["call"] == CommandActions.scroll:
-            freq = self.quant[min(int(pulse.velocity / self.step), len(self.quant) - 1)] * (1 if pulse.up else -1)  # quantized
+            self.last_quant = quant
+            freq = self.quant[quant] * (1 if pulse.up else -1)  # quantized
             self.conf["debug"]["lastFreqStep"] = freq
             self.conf["debug"]["lastVel"] = pulse.velocity
-            self.logger.debug("Set frequency " + str(freq) + "KHz" + "; vel: " + str(pulse.velocity))
+            self.logger.debug("Set frequency " + str(freq) + " Hz" + "; vel: " + str(pulse.velocity))
             self.plugin.set_freq_delta(freq)
 
 
@@ -162,7 +199,10 @@ class GQRXPlugin(QObject):
 
     def send(self, msg: str):
         msg += '\n'
-        self.sock.sendall(msg.encode("utf-8"))
+        try:
+            self.sock.sendall(msg.encode("utf-8"))
+        except socket.error as e:
+            self.connected = False
 
     def recv(self):
         res_data = bytes()
@@ -200,9 +240,10 @@ class GQRXPlugin(QObject):
                     # Unknown cmd
                     self.logger.warning("gqrx : unknown cmd : " + c_s)
 
-    def set_freq_delta(self, delta_khz: float):
-        hz = int(delta_khz * 1000)
-        self.info.from_hz(self.info.frequency_hz + hz)
+    def set_freq_delta(self, delta_hz: int):
+        if self.info.frequency_hz is None:
+            return
+        self.info.from_hz(self.info.frequency_hz + delta_hz)
         cmd = "F " + str(self.info.frequency_hz)
         self.send(cmd)
 
