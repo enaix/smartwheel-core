@@ -141,8 +141,8 @@ class UIElem(BaseUIElem):
         self.height = ((self.conf["height"] + offset) * 3) // 4
         self.pix_width = (self.conf["width"] * 3) // 16
         self.pix_height = (self.conf["height"] * 3) // 16
-        self.text_width = ((self.conf["width"] + offset) * 3) // 4
-        self.text_height = (self.conf["height"] + offset) // 8
+        self.text_width = ((self.conf["width"] + offset) * 3.0) / 4.0
+        self.text_height = (self.conf["height"] + offset) / 8.0
 
     @pyqtSlot(list)
     def updateText(self, text):
@@ -155,9 +155,9 @@ class UIElem(BaseUIElem):
         qp.setPen(pen)
         qp.setFont(font)
         qp.drawText(
-            QRect(
-                self.conf["cx"] - self.text_width // 2,
-                self.conf["cy"] - self.text_height // 2,
+            QRectF(
+                self.conf["cx"] - self.text_width / 2.0,
+                self.conf["cy"] - self.text_height / 2.0,
                 self.text_width,
                 self.text_height * pos,
             ),
