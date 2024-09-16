@@ -13,7 +13,7 @@
     "gqrx": {
         "pollingRate": 100,
         "listenerAddr": "localhost:7356",
-        "freqFetchTimeout": 100
+        "freqFetchTimeout": 300
     },
     "actions": {
         "scroll.up": [

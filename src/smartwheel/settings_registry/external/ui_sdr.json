@@ -18,10 +18,14 @@
         {"name": "Font size", "type": "int", "min": 1, "max": 1000, "module": "ui.sdr", "prop": "frequencyFontSize"},
         {"name": "Font", "type": "string", "module": "ui.sdr", "prop": "frequencyFont"},
         {"type": "text", "text": "Debug"},
+        {"name": "Frequency (Hz)", "type": "watch", "module": "ui.sdr", "prop": "debug.freqHz", "noWarn": true},
         {"name": "Pulse frequency step", "type": "watch", "module": "ui.sdr", "prop": "debug.lastFreqStep", "noWarn": true},
         {"name": "Pulse scrolling velocity", "type": "watch", "module": "ui.sdr", "prop": "debug.lastVel", "noWarn": true},
         {"name": "Frequency quant list", "type": "watch", "module": "ui.sdr", "prop": "debug.quantList", "noWarn": true},
         {"name": "Connected to Gqrx", "type": "watch", "module": "ui.sdr", "prop": "debug.connected", "noWarn": true},
-        {"name": "Gqrx socket errno", "type": "watch", "module": "ui.sdr", "prop": "debug.socketErrno", "noWarn": true}
+        {"name": "Gqrx socket errno", "type": "watch", "module": "ui.sdr", "prop": "debug.socketErrno", "noWarn": true},
+        {"name": "Gqrx socket data in", "type": "watch", "module": "ui.sdr", "prop": "debug.socketActivity", "noWarn": true},
+        {"name": "Gqrx socket activity", "type": "watch", "module": "ui.sdr", "prop": "debug.socketAllActivity", "noWarn": true},
+        {"name": "Gqrx last socket activity", "type": "watch", "module": "ui.sdr", "prop": "debug.lastSocketMsg", "noWarn": true}
     ]
 }

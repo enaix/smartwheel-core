@@ -14,7 +14,7 @@ from PyQt6.QtGui import *
 from smartwheel import common, config, gui_tools
 from smartwheel.actionengine import ActionEngine
 from smartwheel.tools import merge_dicts
-from smartwheel.api.app import Classes
+from smartwheel.api.app import Classes, Common
 from smartwheel.api.settings import HandlersApi
 
 
@@ -42,6 +42,7 @@ class RootCanvas(QObject):
         self.common_config = None
         self.config_dir = config_dir
         self.conf = WConfig
+        Common.DebugMode = self.conf["debugMode"]
         self.update_func = update_func
         self.logger = logging.getLogger(__name__)
         self.loadCommonConf()

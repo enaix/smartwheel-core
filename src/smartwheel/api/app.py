@@ -57,6 +57,12 @@ class _Common(QObject):
     Base directory of the application
     """
 
+    DebugMode: bool = None
+    """
+    Is debug mode enabled in the app
+    This parameter enables accurate watchdogs logging
+    """
+
     def __init__(self):
         super(_Common, self).__init__()
 

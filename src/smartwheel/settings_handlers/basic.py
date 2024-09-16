@@ -336,7 +336,10 @@ class Watcher(QLabel):
         elif ok and not self.isEnabled():
             self.setDisabled(False)
 
-        self.setText(str(var))
+        if type(var) is bool:
+            self.setText("●" if var else "○")
+        else:
+            self.setText(str(var))
         return ok
 
 

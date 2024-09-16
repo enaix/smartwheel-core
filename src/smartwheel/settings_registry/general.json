@@ -13,6 +13,8 @@
       {"name": "Sleep between frames", "type": "bool", "module": "canvas", "prop": "enableSleep"},
       {"name": "FPS stabilizer window", "type": "int", "min": 1, "max": 10000, "module": "canvas", "prop": "fpsFramesSmooth"},
       {"name": "Logging level", "type": "combo", "options": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], "module": "canvas", "prop": "logging"},
+      {"name": "Variables watchdog debug mode", "type": "bool", "module": "canvas", "prop": "debugMode"},
+      {"name": "Log watchdog updates in debug", "type": "bool", "module": "canvas", "prop": "logWatchdogWake"},
       {"name": "Current FPS", "type": "watch", "module": "canvas", "prop": "real_fps"}
     ]}
   ]

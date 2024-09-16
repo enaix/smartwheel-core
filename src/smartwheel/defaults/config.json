@@ -145,6 +145,8 @@
         "fpsFramesSmooth": 10,
         "logFPS": false,
         "logging": "INFO",
+        "debugMode": false,
+        "logWatchdogWake": false,
         "brushes_dir": "backgrounds",
         "cacheDir": "cache",
 	    "settingsIcon": "settings.svg",

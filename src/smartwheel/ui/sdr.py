@@ -4,6 +4,8 @@ from smartwheel import config
 from smartwheel.ui.base import BaseUIElem
 from smartwheel.tools import merge_dicts
 from smartwheel.api.action import CommandActions, Pulse
+from smartwheel.api.settings import HandlersApi
+from smartwheel.api.app import Common
 import socket
 import math
 import logging
@@ -127,6 +129,7 @@ class UIElem(BaseUIElem):
                                self.conf["cy"] + math.sin(math.radians(self.last_angle * self.conf["angleDotSpeedMul"])) * (self.conf["height"] // 2 - self.conf["angleDotOffset"] + offset / 2.0)), self.conf["angleDotRadius"], self.conf["angleDotRadius"])
 
     def draw(self, qp: QPainter, offset=None):
+        self.plugin.debug_blink()
         pen = QPen(QColor(self.conf["majorTextColor"]))
         # max_offset = (self.conf["width"]) / 4.0  # TODO move to common
         font = QFont(self.conf["frequencyFont"], self.conf["frequencyFontSize"])
@@ -180,15 +183,28 @@ class GQRXPlugin(QObject):
         self.connected = False
         self.msgs = Queue()
         self.freq_cmd = None
+        self.blinked = False
         self.freq_set_time = datetime.datetime.utcfromtimestamp(0)
         self.timer.start()
 
     @pyqtSlot()
     def run(self):
+        self.blinked = False
+        self.conf()["debug"]["socketActivity"] = False
+        self.conf()["debug"]["socketAllActivity"] = False
         self.connect()
         if self.connected:
             self.recv()
             self.process_cmd_queue()
+        HandlersApi.watchDebug.emit()
+
+    def debug_blink(self):
+        if not Common.DebugMode or self.blinked:
+            return
+        self.blinked = True
+        self.conf()["debug"]["socketActivity"] = False
+        self.conf()["debug"]["socketAllActivity"] = False
+        HandlersApi.watchDebug.emit()
 
     def process_cmd_queue(self):
         # Send next cmd
@@ -250,28 +266,38 @@ class GQRXPlugin(QObject):
 
     def parse_cmd(self, cmd: str):
         commands = cmd.split('\n')
+        self.conf()["debug"]["lastSocketMsg"] = commands
+        # self.logger.debug("Incoming packet: " + str(commands))
         for c in commands:
             c_s = c.strip()
             if not c_s:
                 continue
 
+            self.conf()["debug"]["socketAllActivity"] = True
             if c_s == "RPRT 0":
                 pass  # Command ok
             else:
                 try:
                     hz = int(c_s)
-                    self.info.from_hz(hz)
+                    self.conf()["debug"]["socketActivity"] = True
+                    self.update_hz(hz)
                 except ValueError:
                     # Unknown cmd
                     self.logger.warning("gqrx : unknown cmd : " + c_s)
 
+        # HandlersApi.watchDebug.emit()  # Update socketActivity
+
     def set_freq_delta(self, delta_hz: int):
         if self.info.frequency_hz is None:
             return
-        self.info.from_hz(self.info.frequency_hz + delta_hz)
+        self.update_hz(self.info.frequency_hz + delta_hz)
         cmd = "F " + str(self.info.frequency_hz)
         # self.add_cmd_to_queue(cmd)
         self.freq_cmd = cmd
+
+    def update_hz(self, hz: int):
+        self.conf()["debug"]["freqHz"] = hz
+        self.info.from_hz(hz)
 
     def __del__(self):
         self.sock.close()

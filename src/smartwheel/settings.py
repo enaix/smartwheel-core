@@ -91,6 +91,8 @@ class SettingsWindow(QWidget):
         self.old_variables = []
         self.watchers = []
         HandlersApi.watch.connect(self.watchVariables)
+        if Common.DebugMode:
+            HandlersApi.watchDebug.connect(self.watchDebug)
         HandlersApi._addVariableWatch = self.addVariableWatch
 
         HandlersApi.externalRegistries = self.externalRegistries
@@ -786,6 +788,15 @@ class SettingsWindow(QWidget):
             scroll.setWidget(wrapper)
             scroll.setWindowTitle("Settings")
             self.externalRegistries[reg] = scroll
+
+    @pyqtSlot()
+    def watchDebug(self):
+        """
+        Watch variables in debug mode
+        """
+        if self.settings["canvas"]["logWatchdogWake"]:
+            self.logger.debug("watchDebug update called")
+        self.watchVariables()
 
     @pyqtSlot()
     def watchVariables(self):

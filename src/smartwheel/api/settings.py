@@ -70,6 +70,13 @@ class _HandlersApi(QObject):
     watch: pyqtSignal = pyqtSignal()
     """
     Watch for the changed variables and update them in settings
+    Modules should call watchDebug instead
+    """
+
+    watchDebug: pyqtSignal = pyqtSignal()
+    """
+    Manually update the variables, only enabled in Debug mode
+    May increase cpu usage
     """
 
     icons: dict[str, QIcon] = None
