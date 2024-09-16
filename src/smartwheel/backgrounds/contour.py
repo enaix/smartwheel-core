@@ -87,14 +87,16 @@ class ContourBackground(Background):
         def perlin_gen(x, y):
             return perlin(x, y, seed=self.conf["seed"])
 
-        # Generating data
-        x = np.linspace(0, 5, 50)
-        y = np.linspace(0, 5, 50)
-        x, y = np.meshgrid(x, y)
+        def gen_linspace(scale):
+            x = np.linspace(0, scale, 50)
+            y = np.linspace(0, scale, 50)
+            return np.meshgrid(x, y)
 
         if self.conf["generator"] == "Perlin":
+            x, y = gen_linspace(self.conf["scale"])
             z = perlin_gen(x, y)
         else:
+            x, y = gen_linspace(self.conf["scale"] * 5)
             z = sine_family(x, y)
 
         # Plotting the contour plot

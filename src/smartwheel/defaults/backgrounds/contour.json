@@ -2,6 +2,7 @@
     "useCache": true,
     "backgroundColor": "#ffffff",
     "seed": 42,
+    "scale": 1,
     "randomSeed": false,
     "generator": "Trigonometric"
 }

@@ -101,9 +101,9 @@ class UIElem(BaseUIElem):
         return True
 
     def draw_speed_overlay(self, qp: QPainter, offset=None):
-        pen_accent = QPen(QColor(self.conf["bgWheelColor"]))
-        brush_accent = QBrush(QColor(self.conf["bgWheelColor"]))
-        pen = QPen(QColor(self.conf["bgWheelColor"]))
+        pen_accent = QPen(QColor(self.conf["wheelIconColor"]))
+        brush_accent = QBrush(QColor(self.conf["wheelIconColor"]))
+        pen = QPen(QColor(self.conf["wheelIconColor"]))
         pen.setWidthF(self.conf["freqDotLineWidth"])
 
         if len(self.quant) % 2 == 0:

@@ -5,6 +5,7 @@
     {"name": "Random seed", "type": "bool", "module": "brushes.contour", "prop": "randomSeed"},
     {"name": "Background color", "type": "color", "module": "brushes.contour", "prop": "backgroundColor", "preset": true},
     {"name": "Seed", "type": "int", "min": 0, "max": 10000000, "module": "brushes.contour", "prop": "seed", "preset": true},
+    {"name": "Scale", "type": "int", "min": 1, "max": 100, "module": "brushes.contour", "prop": "scale", "preset": true},
     {"name": "Terrain generator", "type": "combo", "options": ["Trigonometric", "Perlin"], "module": "brushes.contour", "prop": "generator", "preset": true}
   ]
 }

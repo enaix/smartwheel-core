@@ -178,7 +178,7 @@ class UIElem(BaseUIElem):
         self.qp.setBrush(brush)
         self.qp.setPen(pen)
         self.qp.drawEllipse(
-            QPoint(self.conf["cx"], self.conf["cy"]), width // 2, height // 2
+            QPointF(self.conf["cx"], self.conf["cy"]), width / 2.0, height / 2.0
         )
 
         self.drawSections(width, circleWidth)
@@ -349,7 +349,7 @@ class UIElem(BaseUIElem):
         self.qp.setOpacity(opac)
         brush = QBrush(QColor(self.conf["bgWheelColor"]))
         self.qp.setBrush(brush)
-        self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
+        self.qp.drawEllipse(QPointF(self.conf["cx"], self.conf["cy"]), cw / 2.0, cw / 2.0)
 
         # brush = self.parent().brushes.get(self.conf["backgroundStyle"])
         # if brush is None:
@@ -358,7 +358,7 @@ class UIElem(BaseUIElem):
         )
 
         self.qp.setBrush(brush)
-        self.qp.drawEllipse(QPoint(self.conf["cx"], self.conf["cy"]), cw // 2, cw // 2)
+        self.qp.drawEllipse(QPointF(self.conf["cx"], self.conf["cy"]), cw / 2.0, cw / 2.0)
 
         self.qp.setOpacity(1.0)
         # self.qp.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
@@ -476,9 +476,9 @@ class UIElem(BaseUIElem):
         self.qp.setBrush(brush)
 
         self.qp.drawEllipse(
-            QPoint(self.conf["cx"], self.conf["cy"]),
-            circleWidth // 2,
-            circleHeight // 2,
+            QPointF(self.conf["cx"], self.conf["cy"]),
+            circleWidth / 2.0,
+            circleHeight / 2.0,
         )
 
         # self.qp.setOpacity(1.0 - self._opacity / 255)
@@ -490,9 +490,9 @@ class UIElem(BaseUIElem):
 
         self.qp.setBrush(brush)
         self.qp.drawEllipse(
-            QPoint(self.conf["cx"], self.conf["cy"]),
-            circleWidth // 2,
-            circleHeight // 2,
+            QPointF(self.conf["cx"], self.conf["cy"]),
+            circleWidth / 2.0,
+            circleHeight / 2.0,
         )
         # self.qp.setOpacity(1.0)
         self.drawOverlays(1 - self._opacity / 255, circleWidth)
