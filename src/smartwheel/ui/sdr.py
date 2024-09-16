@@ -7,6 +7,9 @@ from smartwheel.api.action import CommandActions, Pulse
 import socket
 import math
 import logging
+from queue import Queue
+import weakref
+import datetime
 
 from PyQt6.QtGui import QPen, QBrush, QColor, QFont, QPainter
 from PyQt6.QtWidgets import QMessageBox
@@ -51,7 +54,7 @@ class UIElem(BaseUIElem):
         self.updateCache()
         self.last_quant = 0
         self.last_angle = 0.0
-        self.plugin = GQRXPlugin(self.conf["gqrx"]["listenerAddr"], self.conf["gqrx"]["pollingRate"])
+        self.plugin = GQRXPlugin(weakref.ref(self.conf))
 
     def loadConfig(self):
         self.conf = config.Config(self.config_file)
@@ -155,26 +158,29 @@ class UIElem(BaseUIElem):
 class GQRXPlugin(QObject):
     info = SDRInfo()
 
-    def __init__(self, addr: str, retry: int):
+    def __init__(self, conf: weakref.ref):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        addr_port = addr.split(':')
+        self.conf = conf
+        addr_port = self.conf()["gqrx"]["listenerAddr"].split(':')
         try:
             self.addr = addr_port[0]
             self.port = int(addr_port[1])
         except ValueError:
-            self.logger.error("Wrong server address:port : " + addr)
+            self.logger.error("Wrong server address:port : " + self.conf()["gqrx"]["listenerAddr"])
             self.addr = "127.0.0.1"
             self.port = 0
         # self.info.frequency = 100.0
         # self.info.unit = "MHz"
         self.timer = QTimer(self)
-        self.timer.setInterval(retry)
+        self.timer.setInterval(self.conf()["gqrx"]["pollingRate"])
         self.timer.timeout.connect(self.run)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setblocking(False)
-        #self.sock.settimeout(5.0)
         self.connected = False
+        self.msgs = Queue()
+        self.freq_cmd = None
+        self.freq_set_time = datetime.datetime.utcfromtimestamp(0)
         self.timer.start()
 
     @pyqtSlot()
@@ -182,7 +188,19 @@ class GQRXPlugin(QObject):
         self.connect()
         if self.connected:
             self.recv()
-            self.send("f")
+            self.process_cmd_queue()
+
+    def process_cmd_queue(self):
+        # Send next cmd
+        if self.freq_cmd is not None:
+            self.msgs.put(self.freq_cmd)
+            self.freq_cmd = None
+            self.freq_set_time = datetime.datetime.now()
+        if not self.msgs.empty():
+            self.send_to_socket(self.msgs.get())
+        # No frequency input
+        if datetime.datetime.now() - self.freq_set_time >= datetime.timedelta(milliseconds=self.conf()["gqrx"]["freqFetchTimeout"]):
+            self.add_cmd_to_queue("f")
 
     def connect(self):
         if self.connected:
@@ -190,19 +208,26 @@ class GQRXPlugin(QObject):
         try:
             self.sock.connect((self.addr, self.port))
         except socket.error as e:
+            self.conf()["debug"]["socketErrno"] = str(e)
+            self.conf()["debug"]["connected"] = False
             if not e.args[0] == errno.EISCONN:
                 self.connected = False
                 self.logger.debug("gqrx : conn refused : " + str(e))
                 return
+        self.conf()["debug"]["socketErrno"] = None
+        self.conf()["debug"]["connected"] = True
         self.connected = True
         self.logger.debug("gqrx : online!!!")
 
-    def send(self, msg: str):
+    def send_to_socket(self, msg: str):
         msg += '\n'
         try:
             self.sock.sendall(msg.encode("utf-8"))
         except socket.error as e:
             self.connected = False
+
+    def add_cmd_to_queue(self, msg: str):
+        self.msgs.put(msg)
 
     def recv(self):
         res_data = bytes()
@@ -231,7 +256,7 @@ class GQRXPlugin(QObject):
                 continue
 
             if c_s == "RPRT 0":
-                pass  # Frequency set ok
+                pass  # Command ok
             else:
                 try:
                     hz = int(c_s)
@@ -245,7 +270,8 @@ class GQRXPlugin(QObject):
             return
         self.info.from_hz(self.info.frequency_hz + delta_hz)
         cmd = "F " + str(self.info.frequency_hz)
-        self.send(cmd)
+        # self.add_cmd_to_queue(cmd)
+        self.freq_cmd = cmd
 
     def __del__(self):
         self.sock.close()

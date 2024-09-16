@@ -2,10 +2,13 @@
     "name": "ui.sdr",
     "items": [
         {"name": "Highest scrolling speed", "type": "float", "min": 0.0, "max": 10000.0, "module": "ui.sdr", "prop": "maxScrollSpeed"},
-        {"name": "Frequency quantization (Hz)", "type": "string", "module": "ui.sdr", "prop": "frequencyQuant"},
         {"type": "text", "text": "Must be set in ascending order, separated with ;"},
+        {"name": "Frequency quantization (Hz)", "type": "string", "module": "ui.sdr", "prop": "frequencyQuant"},
+        {"type": "text", "text": "Gqrx settings"},
         {"name": "Gqrx server address:port", "type": "string", "module": "ui.sdr", "prop": "gqrx.listenerAddr"},
         {"name": "Gqrx server polling rate", "type": "int", "min": 1, "max": 10000, "module": "ui.sdr", "prop": "gqrx.pollingRate"},
+        {"name": "Gqrx frequency update on no input (ms)", "type": "int", "min": 1, "max": 10000, "module": "ui.sdr", "prop": "gqrx.freqFetchTimeout"},
+        {"type": "text", "text": "UI settings"},
         {"name": "Dots radius", "type": "float", "min": 1.0, "max": 100.0, "module": "ui.sdr", "prop": "freqDotRadius"},
         {"name": "Dots spacing", "type": "float", "min": 0.1, "max": 100.0, "module": "ui.sdr", "prop": "freqDotSpacing"},
         {"name": "Dots stroke width", "type": "float", "min": 0.1, "max": 100.0, "module": "ui.sdr", "prop": "freqDotLineWidth"},
@@ -17,6 +20,8 @@
         {"type": "text", "text": "Debug"},
         {"name": "Pulse frequency step", "type": "watch", "module": "ui.sdr", "prop": "debug.lastFreqStep", "noWarn": true},
         {"name": "Pulse scrolling velocity", "type": "watch", "module": "ui.sdr", "prop": "debug.lastVel", "noWarn": true},
-        {"name": "Frequency quant list", "type": "watch", "module": "ui.sdr", "prop": "debug.quantList", "noWarn": true}
+        {"name": "Frequency quant list", "type": "watch", "module": "ui.sdr", "prop": "debug.quantList", "noWarn": true},
+        {"name": "Connected to Gqrx", "type": "watch", "module": "ui.sdr", "prop": "debug.connected", "noWarn": true},
+        {"name": "Gqrx socket errno", "type": "watch", "module": "ui.sdr", "prop": "debug.socketErrno", "noWarn": true}
     ]
 }

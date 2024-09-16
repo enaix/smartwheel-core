@@ -12,7 +12,8 @@
     "angleDotSpeedMul": 0.5,
     "gqrx": {
         "pollingRate": 100,
-        "listenerAddr": "localhost:7356"
+        "listenerAddr": "localhost:7356",
+        "freqFetchTimeout": 100
     },
     "actions": {
         "scroll.up": [
