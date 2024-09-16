@@ -129,7 +129,6 @@ class UIElem(BaseUIElem):
                                self.conf["cy"] + math.sin(math.radians(self.last_angle * self.conf["angleDotSpeedMul"])) * (self.conf["height"] // 2 - self.conf["angleDotOffset"] + offset / 2.0)), self.conf["angleDotRadius"], self.conf["angleDotRadius"])
 
     def draw(self, qp: QPainter, offset=None):
-        self.plugin.debug_blink()
         pen = QPen(QColor(self.conf["majorTextColor"]))
         # max_offset = (self.conf["width"]) / 4.0  # TODO move to common
         font = QFont(self.conf["frequencyFont"], self.conf["frequencyFontSize"])
@@ -183,28 +182,19 @@ class GQRXPlugin(QObject):
         self.connected = False
         self.msgs = Queue()
         self.freq_cmd = None
-        self.blinked = False
         self.freq_set_time = datetime.datetime.utcfromtimestamp(0)
         self.timer.start()
 
     @pyqtSlot()
     def run(self):
-        self.blinked = False
-        self.conf()["debug"]["socketActivity"] = False
-        self.conf()["debug"]["socketAllActivity"] = False
         self.connect()
         if self.connected:
             self.recv()
             self.process_cmd_queue()
         HandlersApi.watchDebug.emit()
-
-    def debug_blink(self):
-        if not Common.DebugMode or self.blinked:
-            return
-        self.blinked = True
+        # Reset state
         self.conf()["debug"]["socketActivity"] = False
         self.conf()["debug"]["socketAllActivity"] = False
-        HandlersApi.watchDebug.emit()
 
     def process_cmd_queue(self):
         # Send next cmd
@@ -301,5 +291,4 @@ class GQRXPlugin(QObject):
 
     def __del__(self):
         self.sock.close()
-        pass  # TODO send close signal and disconnect
 

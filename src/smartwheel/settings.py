@@ -8,7 +8,7 @@ import weakref
 import copy
 from queue import LifoQueue
 
-from PyQt6.QtCore import Qt, pyqtSlot, QSize
+from PyQt6.QtCore import Qt, pyqtSlot, QSize, QTimer
 from PyQt6.QtWidgets import (
     QFormLayout,
     QGroupBox,
@@ -92,6 +92,11 @@ class SettingsWindow(QWidget):
         self.watchers = []
         HandlersApi.watch.connect(self.watchVariables)
         if Common.DebugMode:
+            # self.watchTimer = QTimer()
+            # self.watchTimer.setInterval(90)
+            # self.watchTimer.setSingleShot(True)
+            # self.watchTimer.timeout.connect(self.debugBlink)
+
             HandlersApi.watchDebug.connect(self.watchDebug)
         HandlersApi._addVariableWatch = self.addVariableWatch
 
@@ -796,6 +801,14 @@ class SettingsWindow(QWidget):
         """
         if self.settings["canvas"]["logWatchdogWake"]:
             self.logger.debug("watchDebug update called")
+        self.watchVariables()
+        # self.watchTimer.start()
+
+    @pyqtSlot()
+    def debugBlink(self):
+        """
+        Update (blink) variables after watchDebug call
+        """
         self.watchVariables()
 
     @pyqtSlot()
