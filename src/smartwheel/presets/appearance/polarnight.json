@@ -1,6 +1,6 @@
 {
-    "name": "polardark",
-    "title": "PolarDark",
+    "name": "polarnight",
+    "title": "PolarNight",
     "props": {
         "ui.wheel.drawOverlayCircles": false,
         "ui.wheel.drawOverlayRects": false,
