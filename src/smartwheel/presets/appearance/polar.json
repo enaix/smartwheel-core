@@ -26,6 +26,7 @@
         "brushes.pattern.patternScale": 1.0,
         "brushes.contour.backgroundColor": "#ffffff",
         "brushes.contour.seed": 42,
+        "brushes.contour.scale": 1,
         "brushes.contour.generator": "Trigonometric"
     }
 }

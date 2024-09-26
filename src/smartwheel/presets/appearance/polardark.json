@@ -1,0 +1,32 @@
+{
+    "name": "polardark",
+    "title": "PolarDark",
+    "props": {
+        "ui.wheel.drawOverlayCircles": false,
+        "ui.wheel.drawOverlayRects": false,
+        "ui.wheel.overlayCirclesOpacity": 0.2,
+        "ui.wheel.overlayCirclesWidth": 10,
+        "ui.wheel.overlayCirclesColor": "#3a3a3a",
+        "ui.wheel.overlayRectsOpacity": 0.2,
+        "ui.wheel.overlayRectsWidth": 20,
+        "ui.wheel.overlayRectsColor": "#3a3a3a",
+        "common.bgWheelColor": "#262626",
+        "common.wheelTextureColor": "#262626",
+        "common.selectionWheelBG": "#262626",
+        "common.selectionWheelFG": "#424242",
+        "ui.wheel.pointerColor": "#e2e2e2",
+        "ui.wheel.wheelShadowColor": "#000000",
+        "common.wheelIconColor": "#ffffff",
+        "common.sectionsIconColor": "#ffffff",
+        "common.majorTextColor": "#ffffff",
+        "canvas.toolsIconColor": "#ffffff",
+        "canvas.toolsBackgroundColor": "#262626",
+        "ui.wheel.backgroundStyle": "contour",
+        "brushes.pattern.patternType": "Diagonal (right)",
+        "brushes.pattern.patternScale": 1.0,
+        "brushes.contour.backgroundColor": "#1c1c1c",
+        "brushes.contour.seed": 42,
+        "brushes.contour.scale": 1,
+        "brushes.contour.generator": "Trigonometric"
+    }
+}
